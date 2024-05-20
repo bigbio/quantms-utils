@@ -1,2 +1,2 @@
 # pyquantms
-A python library with scripts and helpers classes for quantms workflow
+A python library with script and helpers classes for quantms workflow

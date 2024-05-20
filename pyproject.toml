@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "pyquantms"
+version = "0.0.1"
+description = "Python scripts and helpers for the quantMS workflow"
+authors = ["Yasset Perez-Riverol", "Dai Chengxin"]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.poetry.dependencies]
+click = ">=7.0"
+pydantic = ">=1.10,<2"
+python = "^3.7"
+sdrf_pipelines = ">=0.0.26"
+
+[tool.poetry.dev-dependencies]
+pytest = "*"
+
+[tool.black]
+line-length = 88
+target-version = ['py37', 'py38', 'py39', 'py310', 'py311']
