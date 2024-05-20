@@ -14,8 +14,8 @@ pydantic = ">=1.10,<2"
 python = "^3.7"
 sdrf_pipelines = ">=0.0.26"
 
-[tool.poetry.dev-dependencies]
-pytest = "*"
+#[tool.poetry.dev-dependencies]
+#pytest = "*"
 
 [tool.black]
 line-length = 88
