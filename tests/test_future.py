@@ -13,3 +13,10 @@ def test_create_diann_cfg():
     result = runner.invoke(cli,['create_diann_cfg','--help'])
 
     assert result.exit_code == 0
+
+# test for the add_sage_feature command in cli
+def test_add_sage_feature():
+    runner = CliRunner()
+    result = runner.invoke(cli,['add_sage_feature','--help'])
+
+    assert result.exit_code == 0
