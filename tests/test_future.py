@@ -20,3 +20,10 @@ def test_add_sage_feature():
     result = runner.invoke(cli,['add_sage_feature','--help'])
 
     assert result.exit_code == 0
+
+# test for the mzml_statistics command in cli
+def test_mzml_statistics():
+    runner = CliRunner()
+    result = runner.invoke(cli,['mzml_statistics','--help'])
+
+    assert result.exit_code == 0
