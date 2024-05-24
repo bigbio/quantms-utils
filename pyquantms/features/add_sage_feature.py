@@ -8,7 +8,7 @@ import pandas as pd
 @click.option("--output_file", "-o", help="Output idXML file")
 @click.option("--feat_file", "-f", help="Input feature table file")
 @click.pass_context
-def add_feature(ctx, idx_file: str, output_file: str, feat_file: str):
+def add_sage_feature(ctx, idx_file: str, output_file: str, feat_file: str):
     """
     Add extra features in features idXML. Adding extra feature in Sage isn't known input for PSMFeatureExtractor
 
