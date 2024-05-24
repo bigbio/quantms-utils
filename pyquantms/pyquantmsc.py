@@ -1,6 +1,6 @@
 import click
 
-from diann.create_diann_cfg import create_diann_cfg
+from pyquantms.diann.create_diann_cfg import create_diann_cfg
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
