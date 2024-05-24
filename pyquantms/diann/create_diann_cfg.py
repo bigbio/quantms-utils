@@ -12,20 +12,13 @@ from typing import List, Tuple
 import click
 from sdrf_pipelines.openms.unimod import UnimodDatabase
 
-CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
-
-@click.group(context_settings=CONTEXT_SETTINGS)
-def cli():
-    pass
-
-
-@click.command("generate")
+@click.command("create_diann_cfg")
 @click.option("--enzyme", "-e", help="")
 @click.option("--fix_mod", "-f", help="")
 @click.option("--var_mod", "-v", help="")
 @click.pass_context
-def generate_cfg(ctx, enzyme, fix_mod, var_mod):
+def create_diann_cfg(ctx, enzyme, fix_mod, var_mod):
     cut = enzyme_cut(enzyme)
     unimod_database = UnimodDatabase()
     fix_ptm, var_ptm = convert_mod(unimod_database, fix_mod, var_mod)
@@ -108,8 +101,3 @@ _ENZYME_SPECIFICITY = {
 def enzyme_cut(enzyme: str) -> str:
     return _ENZYME_SPECIFICITY.get(enzyme) or "--cut"
 
-
-cli.add_command(generate_cfg)
-
-if __name__ == "__main__":
-    cli()
