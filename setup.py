@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 VERSION = "0.0.1"
 
@@ -47,7 +47,7 @@ setup(
     project_urls=PROJECT_URLS,
     keywords=KEYWORDS,
     classifiers=CLASSIFIERS,
-    packages=["pyquantms"],
+    packages=find_packages(),
     include_package_data=True,
     entry_points={
         "console_scripts": [

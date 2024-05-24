@@ -10,7 +10,6 @@ def test_future_test():
 # test for the create_diann_cfg command in cli
 def test_create_diann_cfg():
     runner = CliRunner()
-    result = runner.invoke(cli,
-                           ['create_diann_cfg','--help'])
+    result = runner.invoke(cli,['create_diann_cfg','--help'])
 
     assert result.exit_code == 0
