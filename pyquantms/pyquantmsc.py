@@ -12,7 +12,7 @@ def cli():
 
 
 cli.add_command(create_diann_cfg)
-cli.add_command(add_sage_feature())
+cli.add_command(add_sage_feature)
 
 if __name__ == "__main__":
     cli()
