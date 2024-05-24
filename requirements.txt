@@ -1,3 +1,4 @@
 click
 sdrf_pipelines
 pyopenms
+ms2rescore
