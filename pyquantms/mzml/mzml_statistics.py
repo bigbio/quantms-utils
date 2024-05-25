@@ -10,7 +10,7 @@ from pyopenms import MSExperiment, MzMLFile
 
 
 @click.command("mzml_statistics")
-@click.argument("ms_path", type=click.Path(exists=True))
+@click.option("--ms_path", type=click.Path(exists=True))
 @click.option("--id_only", is_flag=True, help="Generate a csv with the spectrum id and the peaks")
 @click.pass_context
 def mzml_statistics(ctx, ms_path: str, id_only: bool = False) -> None:

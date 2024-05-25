@@ -5,6 +5,7 @@ from pyquantms.diann.diann_convert import diann_convert
 from pyquantms.features.add_sage_feature import add_sage_feature
 from pyquantms.ms2rescore.ms2rescore import ms2rescore
 from pyquantms.mzml.mzml_statistics import mzml_statistics
+from pyquantms.psm.psm_conversion import convert_psm
 from pyquantms.sdrf.extract_sample import extract_sample_from_expdesign
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
@@ -21,6 +22,7 @@ cli.add_command(mzml_statistics)
 cli.add_command(diann_convert)
 cli.add_command(extract_sample_from_expdesign)
 cli.add_command(ms2rescore)
+cli.add_command(convert_psm)
 
 if __name__ == "__main__":
     cli()

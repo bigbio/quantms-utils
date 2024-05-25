@@ -31,9 +31,9 @@ def mods_position(peptide):
 
 
 @click.command("convert_psm")
-@click.argument("idxml", type=click.Path(exists=True))
-@click.argument("spectra_file", type=click.Path(exists=True))
-@click.argument("export_decoy_psm", is_flag=True)
+@click.option("--idxml", type=click.Path(exists=True))
+@click.option("--spectra_file", type=click.Path(exists=True))
+@click.option("--export_decoy_psm", is_flag=True)
 @click.pass_context
 def convert_psm(ctx, idxml: str, spectra_file: str, export_decoy_psm: bool = False):
 

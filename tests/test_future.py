@@ -47,3 +47,10 @@ def test_ms2rescore():
     result = runner.invoke(cli,['ms2rescore','--help'])
 
     assert result.exit_code == 0
+
+# test for the convert_psm command in cli
+def test_convert_psm():
+    runner = CliRunner()
+    result = runner.invoke(cli,['convert_psm','--help'])
+
+    assert result.exit_code == 0
