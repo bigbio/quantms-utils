@@ -6,25 +6,10 @@ import errno
 import os
 import sys
 
+import click
 import pandas as pd
 from sdrf_pipelines.sdrf.sdrf import SdrfDataFrame
 from sdrf_pipelines.sdrf.sdrf_schema import DEFAULT_TEMPLATE, MASS_SPECTROMETRY
-
-
-def parse_args(args=None):
-    description = "Reformat nf-core/quantms sdrf file and check its contents."
-    epilog = "Example usage: python validate_sdrf.py <sdrf> <check_ms>"
-
-    parser = argparse.ArgumentParser(description=description, epilog=epilog)
-    parser.add_argument("SDRF", help="SDRF/Expdesign file to be validated")
-    parser.add_argument("ISSDRF", help="SDRF file or Expdesign file")
-    parser.add_argument(
-        "--CHECK_MS",
-        help="check mass spectrometry fields in SDRF.",
-        action="store_true",
-    )
-
-    return parser.parse_args(args)
 
 
 def make_dir(path):
@@ -122,15 +107,28 @@ def check_expdesign_logic(f_table, s_table):
         sys.exit(1)
 
 
-def main(args=None):
-    # TODO validate expdesign file
-    args = parse_args(args)
-
-    if args.ISSDRF == "true":
-        check_sdrf(args.CHECK_MS, args.SDRF)
+@click.command("check_samplesheet", short_help="Check samplesheet")
+@click.option("--is_sdrf", "-s", help="In Sdrf format", is_flag=True, default=False)
+@click.option(
+    "--check_ms",
+    "-m",
+    required=False,
+    is_flag=True,
+    help="Check mass spectrometry fields in sample metadata.",
+    default=False,
+)
+@click.option(
+    "--input",
+    type=click.Path(exists=True),
+    required=True,
+    help="Input SDRF or Expdesign file",
+)
+@click.pass_context
+def check_samplesheet(ctx, is_sdrf: bool, check_ms: bool, input: str) -> None:
+    """
+    Check the samplesheet for errors.
+    """
+    if is_sdrf:
+        check_sdrf(check_ms, input)
     else:
-        check_expdesign(args.SDRF)
-
-
-if __name__ == "__main__":
-    sys.exit(main())
+        check_expdesign(input)

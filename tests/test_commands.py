@@ -60,3 +60,10 @@ def test_convert_psm():
     result = runner.invoke(cli, ["convert_psm", "--help"])
 
     assert result.exit_code == 0
+
+# test for the check_samplesheet command in cli
+def test_check_samplesheet():
+    runner = CliRunner()
+    result = runner.invoke(cli, ["check_samplesheet", "--help"])
+
+    assert result.exit_code == 0
