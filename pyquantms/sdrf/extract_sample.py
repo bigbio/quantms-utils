@@ -1,25 +1,21 @@
-#!/usr/bin/env python
-
-import argparse
-import sys
 from pathlib import Path
 import pandas as pd
+import click
 
-
-def parse_args(args=None):
-    Description = "Extract sample information from an experiment design file"
-    Epilog = "Example usage: python extract_sample.py <EXP>"
-
-    parser = argparse.ArgumentParser(description=Description, epilog=Epilog)
-    parser.add_argument("EXP", help="Expdesign file to be extracted")
-    return parser.parse_args(args)
-
-
-def extract_sample(expdesign):
+@click.command("extract_sample")
+@click.option("--expdesign", help = "Experiment design file", type=click.Path(exists=True))
+@click.pass_context
+def extract_sample_from_expdesign(cxt, expdesign: str) -> None:
+    """
+    Extract sample information from an experiment design file
+    :param cxt: Context object
+    :param expdesign: Experiment design file
+    :return: None
+    """
     data = pd.read_csv(expdesign, sep="\t", header=0, dtype=str)
     fTable = data.dropna()
 
-    # two table format
+    # two table formats
     with open(expdesign, "r") as f:
         lines = f.readlines()
         empty_row = lines.index("\n")
@@ -38,12 +34,3 @@ def extract_sample(expdesign):
             sample_dt = sample_dt.append({"Spectra_Filepath": row["Spectra_Filepath"], "Sample": mixture_id},
                                          ignore_index=True)
         sample_dt.to_csv(f"{Path(expdesign).stem}_sample.csv", sep="\t", index=False)
-
-
-def main(args=None):
-    args = parse_args(args)
-    extract_sample(args.EXP)
-
-
-if __name__ == "__main__":
-    sys.exit(main())

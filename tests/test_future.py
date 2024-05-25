@@ -33,3 +33,10 @@ def test_diann_convert():
     result = runner.invoke(cli,['diann_convert','--help'])
 
     assert result.exit_code == 0
+
+# test for the extract_sample_from_expdesign command in cli
+def test_extract_sample_from_expdesign():
+    runner = CliRunner()
+    result = runner.invoke(cli,['extract_sample','--help'])
+
+    assert result.exit_code == 0
