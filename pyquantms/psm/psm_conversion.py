@@ -7,10 +7,27 @@ import os
 from pathlib import Path
 
 _parquet_field = [
-    "sequence", "protein_accessions", "protein_start_positions", "protein_end_positions",
-    "modifications", "retention_time", "charge", "calc_mass_to_charge", "reference_file_name",
-    "scan_number", "peptidoform", "posterior_error_probability", "global_qvalue", "is_decoy",
-    "consensus_support", "mz_array", "intensity_array", "num_peaks", "search_engines", "id_scores", "hit_rank"
+    "sequence",
+    "protein_accessions",
+    "protein_start_positions",
+    "protein_end_positions",
+    "modifications",
+    "retention_time",
+    "charge",
+    "calc_mass_to_charge",
+    "reference_file_name",
+    "scan_number",
+    "peptidoform",
+    "posterior_error_probability",
+    "global_qvalue",
+    "is_decoy",
+    "consensus_support",
+    "mz_array",
+    "intensity_array",
+    "num_peaks",
+    "search_engines",
+    "id_scores",
+    "hit_rank",
 ]
 
 
@@ -25,7 +42,9 @@ def mods_position(peptide):
     for k in range(0, len(original_mods)):
         original_mods[k] = str(position[k]) + "-" + original_mods[k]
 
-    original_mods = [str(i) for i in original_mods] if len(original_mods) > 0 else np.nan
+    original_mods = (
+        [str(i) for i in original_mods] if len(original_mods) > 0 else np.nan
+    )
 
     return original_mods
 
@@ -36,7 +55,6 @@ def mods_position(peptide):
 @click.option("--export_decoy_psm", is_flag=True)
 @click.pass_context
 def convert_psm(ctx, idxml: str, spectra_file: str, export_decoy_psm: bool = False):
-
     """
     Convert idXML to csv file with PSMs information.
     :param ctx: click context
@@ -67,13 +85,19 @@ def convert_psm(ctx, idxml: str, spectra_file: str, export_decoy_psm: bool = Fal
     else:
         search_engines = [prot_ids[0].getSearchEngine()]
 
-    reference_file_name = os.path.splitext(prot_ids[0].getMetaValue("spectra_data")[0].decode("UTF-8"))[0]
+    reference_file_name = os.path.splitext(
+        prot_ids[0].getMetaValue("spectra_data")[0].decode("UTF-8")
+    )[0]
     spectra_df = pd.read_csv(spectra_file) if spectra_file else None
 
     for peptide_id in pep_ids:
         retention_time = peptide_id.getRT()
         calc_mass_to_charge = peptide_id.getMZ()
-        scan_number = int(re.findall(r"(spectrum|scan)=(\d+)", peptide_id.getMetaValue("spectrum_reference"))[0][1])
+        scan_number = int(
+            re.findall(
+                r"(spectrum|scan)=(\d+)", peptide_id.getMetaValue("spectrum_reference")
+            )[0][1]
+        )
 
         if isinstance(spectra_df, pd.DataFrame):
             spectra = spectra_df[spectra_df["scan"] == scan_number]
@@ -105,17 +129,44 @@ def convert_psm(ctx, idxml: str, spectra_file: str, export_decoy_psm: bool = Fal
             peptidoform = hit.getSequence().toString()
             modifications = mods_position(peptidoform)
             sequence = hit.getSequence().toUnmodifiedString()
-            protein_accessions = [ev.getProteinAccession() for ev in hit.getPeptideEvidences()]
-            posterior_error_probability = hit.getMetaValue("Posterior Error Probability_score")
-            protein_start_positions = [ev.getStart() for ev in hit.getPeptideEvidences()]
+            protein_accessions = [
+                ev.getProteinAccession() for ev in hit.getPeptideEvidences()
+            ]
+            posterior_error_probability = hit.getMetaValue(
+                "Posterior Error Probability_score"
+            )
+            protein_start_positions = [
+                ev.getStart() for ev in hit.getPeptideEvidences()
+            ]
             protein_end_positions = [ev.getEnd() for ev in hit.getPeptideEvidences()]
             hit_rank = hit.getRank()
 
-            parquet_data.append([sequence, protein_accessions, protein_start_positions, protein_end_positions,
-                                 modifications, retention_time, charge, calc_mass_to_charge, reference_file_name,
-                                 scan_number, peptidoform, posterior_error_probability, global_qvalue, is_decoy,
-                                 consensus_support, mz_array, intensity_array, num_peaks, search_engines, id_scores,
-                                 hit_rank])
+            parquet_data.append(
+                [
+                    sequence,
+                    protein_accessions,
+                    protein_start_positions,
+                    protein_end_positions,
+                    modifications,
+                    retention_time,
+                    charge,
+                    calc_mass_to_charge,
+                    reference_file_name,
+                    scan_number,
+                    peptidoform,
+                    posterior_error_probability,
+                    global_qvalue,
+                    is_decoy,
+                    consensus_support,
+                    mz_array,
+                    intensity_array,
+                    num_peaks,
+                    search_engines,
+                    id_scores,
+                    hit_rank,
+                ]
+            )
 
-    pd.DataFrame(parquet_data, columns=_parquet_field).to_csv(f"{Path(idxml).stem}_psm.csv",mode="w", index=False, header=True)
-
+    pd.DataFrame(parquet_data, columns=_parquet_field).to_csv(
+        f"{Path(idxml).stem}_psm.csv", mode="w", index=False, header=True
+    )

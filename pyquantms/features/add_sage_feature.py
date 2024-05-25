@@ -18,9 +18,9 @@ def add_sage_feature(ctx, idx_file: str, output_file: str, feat_file: str):
     :return: None
     """
     extra_feat = []
-    feat = pd.read_csv(feat_file, sep='\t')
+    feat = pd.read_csv(feat_file, sep="\t")
     for _, row in feat.iterrows():
-        if row["feature_generator"] == 'psm_file':
+        if row["feature_generator"] == "psm_file":
             continue
         else:
             extra_feat.append(row["feature_name"])
@@ -28,14 +28,10 @@ def add_sage_feature(ctx, idx_file: str, output_file: str, feat_file: str):
     protein_ids = []
     peptide_ids = []
     oms.IdXMLFile().load(idx_file, protein_ids, peptide_ids)
-    SearchParameters = protein_ids[0].getSearchParameters()
-    features = SearchParameters.getMetaValue("extra_features")
+    search_parameters = protein_ids[0].getSearchParameters()
+    features = search_parameters.getMetaValue("extra_features")
     extra_features = features + "," + ",".join(extra_feat)
-    SearchParameters.setMetaValue("extra_features", extra_features)
-    protein_ids[0].setSearchParameters(SearchParameters)
+    search_parameters.setMetaValue("extra_features", extra_features)
+    protein_ids[0].setSearchParameters(search_parameters)
     oms.IdXMLFile().store(output_file, protein_ids, peptide_ids)
     print("Done")
-
-
-
-

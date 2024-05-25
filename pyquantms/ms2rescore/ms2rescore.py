@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # Written by Jonas Scheid under the MIT license
 # Contributions by Yasset Perez-Riverol and Dai Chengxin
 # This script is part of the pyquantms package
@@ -16,14 +15,25 @@ import pyopenms as oms
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
 
-def parse_cli_arguments_to_config(config_file: str = None, feature_generators: str = None, ms2pip_model: str = None,
-                                  ms2_tolerance: float = None, calibration_set_size: float = None,
-                                  rescoring_engine: str = None, rng: int = None, test_fdr: float = None,
-                                  processes: int = None, spectrum_path: str = None, fasta_file: str = None,
-                                  id_decoy_pattern: str = None, lower_score_is_better: bool = None) -> dict:
-
+def parse_cli_arguments_to_config(
+    config_file: str = None,
+    feature_generators: str = None,
+    ms2pip_model: str = None,
+    ms2_tolerance: float = None,
+    calibration_set_size: float = None,
+    rescoring_engine: str = None,
+    rng: int = None,
+    test_fdr: float = None,
+    processes: int = None,
+    spectrum_path: str = None,
+    fasta_file: str = None,
+    id_decoy_pattern: str = None,
+    lower_score_is_better: bool = None,
+) -> dict:
     if config_file is None:
-        config = json.load(importlib.resources.open_text(package_data, "config_default.json"))
+        config = json.load(
+            importlib.resources.open_text(package_data, "config_default.json")
+        )
     else:
         with open(config_file) as f:
             config = json.load(f)
@@ -60,7 +70,9 @@ def parse_cli_arguments_to_config(config_file: str = None, feature_generators: s
                 "max_workers": processes,
             }
         if rescoring_engine == "percolator":
-            logging.info("Percolator rescoring engine has been specified. Use the idXML containing rescoring features and run Percolator in a separate step.")
+            logging.info(
+                "Percolator rescoring engine has been specified. Use the idXML containing rescoring features and run Percolator in a separate step."
+            )
 
     if ms2pip_model is not None:
         config["ms2rescore"]["ms2pip_model"] = ms2pip_model
@@ -104,11 +116,21 @@ def filter_out_artifact_psms(
 ) -> List[oms.PeptideIdentification]:
     """Filter out PeptideHits that could not be processed by all feature generators"""
     num_mandatory_features = max([len(psm.rescoring_features) for psm in psm_list])
-    new_psm_list = PSMList(psm_list=[psm for psm in psm_list if len(psm.rescoring_features) == num_mandatory_features])
+    new_psm_list = PSMList(
+        psm_list=[
+            psm
+            for psm in psm_list
+            if len(psm.rescoring_features) == num_mandatory_features
+        ]
+    )
 
     # get differing peptidoforms of both psm lists
-    psm_list_peptides = set([next(iter(psm.provenance_data.items()))[1] for psm in psm_list])
-    new_psm_list_peptides = set([next(iter(psm.provenance_data.items()))[1] for psm in new_psm_list])
+    psm_list_peptides = set(
+        [next(iter(psm.provenance_data.items()))[1] for psm in psm_list]
+    )
+    new_psm_list_peptides = set(
+        [next(iter(psm.provenance_data.items()))[1] for psm in new_psm_list]
+    )
     not_supported_peptides = psm_list_peptides - new_psm_list_peptides
 
     # no need to filter if all peptides are supported
@@ -132,27 +154,123 @@ def filter_out_artifact_psms(
     return new_peptide_ids
 
 
-@click.command("ms2rescore", short_help= "Rescore PSMs in an idXML file and keep other information unchanged.")
-@click.option("-p", "--psm_file", help="Path to PSM file (idXML)", required=True, type=click.Path(exists=True))
-@click.option("-s", "--spectrum_path", help="Path to MGF/mzML spectrum file or directory with spectrum files (default: derived from identification file)", required=True, type=click.Path(exists=True))
-@click.option("-o", "--output_path", help="Path and stem for output file names (default: derive from identification file)")
-@click.option("-l", "--log_level", help="Logging level (default: `info`)", default="info")
-@click.option("-n", "--processes", help="Number of parallel processes available to MS²Rescore", type=int, default=16)
+@click.command(
+    "ms2rescore",
+    short_help="Rescore PSMs in an idXML file and keep other information unchanged.",
+)
+@click.option(
+    "-p",
+    "--psm_file",
+    help="Path to PSM file (idXML)",
+    required=True,
+    type=click.Path(exists=True),
+)
+@click.option(
+    "-s",
+    "--spectrum_path",
+    help="Path to MGF/mzML spectrum file or directory with spectrum files (default: derived from identification file)",
+    required=True,
+    type=click.Path(exists=True),
+)
+@click.option(
+    "-o",
+    "--output_path",
+    help="Path and stem for output file names (default: derive from identification file)",
+)
+@click.option(
+    "-l", "--log_level", help="Logging level (default: `info`)", default="info"
+)
+@click.option(
+    "-n",
+    "--processes",
+    help="Number of parallel processes available to MS²Rescore",
+    type=int,
+    default=16,
+)
 @click.option("-f", "--fasta_file", help="Path to FASTA file")
-@click.option("-t", "--test_fdr", help="The false-discovery rate threshold at which to evaluate the learned models. (default: 0.05)", default=0.05)
-@click.option( "-fg","--feature_generators", help="Comma-separated list of feature generators to use (default: `ms2pip,deeplc`). See ms2rescore doc for further information", default="",)
-@click.option("-pipm", "--ms2pip_model", help="MS²PIP model (default: `Immuno-HCD`)", type=str, default="Immuno-HCD")
-@click.option("-ms2tol", "--ms2_tolerance", help="Fragment mass tolerance [Da](default: `0.02`)", type=float, default=0.02)
-@click.option("-cs", "--calibration_set_size", help="Percentage of number of calibration set for DeepLC (default: `0.15`)", default=0.15,)
-@click.option("-re", "--rescoring_engine", help="Either mokapot or percolator (default: `mokapot`)", default="mokapot", type=click.Choice(["mokapot", "percolator"]))
-@click.option("-rng", "--rng", help="Seed for mokapot's random number generator (default: `4711`)", type=int, default=4711)
-@click.option("-d", "--id_decoy_pattern", help="Regex decoy pattern (default: `DECOY_`)", default="^DECOY_")
-@click.option("-lsb","--lower_score_is_better", help="Interpretation of primary search engine score (default: True)", default=True,)
-@click.option("--config_file", help="Path to MS²Rescore config file (default: `config_default.json`)", default=None)
+@click.option(
+    "-t",
+    "--test_fdr",
+    help="The false-discovery rate threshold at which to evaluate the learned models. (default: 0.05)",
+    default=0.05,
+)
+@click.option(
+    "-fg",
+    "--feature_generators",
+    help="Comma-separated list of feature generators to use (default: `ms2pip,deeplc`). See ms2rescore doc for further information",
+    default="",
+)
+@click.option(
+    "-pipm",
+    "--ms2pip_model",
+    help="MS²PIP model (default: `Immuno-HCD`)",
+    type=str,
+    default="Immuno-HCD",
+)
+@click.option(
+    "-ms2tol",
+    "--ms2_tolerance",
+    help="Fragment mass tolerance [Da](default: `0.02`)",
+    type=float,
+    default=0.02,
+)
+@click.option(
+    "-cs",
+    "--calibration_set_size",
+    help="Percentage of number of calibration set for DeepLC (default: `0.15`)",
+    default=0.15,
+)
+@click.option(
+    "-re",
+    "--rescoring_engine",
+    help="Either mokapot or percolator (default: `mokapot`)",
+    default="mokapot",
+    type=click.Choice(["mokapot", "percolator"]),
+)
+@click.option(
+    "-rng",
+    "--rng",
+    help="Seed for mokapot's random number generator (default: `4711`)",
+    type=int,
+    default=4711,
+)
+@click.option(
+    "-d",
+    "--id_decoy_pattern",
+    help="Regex decoy pattern (default: `DECOY_`)",
+    default="^DECOY_",
+)
+@click.option(
+    "-lsb",
+    "--lower_score_is_better",
+    help="Interpretation of primary search engine score (default: True)",
+    default=True,
+)
+@click.option(
+    "--config_file",
+    help="Path to MS²Rescore config file (default: `config_default.json`)",
+    default=None,
+)
 @click.pass_context
-def ms2rescore(ctx, psm_file: str, spectrum_path, output_path: str, log_level, processes, fasta_file, test_fdr, feature_generators,
-                   ms2pip_model, ms2_tolerance, calibration_set_size, rescoring_engine, rng, id_decoy_pattern,
-                   lower_score_is_better, config_file: str):
+def ms2rescore(
+    ctx,
+    psm_file: str,
+    spectrum_path,
+    output_path: str,
+    log_level,
+    processes,
+    fasta_file,
+    test_fdr,
+    feature_generators,
+    ms2pip_model,
+    ms2_tolerance,
+    calibration_set_size,
+    rescoring_engine,
+    rng,
+    id_decoy_pattern,
+    lower_score_is_better,
+    config_file: str,
+):
     """
     Rescore PSMs in an idXML file and keep other information unchanged.
     :param ctx: Click context object
@@ -175,20 +293,26 @@ def ms2rescore(ctx, psm_file: str, spectrum_path, output_path: str, log_level, p
     :return:
     """
     logging.getLogger().setLevel(log_level.upper())
-    config = parse_cli_arguments_to_config(config_file=config_file, feature_generators=feature_generators, ms2pip_model=ms2pip_model,
-                                           processes=processes, ms2_tolerance=ms2_tolerance,
-                                           calibration_set_size=calibration_set_size,
-                                           rescoring_engine=rescoring_engine, rng=rng,
-                                           test_fdr=test_fdr, spectrum_path=spectrum_path, fasta_file=fasta_file,
-                                           id_decoy_pattern=id_decoy_pattern,lower_score_is_better=lower_score_is_better)
+    config = parse_cli_arguments_to_config(
+        config_file=config_file,
+        feature_generators=feature_generators,
+        ms2pip_model=ms2pip_model,
+        processes=processes,
+        ms2_tolerance=ms2_tolerance,
+        calibration_set_size=calibration_set_size,
+        rescoring_engine=rescoring_engine,
+        rng=rng,
+        test_fdr=test_fdr,
+        spectrum_path=spectrum_path,
+        fasta_file=fasta_file,
+        id_decoy_pattern=id_decoy_pattern,
+        lower_score_is_better=lower_score_is_better,
+    )
     logging.info("MS²Rescore config:")
     logging.info(config)
     rescore_idxml(psm_file, output_path, config)
 
 
-
-
 def main(**kwargs):
     config = parse_cli_arguments_to_config(**kwargs)
     rescore_idxml(kwargs["psm_file"], kwargs["output_path"], config)
-

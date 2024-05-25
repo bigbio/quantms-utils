@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from pathlib import Path
 import sqlite3
 import re
@@ -11,7 +9,9 @@ from pyopenms import MSExperiment, MzMLFile
 
 @click.command("mzml_statistics")
 @click.option("--ms_path", type=click.Path(exists=True))
-@click.option("--id_only", is_flag=True, help="Generate a csv with the spectrum id and the peaks")
+@click.option(
+    "--id_only", is_flag=True, help="Generate a csv with the spectrum id and the peaks"
+)
 @click.pass_context
 def mzml_statistics(ctx, ms_path: str, id_only: bool = False) -> None:
     """
@@ -21,7 +21,6 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False) -> None:
     :param id_only: Generate a csv with the spectrum id and the peaks
 
     """
-    import sys
     file_columns = [
         "SpectrumID",
         "MSLevel",
@@ -42,7 +41,7 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False) -> None:
         MzMLFile().load(file_name, exp)
         for spectrum in exp:
             id_ = spectrum.getNativeID()
-            MSLevel = spectrum.getMSLevel()
+            ms_level = spectrum.getMSLevel()
             rt = spectrum.getRT() if spectrum.getRT() else None
 
             peaks_tuple = spectrum.get_peaks()
@@ -58,23 +57,66 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False) -> None:
             else:
                 tic = spectrum.getMetaValue("total ion current")
 
-            if MSLevel == 1:
-                info_list = [id_, MSLevel, None, peak_per_ms, bpc, tic, rt, None, acquisition_datetime]
-            elif MSLevel == 2:
+            if ms_level == 1:
+                info_list = [
+                    id_,
+                    ms_level,
+                    None,
+                    peak_per_ms,
+                    bpc,
+                    tic,
+                    rt,
+                    None,
+                    acquisition_datetime,
+                ]
+            elif ms_level == 2:
                 charge_state = spectrum.getPrecursors()[0].getCharge()
-                emz = spectrum.getPrecursors()[0].getMZ() if spectrum.getPrecursors()[0].getMZ() else None
-                info_list = [id_, MSLevel, charge_state, peak_per_ms, bpc, tic, rt, emz, acquisition_datetime]
+                emz = (
+                    spectrum.getPrecursors()[0].getMZ()
+                    if spectrum.getPrecursors()[0].getMZ()
+                    else None
+                )
+                info_list = [
+                    id_,
+                    ms_level,
+                    charge_state,
+                    peak_per_ms,
+                    bpc,
+                    tic,
+                    rt,
+                    emz,
+                    acquisition_datetime,
+                ]
                 mz_array = peaks_tuple[0]
                 intensity_array = peaks_tuple[1]
             else:
-                info_list = [id_, MSLevel, None, None, None, None, rt, None, acquisition_datetime]
+                info_list = [
+                    id_,
+                    ms_level,
+                    None,
+                    None,
+                    None,
+                    None,
+                    rt,
+                    None,
+                    acquisition_datetime,
+                ]
 
-            if id_only and MSLevel == 2:
-                psm_part_info.append([re.findall(r"[scan|spectrum]=(\d+)", id_)[0], MSLevel, mz_array, intensity_array])
+            if id_only and ms_level == 2:
+                psm_part_info.append(
+                    [
+                        re.findall(r"[scan|spectrum]=(\d+)", id_)[0],
+                        ms_level,
+                        mz_array,
+                        intensity_array,
+                    ]
+                )
             info.append(info_list)
 
         if id_only and len(psm_part_info) > 0:
-            pd.DataFrame(psm_part_info, columns=["scan", "ms_level", "mz", "intensity"]).to_csv(
+            pd.DataFrame(
+                psm_part_info, columns=["scan", "ms_level", "mz", "intensity"]
+            ).to_csv(
                 f"{Path(ms_path).stem}_spectrum_df.csv",
                 mode="w",
                 index=False,
@@ -91,11 +133,16 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False) -> None:
         conn = sqlite3.connect(sql_filepath)
         c = conn.cursor()
 
-        datetime_cmd = "SELECT Value FROM GlobalMetadata WHERE key='AcquisitionDateTime'"
-        AcquisitionDateTime = c.execute(datetime_cmd).fetchall()[0][0]
+        datetime_cmd = (
+            "SELECT Value FROM GlobalMetadata WHERE key='AcquisitionDateTime'"
+        )
+        acquisition_date_time = c.execute(datetime_cmd).fetchall()[0][0]
 
-        df = pd.read_sql_query("SELECT Id, MsMsType, NumPeaks, MaxIntensity, SummedIntensities, Time FROM frames", conn)
-        df["AcquisitionDateTime"] = AcquisitionDateTime
+        df = pd.read_sql_query(
+            "SELECT Id, MsMsType, NumPeaks, MaxIntensity, SummedIntensities, Time FROM frames",
+            conn,
+        )
+        df["AcquisitionDateTime"] = acquisition_date_time
 
         # {8:'DDA-PASEF', 9:'DIA-PASEF'}
         if 8 in df["MsMsType"].values:
@@ -113,7 +160,9 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False) -> None:
             precursor_df = pd.read_sql_query("SELECT * from Precursors", conn)
         except sqlite3.OperationalError as e:
             if "no such table: Precursors" in str(e):
-                print(f"No precursers recorded in {file_name}, This is normal for DIA data.")
+                print(
+                    f"No precursers recorded in {file_name}, This is normal for DIA data."
+                )
                 precursor_df = pd.DataFrame()
             else:
                 raise

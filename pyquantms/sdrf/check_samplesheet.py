@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # nf-core: Update the script to check the sdrf
 # This script is based on the example at: https://raw.githubusercontent.com/nf-core/test-datasets/viralrecon/samplesheet/samplesheet_test_illumina_amplicon.csv
 
@@ -14,13 +12,17 @@ from sdrf_pipelines.sdrf.sdrf_schema import DEFAULT_TEMPLATE, MASS_SPECTROMETRY
 
 
 def parse_args(args=None):
-    Description = "Reformat nf-core/quantms sdrf file and check its contents."
-    Epilog = "Example usage: python validate_sdrf.py <sdrf> <check_ms>"
+    description = "Reformat nf-core/quantms sdrf file and check its contents."
+    epilog = "Example usage: python validate_sdrf.py <sdrf> <check_ms>"
 
-    parser = argparse.ArgumentParser(description=Description, epilog=Epilog)
+    parser = argparse.ArgumentParser(description=description, epilog=epilog)
     parser.add_argument("SDRF", help="SDRF/Expdesign file to be validated")
     parser.add_argument("ISSDRF", help="SDRF file or Expdesign file")
-    parser.add_argument("--CHECK_MS", help="check mass spectrometry fields in SDRF.", action="store_true")
+    parser.add_argument(
+        "--CHECK_MS",
+        help="check mass spectrometry fields in SDRF.",
+        action="store_true",
+    )
 
     return parser.parse_args(args)
 
@@ -70,15 +72,19 @@ def check_expdesign(expdesign):
         try:
             empty_row = lines.index("\n")
         except ValueError:
-            print("the one-table format parser is broken in OpenMS2.5, please use one-table or sdrf")
+            print(
+                "the one-table format parser is broken in OpenMS2.5, please use one-table or sdrf"
+            )
             sys.exit(1)
         if lines.index("\n") >= len(lines):
-            print("the one-table format parser is broken in OpenMS2.5, please use one-table or sdrf")
+            print(
+                "the one-table format parser is broken in OpenMS2.5, please use one-table or sdrf"
+            )
             sys.exit(1)
 
         s_table = [i.replace("\n", "").split("\t") for i in lines[empty_row + 1 :]][1:]
         s_header = lines[empty_row + 1].replace("\n", "").split("\t")
-        s_DataFrame = pd.DataFrame(s_table, columns=s_header)
+        s_data_frame = pd.DataFrame(s_table, columns=s_header)
 
     # check missed mandatory column
     missed_columns = set(schema_file) - set(data.columns)
@@ -86,28 +92,32 @@ def check_expdesign(expdesign):
         print("{0} column missed".format(" ".join(missed_columns)))
         sys.exit(1)
 
-    missed_columns = set(schema_sample) - set(s_DataFrame.columns)
+    missed_columns = set(schema_sample) - set(s_data_frame.columns)
     if len(missed_columns) != 0:
         print("{0} column missed".format(" ".join(missed_columns)))
         sys.exit(1)
 
-    if len(set(data.Label)) != 1 and "MSstats_Mixture" not in s_DataFrame.columns:
+    if len(set(data.Label)) != 1 and "MSstats_Mixture" not in s_data_frame.columns:
         print("MSstats_Mixture column missed in ISO experiments")
         sys.exit(1)
 
     # check logical problem: may be improved
-    check_expdesign_logic(data, s_DataFrame)
+    check_expdesign_logic(data, s_data_frame)
 
 
-def check_expdesign_logic(fTable, sTable):
-    if int(max(fTable.Fraction_Group)) > len(set(fTable.Fraction_Group)):
+def check_expdesign_logic(f_table, s_table):
+    if int(max(f_table.Fraction_Group)) > len(set(f_table.Fraction_Group)):
         print("Fraction_Group discontinuous!")
         sys.exit(1)
-    fTable_D = fTable.drop_duplicates(["Fraction_Group", "Fraction", "Label", "Sample"])
-    if fTable_D.shape[0] < fTable.shape[0]:
-        print("Existing duplicate entries in Fraction_Group, Fraction, Label and Sample")
+    f_table_d = f_table.drop_duplicates(
+        ["Fraction_Group", "Fraction", "Label", "Sample"]
+    )
+    if f_table_d.shape[0] < f_table.shape[0]:
+        print(
+            "Existing duplicate entries in Fraction_Group, Fraction, Label and Sample"
+        )
         sys.exit(1)
-    if len(set(sTable.Sample)) < sTable.shape[0]:
+    if len(set(s_table.Sample)) < s_table.shape[0]:
         print("Existing duplicate Sample in sample table!")
         sys.exit(1)
 
