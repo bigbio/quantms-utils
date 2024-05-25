@@ -1,4 +1,3 @@
-import pytest
 from click.testing import CliRunner
 
 from pyquantms.pyquantmsc import cli
@@ -25,5 +24,12 @@ def test_add_sage_feature():
 def test_mzml_statistics():
     runner = CliRunner()
     result = runner.invoke(cli,['mzml_statistics','--help'])
+
+    assert result.exit_code == 0
+
+# test for the diann_convert command in cli
+def test_diann_convert():
+    runner = CliRunner()
+    result = runner.invoke(cli,['diann_convert','--help'])
 
     assert result.exit_code == 0

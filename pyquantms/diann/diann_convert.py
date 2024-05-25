@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 This script converts the output from DIA-NN into three standard formats: MSstats, Triqler and mzTab.
 License: Apache 2.0
@@ -30,12 +29,7 @@ logging.basicConfig(format="%(asctime)s [%(funcName)s] - %(message)s", level=log
 logger = logging.getLogger(__name__)
 
 
-@click.group(context_settings=CONTEXT_SETTINGS)
-def cli():
-    pass
-
-
-@click.command("convert")
+@click.command("diann_convert")
 @click.option("--folder", "-f")
 @click.option("--exp_design", "-d")
 @click.option("--diann_version", "-v")
@@ -44,7 +38,7 @@ def cli():
 @click.option("--missed_cleavages", "-m")
 @click.option("--qvalue_threshold", "-q", type=float)
 @click.pass_context
-def convert(ctx, folder, exp_design, dia_params, diann_version, charge, missed_cleavages, qvalue_threshold):
+def diann_convert(ctx, folder, exp_design, dia_params, diann_version, charge, missed_cleavages, qvalue_threshold):
     """
     Convert DIA-NN output to MSstats, Triqler or mzTab.
     The output formats are used for quality control and downstream analysis.
@@ -1371,7 +1365,3 @@ def calculate_protein_coverages(report: pd.DataFrame, out_mztab_PRH: pd.DataFram
     return out
 
 
-cli.add_command(convert)
-
-if __name__ == "__main__":
-    cli()
