@@ -68,3 +68,10 @@ def test_check_samplesheet():
     result = runner.invoke(cli, ["check_samplesheet", "--help"])
 
     assert result.exit_code == 0
+
+# test the validation of an SDRF file
+def test_check_samplesheet_sdrf():
+    runner = CliRunner()
+    result = runner.invoke(cli, ["check_samplesheet", "--is_sdrf", "--check_ms", "--input", "tests/test_data/PXD000001.sdrf.tsv"])
+
+    assert result.exit_code == 0
