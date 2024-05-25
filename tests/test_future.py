@@ -40,3 +40,10 @@ def test_extract_sample_from_expdesign():
     result = runner.invoke(cli,['extract_sample','--help'])
 
     assert result.exit_code == 0
+
+# test for the ms2rescore command in cli
+def test_ms2rescore():
+    runner = CliRunner()
+    result = runner.invoke(cli,['ms2rescore','--help'])
+
+    assert result.exit_code == 0

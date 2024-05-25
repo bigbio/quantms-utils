@@ -2,5 +2,5 @@ click
 sdrf_pipelines
 pyopenms
 ms2rescore
-psm-utils
+psm-utils==0.8.0
 pydantic

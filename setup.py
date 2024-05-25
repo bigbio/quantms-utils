@@ -28,7 +28,7 @@ CLASSIFIERS = [
     "Development Status :: 5 - Production/Stable",
 ]
 
-INSTALL_REQUIRES = ["click", "sdrf_pipelines", "pyopenms", "ms2rescore", "psm-utils", "pydantic"]
+INSTALL_REQUIRES = ["click", "sdrf_pipelines", "pyopenms", "ms2rescore", "psm-utils==0.8.0", "pydantic"]
 PYTHON_REQUIRES = ">=3.7,<4"
 
 with open("README.md", "r") as fh:
