@@ -42,14 +42,14 @@ logger = logging.getLogger(__name__)
 @click.option("--qvalue_threshold", "-q", type=float)
 @click.pass_context
 def diann_convert(
-        ctx,
-        folder,
-        exp_design,
-        dia_params,
-        diann_version,
-        charge,
-        missed_cleavages,
-        qvalue_threshold,
+    ctx,
+    folder,
+    exp_design,
+    dia_params,
+    diann_version,
+    charge,
+    missed_cleavages,
+    qvalue_threshold,
 ):
     """
     Convert DIA-NN output to MSstats, Triqler or mzTab.
@@ -226,7 +226,7 @@ def get_exp_design_dfs(exp_design_file):
             lambda x: _true_stem(x["Spectra_Filepath"]), axis=1
         )
 
-        s_table = [i.replace("\n", "").split("\t") for i in data[empty_row + 1:]][1:]
+        s_table = [i.replace("\n", "").split("\t") for i in data[empty_row + 1 :]][1:]
         s_header = data[empty_row + 1].replace("\n", "").split("\t")
         s_data_frame = pd.DataFrame(s_table, columns=s_header)
 
@@ -263,31 +263,31 @@ def compute_mass_modified_peptide(peptide_seq: str) -> float:
         if aa in aa_mass and not_mod:
             aa = aa_mass[aa]
         elif (
-                aa
-                not in [
-                    "G",
-                    "A",
-                    "V",
-                    "L",
-                    "I",
-                    "F",
-                    "M",
-                    "P",
-                    "W",
-                    "S",
-                    "C",
-                    "T",
-                    "Y",
-                    "N",
-                    "Q",
-                    "D",
-                    "E",
-                    "K",
-                    "R",
-                    "H",
-                ]
-                and not_mod
-                and aa != ")"
+            aa
+            not in [
+                "G",
+                "A",
+                "V",
+                "L",
+                "I",
+                "F",
+                "M",
+                "P",
+                "W",
+                "S",
+                "C",
+                "T",
+                "Y",
+                "N",
+                "Q",
+                "D",
+                "E",
+                "K",
+                "R",
+                "H",
+            ]
+            and not_mod
+            and aa != ")"
         ):
             logger.info(f"Unknown amino acid with mass not known:{aa}")
         peptide_parts.append(aa)
@@ -365,13 +365,13 @@ class DiannDirectory:
             raise ValueError(f"Unsupported DIANN version {self.diann_version}")
 
     def convert_to_mztab(
-            self,
-            report,
-            f_table,
-            charge: int,
-            missed_cleavages: int,
-            dia_params: List[Any],
-            out: os.PathLike,
+        self,
+        report,
+        f_table,
+        charge: int,
+        missed_cleavages: int,
+        dia_params: List[Any],
+        out: os.PathLike,
     ) -> None:
         logger.info("Converting to mzTab")
         self.validate_diann_version()
@@ -479,8 +479,8 @@ class DiannDirectory:
         }
         mass_vector = report["Modified.Sequence"].map(uniq_masses)
         report["Calculate.Precursor.Mz"] = (
-                                                   mass_vector + (PROTON_MASS_U * report["Precursor.Charge"])
-                                           ) / report["Precursor.Charge"]
+            mass_vector + (PROTON_MASS_U * report["Precursor.Charge"])
+        ) / report["Precursor.Charge"]
 
         logger.debug("Indexing Precursors")
         # Making the map is 1500x faster
@@ -587,16 +587,16 @@ def mztab_mtd(index_ref, dia_params, fasta, charge, missed_cleavages):
     out_mztab_mtd.loc[1, "software[1]-setting[1]"] = fasta
     out_mztab_mtd.loc[1, "software[1]-setting[2]"] = "db_version:null"
     out_mztab_mtd.loc[1, "software[1]-setting[3]"] = (
-            "fragment_mass_tolerance:" + fragment_mass_tolerance
+        "fragment_mass_tolerance:" + fragment_mass_tolerance
     )
     out_mztab_mtd.loc[1, "software[1]-setting[4]"] = (
-            "fragment_mass_tolerance_unit:" + fragment_mass_tolerance_unit
+        "fragment_mass_tolerance_unit:" + fragment_mass_tolerance_unit
     )
     out_mztab_mtd.loc[1, "software[1]-setting[5]"] = (
-            "precursor_mass_tolerance:" + precursor_mass_tolerance
+        "precursor_mass_tolerance:" + precursor_mass_tolerance
     )
     out_mztab_mtd.loc[1, "software[1]-setting[6]"] = (
-            "precursor_mass_tolerance_unit:" + precursor_mass_tolerance_unit
+        "precursor_mass_tolerance_unit:" + precursor_mass_tolerance_unit
     )
     out_mztab_mtd.loc[1, "software[1]-setting[7]"] = "enzyme:" + enzyme
     out_mztab_mtd.loc[1, "software[1]-setting[8]"] = "enzyme_term_specificity:full"
@@ -605,10 +605,10 @@ def mztab_mtd(index_ref, dia_params, fasta, charge, missed_cleavages):
         missed_cleavages
     )
     out_mztab_mtd.loc[1, "software[1]-setting[11]"] = (
-            "fixed_modifications:" + fixed_modifications
+        "fixed_modifications:" + fixed_modifications
     )
     out_mztab_mtd.loc[1, "software[1]-setting[12]"] = (
-            "variable_modifications:" + variable_modifications
+        "variable_modifications:" + variable_modifications
     )
 
     (fixed_mods, variable_mods, fix_flag, var_flag) = mtd_mod_info(
@@ -631,7 +631,7 @@ def mztab_mtd(index_ref, dia_params, fasta, charge, missed_cleavages):
             ]
             out_mztab_mtd.loc[1, "variable_mod[" + str(i) + "]-site"] = variable_mods[
                 i - 1
-                ][1]
+            ][1]
             out_mztab_mtd.loc[1, "variable_mod[" + str(i) + "]-position"] = "Anywhere"
     else:
         out_mztab_mtd.loc[1, "variable_mod[1]"] = variable_mods[0]
@@ -647,8 +647,8 @@ def mztab_mtd(index_ref, dia_params, fasta, charge, missed_cleavages):
             "[MS, MS:1000584, mzML file, ]"
         )
         out_mztab_mtd.loc[1, "ms_run[" + str(i) + "]-location"] = (
-                "file://"
-                + index_ref[index_ref["ms_run"] == i]["Spectra_Filepath"].values[0]
+            "file://"
+            + index_ref[index_ref["ms_run"] == i]["Spectra_Filepath"].values[0]
         )
         out_mztab_mtd.loc[1, "ms_run[" + str(i) + "]-id_format"] = (
             "[MS, MS:1000777, spectrum identifier nativeID format, ]"
@@ -657,7 +657,7 @@ def mztab_mtd(index_ref, dia_params, fasta, charge, missed_cleavages):
             "[MS, MS:1002038, unlabeled sample, ]"
         )
         out_mztab_mtd.loc[1, "assay[" + str(i) + "]-ms_run_ref"] = (
-                "ms_run[" + str(i) + "]"
+            "ms_run[" + str(i) + "]"
         )
 
     with warnings.catch_warnings():
@@ -721,9 +721,9 @@ def mztab_prh(report, pg, index_ref, database, fasta_df):
     col = {}
     for i in file:
         col[i] = (
-                "protein_abundance_assay["
-                + str(index_ref[index_ref["Run"] == _true_stem(i)]["ms_run"].values[0])
-                + "]"
+            "protein_abundance_assay["
+            + str(index_ref[index_ref["Run"] == _true_stem(i)]["ms_run"].values[0])
+            + "]"
         )
 
     pg.rename(columns=col, inplace=True)
@@ -765,7 +765,7 @@ def mztab_prh(report, pg, index_ref, database, fasta_df):
 
     protein_details_df = out_mztab_prh[
         out_mztab_prh["opt_global_result_type"] == "indistinguishable_protein_group"
-        ]
+    ]
     prh_series = (
         protein_details_df["Protein.Ids"]
         .str.split(";", expand=True)
@@ -882,11 +882,11 @@ def mztab_prh(report, pg, index_ref, database, fasta_df):
 
 
 def mztab_peh(
-        report: pd.DataFrame,
-        pr: pd.DataFrame,
-        precursor_list: List[str],
-        index_ref: pd.DataFrame,
-        database: os.PathLike,
+    report: pd.DataFrame,
+    pr: pd.DataFrame,
+    precursor_list: List[str],
+    index_ref: pd.DataFrame,
+    database: os.PathLike,
 ) -> pd.DataFrame:
     """
     Construct PEH sub-table.
@@ -1104,8 +1104,8 @@ def mztab_psh(report, folder, database):
         # Standardize spectrum identifier format for bruker data
         if type(target.loc[0, "opt_global_spectrum_reference"]) != str:
             target.loc[:, "opt_global_spectrum_reference"] = "scan=" + target.loc[
-                                                                       :, "opt_global_spectrum_reference"
-                                                                       ].astype(str)
+                :, "opt_global_spectrum_reference"
+            ].astype(str)
 
         # TODO seconds returned from precursor.getRT()
         target.loc[:, "RT.Start"] = target.apply(lambda x: x["RT.Start"] / 60, axis=1)
@@ -1182,7 +1182,7 @@ def mztab_psh(report, folder, database):
 
     out_mztab_psh.loc[:, "spectra_ref"] = out_mztab_psh.apply(
         lambda x: "ms_run[{}]:".format(x["ms_run"])
-                  + x["opt_global_spectrum_reference"],
+        + x["opt_global_spectrum_reference"],
         axis=1,
         result_type="expand",
     )
@@ -1554,8 +1554,8 @@ def calculate_coverage(ref_sequence: str, sequences: Set[str]):
     for start, length in sorted(zip(starts, lengths)):
         if merged_starts and merged_starts[-1] + merged_lengths[-1] >= start:
             merged_lengths[-1] = (
-                    max(merged_starts[-1] + merged_lengths[-1], start + length)
-                    - merged_starts[-1]
+                max(merged_starts[-1] + merged_lengths[-1], start + length)
+                - merged_starts[-1]
             )
         else:
             merged_starts.append(start)
@@ -1567,7 +1567,7 @@ def calculate_coverage(ref_sequence: str, sequences: Set[str]):
 
 
 def calculate_protein_coverages(
-        report: pd.DataFrame, out_mztab_prh: pd.DataFrame, fasta_df: pd.DataFrame
+    report: pd.DataFrame, out_mztab_prh: pd.DataFrame, fasta_df: pd.DataFrame
 ) -> List[str]:
     """Calculates protein coverages for the PRH table.
 

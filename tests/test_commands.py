@@ -61,6 +61,7 @@ def test_convert_psm():
 
     assert result.exit_code == 0
 
+
 # test for the check_samplesheet command in cli
 def test_check_samplesheet():
     runner = CliRunner()
