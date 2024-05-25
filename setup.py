@@ -30,11 +30,12 @@ CLASSIFIERS = [
 
 INSTALL_REQUIRES = [
     "click",
-    "sdrf_pipelines",
+    "sdrf-pipelines",
     "pyopenms",
     "ms2rescore",
     "psm-utils==0.8.0",
     "pydantic",
+    "pandas",
 ]
 PYTHON_REQUIRES = ">=3.7,<4"
 

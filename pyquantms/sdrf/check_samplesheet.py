@@ -1,7 +1,6 @@
 # nf-core: Update the script to check the sdrf
 # This script is based on the example at: https://raw.githubusercontent.com/nf-core/test-datasets/viralrecon/samplesheet/samplesheet_test_illumina_amplicon.csv
 
-import argparse
 import errno
 import os
 import sys
@@ -67,7 +66,7 @@ def check_expdesign(expdesign):
             )
             sys.exit(1)
 
-        s_table = [i.replace("\n", "").split("\t") for i in lines[empty_row + 1 :]][1:]
+        s_table = [i.replace("\n", "").split("\t") for i in lines[empty_row + 1:]][1:]
         s_header = lines[empty_row + 1].replace("\n", "").split("\t")
         s_data_frame = pd.DataFrame(s_table, columns=s_header)
 

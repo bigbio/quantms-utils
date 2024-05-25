@@ -12,6 +12,7 @@ def add_sage_feature(ctx, idx_file: str, output_file: str, feat_file: str):
     """
     Add extra features in features idXML. Adding extra feature in Sage isn't known input for PSMFeatureExtractor
 
+    :param ctx: click context
     :param idx_file: Original idXML file
     :param output_file: Outpuf file with the extra feature
     :param feat_file: Feature file from Sage

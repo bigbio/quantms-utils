@@ -22,7 +22,7 @@ def extract_sample_from_expdesign(cxt, expdesign: str) -> None:
     with open(expdesign, "r") as f:
         lines = f.readlines()
         empty_row = lines.index("\n")
-        s_table = [i.replace("\n", "").split("\t") for i in lines[empty_row + 1 :]][1:]
+        s_table = [i.replace("\n", "").split("\t") for i in lines[empty_row + 1:]][1:]
         s_header = lines[empty_row + 1].replace("\n", "").split("\t")
         s_data_frame = pd.DataFrame(s_table, columns=s_header)
 
