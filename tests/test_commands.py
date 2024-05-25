@@ -75,3 +75,10 @@ def test_check_samplesheet_sdrf():
     result = runner.invoke(cli, ["check_samplesheet", "--is_sdrf", "--check_ms", "--input", "tests/test_data/PXD000001.sdrf.tsv"])
 
     assert result.exit_code == 0
+
+# test extract_sample_from_expdesign command in cli
+def test_extract_sample_from_expdesign():
+    runner = CliRunner()
+    result = runner.invoke(cli, ["extract_sample", "--expdesign", "tests/test_data/BSA_design_urls.tsv"])
+
+    assert result.exit_code == 0

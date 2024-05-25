@@ -1,0 +1,7 @@
+Spectra_Filepath	Sample
+https://raw.githubusercontent.com/nf-core/test-datasets/proteomicslfq/testdata/BSA1_F1.mzML	1
+https://raw.githubusercontent.com/nf-core/test-datasets/proteomicslfq/testdata/BSA1_F2.mzML	1
+https://raw.githubusercontent.com/nf-core/test-datasets/proteomicslfq/testdata/BSA2_F1.mzML	2
+https://raw.githubusercontent.com/nf-core/test-datasets/proteomicslfq/testdata/BSA2_F2.mzML	2
+https://raw.githubusercontent.com/nf-core/test-datasets/proteomicslfq/testdata/BSA3_F1.mzML	3
+https://raw.githubusercontent.com/nf-core/test-datasets/proteomicslfq/testdata/BSA3_F2.mzML	3
