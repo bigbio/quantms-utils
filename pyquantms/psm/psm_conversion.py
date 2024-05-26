@@ -39,7 +39,7 @@ def mods_position(peptide):
     for j in range(1, len(position)):
         position[j] -= j
 
-    for k in range(0, len(original_mods)):
+    for k, mod in enumerate(original_mods):
         original_mods[k] = str(position[k]) + "-" + original_mods[k]
 
     original_mods = (
