@@ -12,6 +12,8 @@ The package is available on PyPI: [pyquantms](https://pypi.org/project/pyquantms
 pip install pyquantms
 ```
 
+## Available Scripts 
+
 The following functionalities are available in the package:
 
 ### Diann scripts
@@ -38,6 +40,6 @@ The following functionalities are available in the package:
 - `psmconvert` - The convert_psm function converts peptide spectrum matches (PSMs) from an idXML file to a CSV file, optionally filtering out decoy matches. It extracts and processes data from both the idXML and an associated spectra file, handling multiple search engines and scoring systems.
 - `mzmlstats` - The `mzmlstats` processes mass spectrometry data files in either `.mzML` or `Bruker .d` formats to extract and compile statistics about the spectra. It supports generating detailed or ID-only CSV files based on the spectra data.
 
-### Contributions and issues
+## Contributions and issues
 
 Contributions and issues are welcome. Please, open an issue in the [GitHub repository](https://github.com/bigbio/quantms) or PR in the [GitHub repository](https://github.com/bigbio/pyquantms).

@@ -7,7 +7,7 @@ def test_future_test():
 
 
 # test for the create_diann_cfg command in cli
-def test_create_diann_cfg():
+def test_create_diann_cfg_help():
     runner = CliRunner()
     result = runner.invoke(cli, ["dianncfg", "--help"])
 
@@ -15,7 +15,7 @@ def test_create_diann_cfg():
 
 
 # test for the add_sage_feature command in cli
-def test_add_sage_feature():
+def test_add_sage_feature_help():
     runner = CliRunner()
     result = runner.invoke(cli, ["sage2feature", "--help"])
 
@@ -23,7 +23,7 @@ def test_add_sage_feature():
 
 
 # test for the mzml_statistics command in cli
-def test_mzml_statistics():
+def test_mzml_statistics_help():
     runner = CliRunner()
     result = runner.invoke(cli, ["mzmlstats", "--help"])
 
@@ -31,7 +31,7 @@ def test_mzml_statistics():
 
 
 # test for the diann_convert command in cli
-def test_diann_convert():
+def test_diann_convert_help():
     runner = CliRunner()
     result = runner.invoke(cli, ["diann2mztab", "--help"])
 
@@ -39,7 +39,7 @@ def test_diann_convert():
 
 
 # test for the extract_sample_from_expdesign command in cli
-def test_extract_sample_from_expdesign():
+def test_extract_sample_from_expdesign_help():
     runner = CliRunner()
     result = runner.invoke(cli, ["openms2sample", "--help"])
 
@@ -47,7 +47,7 @@ def test_extract_sample_from_expdesign():
 
 
 # test for the rescoring command in cli
-def test_ms2rescore():
+def test_ms2rescore_help():
     runner = CliRunner()
     result = runner.invoke(cli, ["ms2rescore", "--help"])
 
@@ -55,7 +55,7 @@ def test_ms2rescore():
 
 
 # test for the convert_psm command in cli
-def test_convert_psm():
+def test_convert_psm_help():
     runner = CliRunner()
     result = runner.invoke(cli, ["psmconvert", "--help"])
 
@@ -63,7 +63,7 @@ def test_convert_psm():
 
 
 # test for the check_samplesheet command in cli
-def test_check_samplesheet():
+def test_check_samplesheet_help():
     runner = CliRunner()
     result = runner.invoke(cli, ["checksamplesheet", "--help"])
 
@@ -79,7 +79,7 @@ def test_check_samplesheet_sdrf():
             "checksamplesheet",
             "--is_sdrf",
             "--check_ms",
-            "--input",
+            "--input_file",
             "tests/test_data/PXD000001.sdrf.tsv",
         ],
     )
