@@ -1104,7 +1104,7 @@ def mztab_psh(report, folder, database):
             "exp_mass_to_charge",
         ]
         # Standardize spectrum identifier format for bruker data
-        if type(target.loc[0, "opt_global_spectrum_reference"]) != str:
+        if not isinstance(target.loc[0, "opt_global_spectrum_reference"], str):
             target.loc[:, "opt_global_spectrum_reference"] = "scan=" + target.loc[
                 :, "opt_global_spectrum_reference"
             ].astype(str)
