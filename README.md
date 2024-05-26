@@ -40,4 +40,4 @@ The following functionalities are available in the package:
 
 ### Contributions and issues
 
-Contributions and issues are welcome. Please, open an issue or a pull request in the [GitHub repository](https://github.com/bigbio/pyquantms).
+Contributions and issues are welcome. Please, open an issue in the [GitHub repository](https://github.com/bigbio/quantms) or PR in the [GitHub repository](https://github.com/bigbio/pyquantms).
