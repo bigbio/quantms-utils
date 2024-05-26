@@ -6,3 +6,12 @@ engines:
 
 ignore_patterns:
   - "tests/*"
+
+eslint:
+  enabled: true
+  config_file: .eslintrc.json
+  exclude_paths:
+    - 'tests/**'
+
+exclude_paths:
+    - 'tests/**'
