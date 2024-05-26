@@ -3,7 +3,7 @@
 [![Python package](https://github.com/bigbio/pyquantms/actions/workflows/python-package.yml/badge.svg)](https://github.com/bigbio/pyquantms/actions/workflows/python-package.yml)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/ea6903630b3a4d15b674a16b8ce594a7)](https://app.codacy.com/gh/bigbio/pyquantms/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 [![PyPI version](https://badge.fury.io/py/pyquantms.svg)](https://badge.fury.io/py/pyquantms)
-
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Python package with scripts and functions for the [quantms workflow](https://github.com/bigbio/quantms) for the analysis of quantitative proteomics data.
 

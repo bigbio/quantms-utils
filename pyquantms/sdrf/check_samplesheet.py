@@ -117,7 +117,8 @@ def check_expdesign_logic(f_table, s_table):
     default=False,
 )
 @click.option(
-    "-in", "--input_file",
+    "-in",
+    "--input_file",
     type=click.Path(exists=True),
     required=True,
     help="Input SDRF or Expdesign file",
