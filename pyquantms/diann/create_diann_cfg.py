@@ -11,12 +11,22 @@ import click
 from sdrf_pipelines.openms.unimod import UnimodDatabase
 
 
-@click.command("create_diann_cfg")
+@click.command("dianncfg", short_help="Create DIA-NN config file with enzyme and PTMs")
 @click.option("--enzyme", "-e", help="")
 @click.option("--fix_mod", "-f", help="")
 @click.option("--var_mod", "-v", help="")
 @click.pass_context
-def create_diann_cfg(ctx, enzyme, fix_mod, var_mod):
+def dianncfg(ctx, enzyme, fix_mod, var_mod):
+    """
+    Create DIA-NN config file with enzyme and PTMs. It uses the Unimod database to validate and format the
+    modifications for DIA-NN compatibility. These strings, along with the enzyme cut rule, are written to a
+    configuration file named 'diann_config.cfg'.
+
+    :param ctx: Click context
+    :param enzyme: The name of the enzyme used for protein digestion.
+    :param fix_mod: A string of fixed modifications, separated by commas.
+    :param var_mod: A string of variable modifications, separated by commas.
+    """
     cut = enzyme_cut(enzyme)
     unimod_database = UnimodDatabase()
     fix_ptm, var_ptm = convert_mod(unimod_database, fix_mod, var_mod)

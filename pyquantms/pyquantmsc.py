@@ -1,6 +1,6 @@
 import click
 
-from pyquantms.diann.create_diann_cfg import create_diann_cfg
+from pyquantms.diann.create_diann_cfg import dianncfg
 from pyquantms.diann.diann_convert import diann_convert
 from pyquantms.features.add_sage_feature import add_sage_feature
 from pyquantms.rescoring.ms2rescore import ms2rescore
@@ -17,7 +17,7 @@ def cli():
     pass
 
 
-cli.add_command(create_diann_cfg)
+cli.add_command(dianncfg)
 cli.add_command(diann_convert)
 
 cli.add_command(add_sage_feature)

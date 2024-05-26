@@ -156,7 +156,7 @@ def filter_out_artifact_psms(
 
 
 @click.command(
-    "rescoring",
+    "ms2rescore",
     short_help="Rescore PSMs in an idXML file and keep other information unchanged.",
 )
 @click.option(

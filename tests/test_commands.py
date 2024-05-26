@@ -9,7 +9,7 @@ def test_future_test():
 # test for the create_diann_cfg command in cli
 def test_create_diann_cfg():
     runner = CliRunner()
-    result = runner.invoke(cli, ["create_diann_cfg", "--help"])
+    result = runner.invoke(cli, ["dianncfg", "--help"])
 
     assert result.exit_code == 0
 
@@ -49,7 +49,7 @@ def test_extract_sample_from_expdesign():
 # test for the rescoring command in cli
 def test_ms2rescore():
     runner = CliRunner()
-    result = runner.invoke(cli, ["rescoring", "--help"])
+    result = runner.invoke(cli, ["ms2rescore", "--help"])
 
     assert result.exit_code == 0
 
