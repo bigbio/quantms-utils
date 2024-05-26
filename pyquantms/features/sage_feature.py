@@ -3,7 +3,7 @@ import pyopenms as oms
 import pandas as pd
 
 
-@click.command("add_sage_feature")
+@click.command("sage2feature")
 @click.option("--idx_file", "-i", help="Input idXML file")
 @click.option("--output_file", "-o", help="Output idXML file")
 @click.option("--feat_file", "-f", help="Input feature table file")

@@ -2,7 +2,7 @@ import click
 
 from pyquantms.diann.dianncfg import dianncfg
 from pyquantms.diann.diann2mztab import diann2mztab
-from pyquantms.features.add_sage_feature import add_sage_feature
+from pyquantms.features.sage_feature import add_sage_feature
 from pyquantms.rescoring.ms2rescore import ms2rescore
 from pyquantms.mzml.mzml_statistics import mzml_statistics
 from pyquantms.psm.psm_conversion import convert_psm

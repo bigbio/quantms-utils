@@ -49,7 +49,7 @@ def mods_position(peptide):
     return original_mods
 
 
-@click.command("convert_psm")
+@click.command("psmconvert", short_help="Convert idXML to csv file with PSMs information.")
 @click.option("--idxml", type=click.Path(exists=True))
 @click.option("--spectra_file", type=click.Path(exists=True))
 @click.option("--export_decoy_psm", is_flag=True)

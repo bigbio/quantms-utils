@@ -17,7 +17,7 @@ def test_create_diann_cfg():
 # test for the add_sage_feature command in cli
 def test_add_sage_feature():
     runner = CliRunner()
-    result = runner.invoke(cli, ["add_sage_feature", "--help"])
+    result = runner.invoke(cli, ["sage2feature", "--help"])
 
     assert result.exit_code == 0
 
@@ -25,7 +25,7 @@ def test_add_sage_feature():
 # test for the mzml_statistics command in cli
 def test_mzml_statistics():
     runner = CliRunner()
-    result = runner.invoke(cli, ["mzml_statistics", "--help"])
+    result = runner.invoke(cli, ["mzmlstats", "--help"])
 
     assert result.exit_code == 0
 
@@ -57,7 +57,7 @@ def test_ms2rescore():
 # test for the convert_psm command in cli
 def test_convert_psm():
     runner = CliRunner()
-    result = runner.invoke(cli, ["convert_psm", "--help"])
+    result = runner.invoke(cli, ["psmconvert", "--help"])
 
     assert result.exit_code == 0
 
@@ -103,7 +103,7 @@ def test_convert_psm():
     result = runner.invoke(
         cli,
         [
-            "convert_psm",
+            "psmconvert",
             "--idxml",
             "tests/test_data/BSA1_F1_msgf_idx_fdr_idpep_switched_filter.idXML",
             "--spectra_file",
@@ -118,7 +118,7 @@ def test_convert_psm():
 def test_mzml_statistics():
     runner = CliRunner()
     result = runner.invoke(
-        cli, ["mzml_statistics", "--ms_path", "tests/test_data/BSA1_F1.mzML"]
+        cli, ["mzmlstats", "--ms_path", "tests/test_data/BSA1_F1.mzML"]
     )
 
     assert result.exit_code == 0
