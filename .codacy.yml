@@ -1,0 +1,8 @@
+engines:
+  eslint:
+    enabled: true
+  pylint:
+    enabled: true
+
+ignore_patterns:
+  - "tests/*"
