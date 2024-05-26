@@ -86,7 +86,7 @@ def test_extract_sample_from_expdesign():
 # test psm conversion command in cli
 def test_convert_psm():
     runner = CliRunner()
-    result = runner.invoke(cli, ["convert_psm", "--idxml", "tests/test_data/BSA1_F1_msgf_idx_fdr_idpep_switched_filter.idXML", "--spectra_file", "tests/test_data/BSA1_F1_ms_info.tsv"])
+    result = runner.invoke(cli, ["convert_psm", "--idxml", "tests/test_data/BSA1_F1_msgf_idx_fdr_idpep_switched_filter.idXML", "--spectra_file", "tests/test_data/BSA1_F1_spectrum_df.csv"])
 
     assert result.exit_code == 0
 

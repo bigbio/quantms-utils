@@ -15,10 +15,16 @@ from pyopenms import MSExperiment, MzMLFile
 @click.pass_context
 def mzml_statistics(ctx, ms_path: str, id_only: bool = False) -> None:
     """
-    Parse the mass spectrum file and generates a set of statistics about the file.
+    The mzml_statistics function parses mass spectrometry data files, either in
+    .mzML or Bruker .d formats, to extract and compile a set of statistics about the spectra contained within.
+    It supports generating detailed or ID-only CSV files based on the spectra data.
 
-    :param ms_path: Path to the mass spectrum file
-    :param id_only: Generate a csv with the spectrum id and the peaks
+    # Command line usage example
+    python script_name.py mzml_statistics --ms_path "path/to/file.mzML"
+
+    :param ms_path: A string specifying the path to the mass spectrometry file.
+    :param id_only: A boolean flag that, when set to True, generates a CSV file containing only the spectrum ID and
+    peaks data for MS level 2 spectra.
 
     """
     file_columns = [
