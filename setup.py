@@ -37,7 +37,7 @@ INSTALL_REQUIRES = [
     "pydantic",
     "pandas",
 ]
-PYTHON_REQUIRES = ">=3.7,<4"
+PYTHON_REQUIRES = ">=3.8,<4"
 
 with open("README.md", "r") as fh:
     LONG_DESCRIPTION = fh.read()
