@@ -1,6 +1,7 @@
 # pyquantms
 [![Python application](https://github.com/bigbio/pyquantms/actions/workflows/python-app.yml/badge.svg)](https://github.com/bigbio/pyquantms/actions/workflows/python-app.yml)
 [![Python package](https://github.com/bigbio/pyquantms/actions/workflows/python-package.yml/badge.svg)](https://github.com/bigbio/pyquantms/actions/workflows/python-package.yml)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/ea6903630b3a4d15b674a16b8ce594a7)](https://app.codacy.com/gh/bigbio/pyquantms/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 [![PyPI version](https://badge.fury.io/py/pyquantms.svg)](https://badge.fury.io/py/pyquantms)
 
 
