@@ -40,7 +40,7 @@ def mods_position(peptide):
         position[j] -= j
 
     for k, mod in enumerate(original_mods):
-        original_mods[k] = str(position[k]) + "-" + original_mods[k]
+        original_mods[k] = str(position[k]) + "-" + mod
 
     original_mods = (
         [str(i) for i in original_mods] if len(original_mods) > 0 else np.nan

@@ -1387,7 +1387,7 @@ def find_modification(peptide):
         position[j] -= j
 
     for k, mod in enumerate(original_mods):
-        original_mods[k] = str(position[k]) + "-" + original_mods[k].upper()
+        original_mods[k] = str(position[k]) + "-" + mod.upper()
 
     original_mods = (
         ",".join(str(i) for i in original_mods) if len(original_mods) > 0 else "null"
