@@ -3,7 +3,7 @@ import click
 from pyquantms.diann.create_diann_cfg import create_diann_cfg
 from pyquantms.diann.diann_convert import diann_convert
 from pyquantms.features.add_sage_feature import add_sage_feature
-from pyquantms.ms2rescore.ms2rescore import ms2rescore
+from pyquantms.rescoring.ms2rescore import ms2rescore
 from pyquantms.mzml.mzml_statistics import mzml_statistics
 from pyquantms.psm.psm_conversion import convert_psm
 from pyquantms.sdrf.check_samplesheet import check_samplesheet

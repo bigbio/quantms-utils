@@ -46,10 +46,10 @@ def test_extract_sample_from_expdesign():
     assert result.exit_code == 0
 
 
-# test for the ms2rescore command in cli
+# test for the rescoring command in cli
 def test_ms2rescore():
     runner = CliRunner()
-    result = runner.invoke(cli, ["ms2rescore", "--help"])
+    result = runner.invoke(cli, ["rescoring", "--help"])
 
     assert result.exit_code == 0
 
@@ -80,5 +80,19 @@ def test_check_samplesheet_sdrf():
 def test_extract_sample_from_expdesign():
     runner = CliRunner()
     result = runner.invoke(cli, ["extract_sample", "--expdesign", "tests/test_data/BSA_design_urls.tsv"])
+
+    assert result.exit_code == 0
+
+# test psm conversion command in cli
+def test_convert_psm():
+    runner = CliRunner()
+    result = runner.invoke(cli, ["convert_psm", "--idxml", "tests/test_data/BSA1_F1_msgf_idx_fdr_idpep_switched_filter.idXML", "--spectra_file", "tests/test_data/BSA1_F1_ms_info.tsv"])
+
+    assert result.exit_code == 0
+
+# test mzml statistics command in cli
+def test_mzml_statistics():
+    runner = CliRunner()
+    result = runner.invoke(cli, ["mzml_statistics", "--ms_path", "tests/test_data/BSA1_F1.mzML"])
 
     assert result.exit_code == 0

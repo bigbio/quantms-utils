@@ -32,7 +32,7 @@ INSTALL_REQUIRES = [
     "click",
     "sdrf-pipelines",
     "pyopenms",
-    "ms2rescore",
+    "rescoring",
     "psm-utils==0.8.0",
     "pydantic",
     "pandas",
