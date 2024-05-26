@@ -1104,7 +1104,7 @@ def mztab_psh(report, folder, database):
             "exp_mass_to_charge",
         ]
         # Standardize spectrum identifier format for bruker data
-        if type(target.loc[0, "opt_global_spectrum_reference"]) != str:
+        if not isinstance(target.loc[0, "opt_global_spectrum_reference"], str):
             target.loc[:, "opt_global_spectrum_reference"] = "scan=" + target.loc[
                 :, "opt_global_spectrum_reference"
             ].astype(str)
@@ -1386,8 +1386,8 @@ def find_modification(peptide):
     for j in range(1, len(position)):
         position[j] -= j
 
-    for k in range(0, len(original_mods)):
-        original_mods[k] = str(position[k]) + "-" + original_mods[k].upper()
+    for k, mod in enumerate(original_mods):
+        original_mods[k] = str(position[k]) + "-" + mod.upper()
 
     original_mods = (
         ",".join(str(i) for i in original_mods) if len(original_mods) > 0 else "null"

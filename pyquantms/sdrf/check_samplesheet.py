@@ -117,17 +117,18 @@ def check_expdesign_logic(f_table, s_table):
     default=False,
 )
 @click.option(
-    "--input",
+    "-in",
+    "--input_file",
     type=click.Path(exists=True),
     required=True,
     help="Input SDRF or Expdesign file",
 )
 @click.pass_context
-def check_samplesheet(ctx, is_sdrf: bool, check_ms: bool, input: str) -> None:
+def check_samplesheet(ctx, is_sdrf: bool, check_ms: bool, input_file: str) -> None:
     """
     Check the samplesheet for errors.
     """
     if is_sdrf:
-        check_sdrf(check_ms, input)
+        check_sdrf(check_ms, input_file)
     else:
-        check_expdesign(input)
+        check_expdesign(input_file)
