@@ -15,4 +15,13 @@ The following functionalities are available in the package:
 
 ### Diann scripts
 
-- `create
+- `dianncfg` - Create a configuration file for Diann including enzymes, modifications, and other parameters.
+- `diann2mztab` - Convert Diann output to mzTab format. In addition, convert DIA-NN output to MSstats, Triqler or mzTab.
+    The output formats are used for quality control and downstream analysis in quantms.
+
+### SDRF scripts
+
+- `openms2sample` - Extra sample information from OpenMS experimental design file. An example of OpenMS experimental design file is available [here](https://github.com/bigbio/pyquantms/blob/dev/tests/test_data/BSA_design_urls.tsv).
+- `checksamplesheet` - Check the sample sheet for errors and inconsistencies. The experimental design coult be an OpenMS experimental design file or and SDRF file. 
+
+

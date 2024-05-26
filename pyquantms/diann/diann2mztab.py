@@ -32,7 +32,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-@click.command("diann_convert")
+@click.command("diann2mztab", short_help="Convert DIA-NN output to MSstats, Triqler or mzTab")
 @click.option("--folder", "-f")
 @click.option("--exp_design", "-d")
 @click.option("--diann_version", "-v")
@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 @click.option("--missed_cleavages", "-m")
 @click.option("--qvalue_threshold", "-q", type=float)
 @click.pass_context
-def diann_convert(
+def diann2mztab(
     ctx,
     folder,
     exp_design,

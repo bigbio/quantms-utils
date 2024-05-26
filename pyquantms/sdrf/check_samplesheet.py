@@ -106,7 +106,7 @@ def check_expdesign_logic(f_table, s_table):
         sys.exit(1)
 
 
-@click.command("check_samplesheet", short_help="Check samplesheet")
+@click.command("checksamplesheet", short_help="Check samplesheet")
 @click.option("--is_sdrf", "-s", help="In Sdrf format", is_flag=True, default=False)
 @click.option(
     "--check_ms",

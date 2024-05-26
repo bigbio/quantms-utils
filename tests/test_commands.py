@@ -33,7 +33,7 @@ def test_mzml_statistics():
 # test for the diann_convert command in cli
 def test_diann_convert():
     runner = CliRunner()
-    result = runner.invoke(cli, ["diann_convert", "--help"])
+    result = runner.invoke(cli, ["diann2mztab", "--help"])
 
     assert result.exit_code == 0
 
@@ -41,7 +41,7 @@ def test_diann_convert():
 # test for the extract_sample_from_expdesign command in cli
 def test_extract_sample_from_expdesign():
     runner = CliRunner()
-    result = runner.invoke(cli, ["extract_sample", "--help"])
+    result = runner.invoke(cli, ["openms2sample", "--help"])
 
     assert result.exit_code == 0
 
@@ -65,7 +65,7 @@ def test_convert_psm():
 # test for the check_samplesheet command in cli
 def test_check_samplesheet():
     runner = CliRunner()
-    result = runner.invoke(cli, ["check_samplesheet", "--help"])
+    result = runner.invoke(cli, ["checksamplesheet", "--help"])
 
     assert result.exit_code == 0
 
@@ -76,7 +76,7 @@ def test_check_samplesheet_sdrf():
     result = runner.invoke(
         cli,
         [
-            "check_samplesheet",
+            "checksamplesheet",
             "--is_sdrf",
             "--check_ms",
             "--input",
@@ -91,7 +91,7 @@ def test_check_samplesheet_sdrf():
 def test_extract_sample_from_expdesign():
     runner = CliRunner()
     result = runner.invoke(
-        cli, ["extract_sample", "--expdesign", "tests/test_data/BSA_design_urls.tsv"]
+        cli, ["openms2sample", "--expdesign", "tests/test_data/BSA_design_urls.tsv"]
     )
 
     assert result.exit_code == 0

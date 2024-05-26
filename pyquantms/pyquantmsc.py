@@ -1,7 +1,7 @@
 import click
 
-from pyquantms.diann.create_diann_cfg import dianncfg
-from pyquantms.diann.diann_convert import diann_convert
+from pyquantms.diann.dianncfg import dianncfg
+from pyquantms.diann.diann2mztab import diann2mztab
 from pyquantms.features.add_sage_feature import add_sage_feature
 from pyquantms.rescoring.ms2rescore import ms2rescore
 from pyquantms.mzml.mzml_statistics import mzml_statistics
@@ -18,7 +18,7 @@ def cli():
 
 
 cli.add_command(dianncfg)
-cli.add_command(diann_convert)
+cli.add_command(diann2mztab)
 
 cli.add_command(add_sage_feature)
 
