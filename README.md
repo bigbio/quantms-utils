@@ -2,7 +2,7 @@
 [![Python application](https://github.com/bigbio/pyquantms/actions/workflows/python-app.yml/badge.svg)](https://github.com/bigbio/pyquantms/actions/workflows/python-app.yml)
 [![Python package](https://github.com/bigbio/pyquantms/actions/workflows/python-package.yml/badge.svg)](https://github.com/bigbio/pyquantms/actions/workflows/python-package.yml)
 [![PyPI version](https://badge.fury.io/py/pyquantms.svg)](https://badge.fury.io/py/pyquantms)
-[![Documentation Status](https://readthedocs.org/projects/pyquantms/badge/?version=latest)](https://pyquantms.readthedocs.io/en/latest/?badge=latest)
+
 
 Python package with scripts and functions for the [quantms workflow](https://github.com/bigbio/quantms) for the analysis of quantitative proteomics data.
 
@@ -36,7 +36,6 @@ The following functionalities are available in the package:
 
 - `psmconvert` - The convert_psm function converts peptide spectrum matches (PSMs) from an idXML file to a CSV file, optionally filtering out decoy matches. It extracts and processes data from both the idXML and an associated spectra file, handling multiple search engines and scoring systems.
 - `mzmlstats` - The `mzmlstats` processes mass spectrometry data files in either `.mzML` or `Bruker .d` formats to extract and compile statistics about the spectra. It supports generating detailed or ID-only CSV files based on the spectra data.
-
 
 ### Contributions and issues
 
