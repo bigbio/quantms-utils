@@ -3,7 +3,10 @@ import pandas as pd
 import click
 
 
-@click.command("openms2sample", short_help="Extract sample information from an experiment design file")
+@click.command(
+    "openms2sample",
+    short_help="Extract sample information from an experiment design file",
+)
 @click.option(
     "--expdesign", help="Experiment design file", type=click.Path(exists=True)
 )
