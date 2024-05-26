@@ -69,30 +69,56 @@ def test_check_samplesheet():
 
     assert result.exit_code == 0
 
+
 # test the validation of an SDRF file
 def test_check_samplesheet_sdrf():
     runner = CliRunner()
-    result = runner.invoke(cli, ["check_samplesheet", "--is_sdrf", "--check_ms", "--input", "tests/test_data/PXD000001.sdrf.tsv"])
+    result = runner.invoke(
+        cli,
+        [
+            "check_samplesheet",
+            "--is_sdrf",
+            "--check_ms",
+            "--input",
+            "tests/test_data/PXD000001.sdrf.tsv",
+        ],
+    )
 
     assert result.exit_code == 0
+
 
 # test extract_sample_from_expdesign command in cli
 def test_extract_sample_from_expdesign():
     runner = CliRunner()
-    result = runner.invoke(cli, ["extract_sample", "--expdesign", "tests/test_data/BSA_design_urls.tsv"])
+    result = runner.invoke(
+        cli, ["extract_sample", "--expdesign", "tests/test_data/BSA_design_urls.tsv"]
+    )
 
     assert result.exit_code == 0
+
 
 # test psm conversion command in cli
 def test_convert_psm():
     runner = CliRunner()
-    result = runner.invoke(cli, ["convert_psm", "--idxml", "tests/test_data/BSA1_F1_msgf_idx_fdr_idpep_switched_filter.idXML", "--spectra_file", "tests/test_data/BSA1_F1_spectrum_df.csv"])
+    result = runner.invoke(
+        cli,
+        [
+            "convert_psm",
+            "--idxml",
+            "tests/test_data/BSA1_F1_msgf_idx_fdr_idpep_switched_filter.idXML",
+            "--spectra_file",
+            "tests/test_data/BSA1_F1_spectrum_df.csv",
+        ],
+    )
 
     assert result.exit_code == 0
+
 
 # test mzml statistics command in cli
 def test_mzml_statistics():
     runner = CliRunner()
-    result = runner.invoke(cli, ["mzml_statistics", "--ms_path", "tests/test_data/BSA1_F1.mzML"])
+    result = runner.invoke(
+        cli, ["mzml_statistics", "--ms_path", "tests/test_data/BSA1_F1.mzML"]
+    )
 
     assert result.exit_code == 0
