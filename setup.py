@@ -58,7 +58,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     entry_points={
-        "console_scripts": ["pyquantmsc=quantmsutils.pyquantmsc:main"]
+        "console_scripts": ["quantmsutilsc=quantmsutils.quantmsutilsc:main"]
     },
     install_requires=INSTALL_REQUIRES,
     python_requires=PYTHON_REQUIRES,
