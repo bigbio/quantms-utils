@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 VERSION = "0.0.1"
 
-NAME = "pyquantms"
+NAME = "quantms-utils"
 LICENSE = "MIT License"
 DESCRIPTION = "Python package with scripts and helpers for the QuantMS workflow"
 AUTHOR = "Yasset Perez-Riverol, Dai Chengxin"
@@ -58,7 +58,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     entry_points={
-        "console_scripts": ["pyquantmsc=pyquantms.pyquantmsc:main"]
+        "console_scripts": ["pyquantmsc=quantmsutils.pyquantmsc:main"]
     },
     install_requires=INSTALL_REQUIRES,
     python_requires=PYTHON_REQUIRES,
