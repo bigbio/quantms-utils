@@ -32,7 +32,7 @@ INSTALL_REQUIRES = [
     "click",
     "sdrf-pipelines",
     "pyopenms",
-    "ms2rescore",
+    "ms2rescore==3.0.2",
     "psm-utils==0.8.0",
     "pydantic",
     "pandas",
@@ -58,7 +58,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     entry_points={
-        "console_scripts": ["pyquantmsc=quantmsutils.pyquantmsc:main"]
+        "console_scripts": ["quantmsutilsc=quantmsutils.quantmsutilsc:main"]
     },
     install_requires=INSTALL_REQUIRES,
     python_requires=PYTHON_REQUIRES,

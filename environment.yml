@@ -1,0 +1,18 @@
+# environment.yml
+name: quantmsutils
+channels:
+  - defaults
+  - bioconda
+  - conda-forge
+dependencies:
+  - click
+  - sdrf-pipelines
+  - pyopenms
+  - ms2rescore=3.0.2
+  - psm-utils=0.8.0
+  - pydantic
+  - pandas
+  - protobuf>=3.9.2,<4  # Ensure compatibility with tensorboard
+  - pip
+  - pip:
+    - tensorboard

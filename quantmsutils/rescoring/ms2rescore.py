@@ -16,21 +16,12 @@ import pyopenms as oms
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
 
-def parse_cli_arguments_to_config(
-    config_file: str = None,
-    feature_generators: str = None,
-    ms2pip_model: str = None,
-    ms2_tolerance: float = None,
-    calibration_set_size: float = None,
-    rescoring_engine: str = None,
-    rng: int = None,
-    test_fdr: float = None,
-    processes: int = None,
-    spectrum_path: str = None,
-    fasta_file: str = None,
-    id_decoy_pattern: str = None,
-    lower_score_is_better: bool = None,
-) -> dict:
+def parse_cli_arguments_to_config(config_file: str = None, feature_generators: str = None, ms2pip_model: str = None,
+                                  ms2_tolerance: float = None, calibration_set_size: float = None,
+                                  rescoring_engine: str = None, rng: int = None, test_fdr: float = None,
+                                  processes: int = None, spectrum_path: str = None, fasta_file: str = None,
+                                  id_decoy_pattern: str = None, lower_score_is_better: bool = None,
+                                  output_path: str = None) -> dict:
     if config_file is None:
         config = json.load(
             importlib.resources.open_text(package_data, "config_default.json")
@@ -40,29 +31,29 @@ def parse_cli_arguments_to_config(
             config = json.load(f)
     if feature_generators is not None:
         feature_generators_list = feature_generators.split(",")
-        config["rescoring"]["feature_generators"] = {}
+        config["ms2rescore"]["feature_generators"] = {}
         if "basic" in feature_generators_list:
-            config["rescoring"]["feature_generators"]["basic"] = {}
+            config["ms2rescore"]["feature_generators"]["basic"] = {}
         if "ms2pip" in feature_generators_list:
-            config["rescoring"]["feature_generators"]["ms2pip"] = {
+            config["ms2rescore"]["feature_generators"]["ms2pip"] = {
                 "model": ms2pip_model,
                 "ms2_tolerance": ms2_tolerance,
             }
         if "deeplc" in feature_generators_list:
-            config["rescoring"]["feature_generators"]["deeplc"] = {
+            config["ms2rescore"]["feature_generators"]["deeplc"] = {
                 "deeplc_retrain": False,
                 "calibration_set_size": calibration_set_size,
             }
         if "maxquant" in feature_generators_list:
-            config["rescoring"]["feature_generators"]["maxquant"] = {}
+            config["ms2rescore"]["feature_generators"]["maxquant"] = {}
         if "ionmob" in feature_generators:
-            config["rescoring"]["feature_generators"]["ionmob"] = {}
+            config["ms2rescore"]["feature_generators"]["ionmob"] = {}
 
     if rescoring_engine is not None:
         # Reset rescoring engine dict we want to allow only computing features
-        config["rescoring"]["rescoring_engine"] = {}
+        config["ms2rescore"]["rescoring_engine"] = {}
         if rescoring_engine == "mokapot":
-            config["rescoring"]["rescoring_engine"]["mokapot"] = {
+            config["ms2rescore"]["rescoring_engine"]["mokapot"] = {
                 "write_weights": True,
                 "write_txt": False,
                 "write_flashlfq": False,
@@ -76,21 +67,28 @@ def parse_cli_arguments_to_config(
             )
 
     if ms2pip_model is not None:
-        config["rescoring"]["ms2pip_model"] = ms2pip_model
+        config["ms2rescore"]["ms2pip_model"] = ms2pip_model
     if ms2_tolerance is not None:
-        config["rescoring"]["ms2_tolerance"] = ms2_tolerance
+        config["ms2rescore"]["ms2_tolerance"] = ms2_tolerance
     if calibration_set_size is not None:
-        config["rescoring"]["calibration_set_size"] = calibration_set_size
+        config["ms2rescore"]["calibration_set_size"] = calibration_set_size
     if rng is not None:
-        config["rescoring"]["rng"] = rng
+        config["ms2rescore"]["rng"] = rng
     if spectrum_path is not None:
-        config["rescoring"]["spectrum_path"] = spectrum_path
+        config["ms2rescore"]["spectrum_path"] = spectrum_path
     if fasta_file is not None:
-        config["rescoring"]["fasta_file"] = fasta_file
+        config["ms2rescore"]["fasta_file"] = fasta_file
     if id_decoy_pattern is not None:
-        config["rescoring"]["id_decoy_pattern"] = id_decoy_pattern
+        config["ms2rescore"]["id_decoy_pattern"] = id_decoy_pattern
     if lower_score_is_better is not None:
-        config["rescoring"]["lower_score_is_better"] = lower_score_is_better
+        config["ms2rescore"]["lower_score_is_better"] = lower_score_is_better
+    if processes is None:
+        processes = 1 # Default to single process
+    config["ms2rescore"]["processes"] = processes
+    if output_path is not None:
+        config["ms2rescore"]["output_path"] = output_path
+    else:
+        raise ValueError("Output path must be specified.")
 
     return config
 
@@ -294,8 +292,13 @@ def ms2rescore(
     :return:
     """
     logging.getLogger().setLevel(log_level.upper())
+
+    if output_path is None:
+        output_path = psm_file.replace(".idXML", "_ms2rescore.idXML")
+
     config = parse_cli_arguments_to_config(
         config_file=config_file,
+        output_path=output_path,
         feature_generators=feature_generators,
         ms2pip_model=ms2pip_model,
         processes=processes,

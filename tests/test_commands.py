@@ -49,6 +49,12 @@ def test_ms2rescore_help():
 
     assert result.exit_code == 0
 
+# def test_ms2rescore():
+#     runner = CliRunner()
+#     result = runner.invoke(cli, ["ms2rescore", "-p", "tests/test_data/TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01_comet.idXML", "-s",
+#                                  "tests/test_data/TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01.mzML", "-n", "2", "-pipm", "HCD2021", "-fg",
+#                                  "'ms2pip,deeplc'", "--id_decoy_pattern","^rev", "-t", "0.05"])
+#     assert result.exit_code == 0
 
 # test for the convert_psm command in cli
 def test_convert_psm_help():
