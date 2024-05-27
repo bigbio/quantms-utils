@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "pyquantms"
+name = "quantms-utils"
 version = "0.0.1"
 description = "Python scripts and helpers for the quantMS workflow"
 authors = ["Yasset Perez-Riverol", "Dai Chengxin"]
