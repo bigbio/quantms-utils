@@ -1,5 +1,5 @@
 from click.testing import CliRunner
-from pyquantms.pyquantmsc import cli
+from quantmsutils.quantmsutilsc import cli
 
 
 # test for the create_diann_cfg command in cli

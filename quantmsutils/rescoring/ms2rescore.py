@@ -1,6 +1,6 @@
 # Written by Jonas Scheid under the MIT license
 # Contributions by Yasset Perez-Riverol and Dai Chengxin
-# This script is part of the pyquantms package
+# This script is part of the quantmsutils package
 
 import click
 import importlib.resources

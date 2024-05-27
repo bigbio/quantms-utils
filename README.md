@@ -1,15 +1,15 @@
-# pyquantms
-[![Python application](https://github.com/bigbio/pyquantms/actions/workflows/python-app.yml/badge.svg)](https://github.com/bigbio/pyquantms/actions/workflows/python-app.yml)
-[![Python package](https://github.com/bigbio/pyquantms/actions/workflows/python-package.yml/badge.svg)](https://github.com/bigbio/pyquantms/actions/workflows/python-package.yml)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/ea6903630b3a4d15b674a16b8ce594a7)](https://app.codacy.com/gh/bigbio/pyquantms/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
-[![PyPI version](https://badge.fury.io/py/pyquantms.svg)](https://badge.fury.io/py/pyquantms)
+# quantms-utils
+[![Python application](https://github.com/bigbio/quantms-utils/actions/workflows/python-app.yml/badge.svg)](https://github.com/bigbio/quantms-utils/actions/workflows/python-app.yml)
+[![Python package](https://github.com/bigbio/quantms-utils/actions/workflows/python-package.yml/badge.svg)](https://github.com/bigbio/quantms-utils/actions/workflows/python-package.yml)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/ea6903630b3a4d15b674a16b8ce594a7)](https://app.codacy.com/gh/bigbio/quantms-utils/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+[![PyPI version](https://badge.fury.io/py/quantms-utils.svg)](https://badge.fury.io/py/quantms-utils)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Python package with scripts and functions for the [quantms workflow](https://github.com/bigbio/quantms) for the analysis of quantitative proteomics data.
 
-The package is available on PyPI: [pyquantms](https://pypi.org/project/pyquantms/)
+The package is available on PyPI: [quantms-utils](https://pypi.org/project/quantms-utils/)
 ```
-pip install pyquantms
+pip install quantms-utils
 ```
 
 ## Available Scripts 
@@ -24,7 +24,7 @@ The following functionalities are available in the package:
 
 ### SDRF scripts
 
-- `openms2sample` - Extra sample information from OpenMS experimental design file. An example of OpenMS experimental design file is available [here](https://github.com/bigbio/pyquantms/blob/dev/tests/test_data/BSA_design_urls.tsv).
+- `openms2sample` - Extra sample information from OpenMS experimental design file. An example of OpenMS experimental design file is available [here](https://github.com/bigbio/quantms-utils/blob/dev/tests/test_data/BSA_design_urls.tsv).
 - `checksamplesheet` - Check the sample sheet for errors and inconsistencies. The experimental design coult be an OpenMS experimental design file or and SDRF file. 
 
 ### ms2rescore scripts
@@ -42,4 +42,4 @@ The following functionalities are available in the package:
 
 ## Contributions and issues
 
-Contributions and issues are welcome. Please, open an issue in the [GitHub repository](https://github.com/bigbio/quantms) or PR in the [GitHub repository](https://github.com/bigbio/pyquantms).
+Contributions and issues are welcome. Please, open an issue in the [GitHub repository](https://github.com/bigbio/quantms) or PR in the [GitHub repository](https://github.com/bigbio/quantms-utils).
