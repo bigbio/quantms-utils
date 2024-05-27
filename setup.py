@@ -1,11 +1,11 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 VERSION = "0.0.1"
 
 NAME = "pyquantms"
 LICENSE = "MIT License"
 DESCRIPTION = "Python package with scripts and helpers for the QuantMS workflow"
-AUTHOR = ("Yasset Perez-Riverol, Dai Chengxin")
+AUTHOR = "Yasset Perez-Riverol, Dai Chengxin"
 AUTHOR_EMAIL = "ypriverol@gmail.com"
 URL = "https://www.github.com/bigbio/pyquantms"
 PROJECT_URLS = {
@@ -28,8 +28,16 @@ CLASSIFIERS = [
     "Development Status :: 5 - Production/Stable",
 ]
 
-INSTALL_REQUIRES = ["click", "sdrf_pipelines"]
-PYTHON_REQUIRES = ">=3.7,<4"
+INSTALL_REQUIRES = [
+    "click",
+    "sdrf-pipelines",
+    "pyopenms",
+    "ms2rescore",
+    "psm-utils==0.8.0",
+    "pydantic",
+    "pandas",
+]
+PYTHON_REQUIRES = ">=3.8,<4"
 
 with open("README.md", "r") as fh:
     LONG_DESCRIPTION = fh.read()
@@ -47,11 +55,10 @@ setup(
     project_urls=PROJECT_URLS,
     keywords=KEYWORDS,
     classifiers=CLASSIFIERS,
-    packages=["pyquantms"],
+    packages=find_packages(),
     include_package_data=True,
     entry_points={
-        "console_scripts": [
-        ],
+        "console_scripts": [],
     },
     install_requires=INSTALL_REQUIRES,
     python_requires=PYTHON_REQUIRES,

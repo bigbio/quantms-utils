@@ -1,2 +1,7 @@
 click
-sdrf_pipelines
+sdrf-pipelines
+pyopenms
+ms2rescore
+psm-utils==0.8.0
+pydantic
+pandas
