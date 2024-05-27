@@ -31,5 +31,11 @@ cli.add_command(ms2rescore)
 
 cli.add_command(convert_psm)
 
+def main():
+    try:
+        cli()
+    except SystemExit as e:
+        if e.code != 0:
+            raise
 if __name__ == "__main__":
-    cli()
+    main()
