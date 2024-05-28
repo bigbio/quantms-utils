@@ -222,7 +222,7 @@ def filter_out_artifact_psms(
 @click.option(
     "-re",
     "--rescoring_engine",
-    help="Either mokapot or percolator (default: `mokapot`)",
+    help="Either mokapot or percolator (default: `percolator`)",
     default="mokapot",
     type=click.Choice(["mokapot", "percolator"]),
 )
