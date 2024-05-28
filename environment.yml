@@ -7,9 +7,9 @@ channels:
 dependencies:
   - click
   - sdrf-pipelines
-  - bioconda::pyopenms
+  - pyopenms
   - ms2rescore=3.0.2
-  - psm-utils=0.7.4
+  - psm-utils=0.8.0
   - pydantic
   - pandas
   - protobuf>=3.9.2,<4  # Ensure compatibility with tensorboard
