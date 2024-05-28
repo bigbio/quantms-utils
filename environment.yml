@@ -7,13 +7,13 @@ channels:
 dependencies:
   - click
   - sdrf-pipelines
-  - bioconda::pyopenms==3.1.0
+  - bioconda::pyopenms
   - ms2rescore=3.0.2
   - psm-utils=0.7.4
   - pydantic
   - pandas
   - protobuf>=3.9.2,<4  # Ensure compatibility with tensorboard
-  - numpy=1.26.3
+  - numpy
   - pip
   - pip:
     - tensorboard
