@@ -31,7 +31,7 @@ CLASSIFIERS = [
 INSTALL_REQUIRES = [
     "click",
     "sdrf-pipelines",
-    "pyopenms",
+    "pyopenms==3.1.0",
     "ms2rescore==3.0.2",
     "psm-utils==0.8.0",
     "pydantic",
