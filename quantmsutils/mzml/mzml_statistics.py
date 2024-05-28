@@ -22,6 +22,7 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False) -> None:
     # Command line usage example
     python script_name.py mzml_statistics --ms_path "path/to/file.mzML"
 
+    :param ctx: Click context
     :param ms_path: A string specifying the path to the mass spectrometry file.
     :param id_only: A boolean flag that, when set to True, generates a CSV file containing only the spectrum ID and
     peaks data for MS level 2 spectra.

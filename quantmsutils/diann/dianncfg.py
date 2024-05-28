@@ -52,6 +52,7 @@ def convert_mod(unimod_database, fix_mod: str, var_mod: str) -> Tuple[List, List
     if fix_mod != "":
         for mod in fix_mod.split(","):
             tag = 0
+            diann_mod = None
             for modification in unimod_database.modifications:
                 if modification.get_name() == mod.split(" ")[0]:
                     diann_mod = (
@@ -80,12 +81,18 @@ def convert_mod(unimod_database, fix_mod: str, var_mod: str) -> Tuple[List, List
                 or "mTRAQ" in diann_mod
             ):
                 fix_ptm.append(diann_mod + "," + site + "," + "label")
-            else:
+            elif diann_mod is not None:
                 fix_ptm.append(diann_mod + "," + site)
+            else:
+                print(
+                    "Warning: Currently only supported unimod modifications for DIA pipeline. Skipped: "
+                    + mod
+                )
 
     if var_mod != "":
         for mod in var_mod.split(","):
             tag = 0
+            diann_mod = None
             for modification in unimod_database.modifications:
                 if modification.get_name() == mod.split(" ")[0]:
                     diann_mod = (

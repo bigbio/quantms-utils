@@ -36,6 +36,7 @@ INSTALL_REQUIRES = [
     "psm-utils==0.8.0",
     "pydantic",
     "pandas",
+    "numpy",
 ]
 PYTHON_REQUIRES = ">=3.8,<4"
 

@@ -83,7 +83,7 @@ def parse_cli_arguments_to_config(config_file: str = None, feature_generators: s
     if lower_score_is_better is not None:
         config["ms2rescore"]["lower_score_is_better"] = lower_score_is_better
     if processes is None:
-        processes = 1 # Default to single process
+        processes = 1  # Default to single process
     config["ms2rescore"]["processes"] = processes
     if output_path is not None:
         config["ms2rescore"]["output_path"] = output_path
@@ -111,7 +111,7 @@ def rescore_idxml(input_file, output_file, config) -> None:
 
 
 def filter_out_artifact_psms(
-    psm_list: PSMList, peptide_ids: List[oms.PeptideIdentification]
+        psm_list: PSMList, peptide_ids: List[oms.PeptideIdentification]
 ) -> List[oms.PeptideIdentification]:
     """Filter out PeptideHits that could not be processed by all feature generators"""
     num_mandatory_features = max([len(psm.rescoring_features) for psm in psm_list])
@@ -252,23 +252,23 @@ def filter_out_artifact_psms(
 )
 @click.pass_context
 def ms2rescore(
-    ctx,
-    psm_file: str,
-    spectrum_path,
-    output_path: str,
-    log_level,
-    processes,
-    fasta_file,
-    test_fdr,
-    feature_generators,
-    ms2pip_model,
-    ms2_tolerance,
-    calibration_set_size,
-    rescoring_engine,
-    rng,
-    id_decoy_pattern,
-    lower_score_is_better,
-    config_file: str,
+        ctx,
+        psm_file: str,
+        spectrum_path,
+        output_path: str,
+        log_level,
+        processes,
+        fasta_file,
+        test_fdr,
+        feature_generators,
+        ms2pip_model,
+        ms2_tolerance,
+        calibration_set_size,
+        rescoring_engine,
+        rng,
+        id_decoy_pattern,
+        lower_score_is_better,
+        config_file: str,
 ):
     """
     Rescore PSMs in an idXML file and keep other information unchanged.
