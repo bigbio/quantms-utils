@@ -38,10 +38,14 @@ jobs:
     - name: Test with pytest
       run: |
         pytest
-    - name: Test LFQ dataset
+    - name: Download test data
       run: |
         wget https://ftp.pride.ebi.ac.uk/pub/databases/pride/resources/proteomes/quantms-ci-github/quantms-utils/TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01.mzML
         wget https://ftp.pride.ebi.ac.uk/pub/databases/pride/resources/proteomes/quantms-ci-github/quantms-utils/TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01_comet.idXML
-        python setup.py install
+    - name: Test percolator ms2rescore
+      run: |
         quantmsutilsc ms2rescore -p TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01_comet.idXML -s TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01.mzML -n 2 -pipm "HCD2021" -fg "ms2pip,deeplc" --id_decoy_pattern "^rev" -t 0.05
+    - name: Test makapot ms2rescore
+      run: |
         quantmsutilsc ms2rescore -p TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01_comet.idXML -s TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01.mzML -n 2 -pipm "HCD2021" -fg "ms2pip,deeplc" --id_decoy_pattern "^rev" -t 0.05 --rescoring_engine "mokapot" 
+    
