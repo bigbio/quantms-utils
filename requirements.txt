@@ -5,3 +5,4 @@ ms2rescore==3.0.2
 psm-utils==0.8.0
 pydantic
 pandas
+numpy
