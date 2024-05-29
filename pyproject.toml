@@ -1,8 +1,11 @@
 [tool.poetry]
 name = "quantms-utils"
-version = "0.0.1"
+version = "0.0.2"
 description = "Python scripts and helpers for the quantMS workflow"
 authors = ["Yasset Perez-Riverol", "Dai Chengxin"]
+packages = [
+    { include = "quantmsutils" }
+]
 
 [build-system]
 requires = ["setuptools"]
@@ -24,8 +27,11 @@ pytest = "*"
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = "-ra -q"
-testpaths = ["tests", ]
+testpaths = ["tests"]
 
 [tool.black]
 line-length = 88
 target-version = ['py37', 'py38', 'py39', 'py310', 'py311']
+
+[tool.poetry.scripts]
+quantmsutilsc = "quantmsutils.quantmsutilsc:main"
