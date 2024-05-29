@@ -296,6 +296,10 @@ def ms2rescore(
     if output_path is None:
         output_path = psm_file.replace(".idXML", "_ms2rescore.idXML")
 
+    if rescoring_engine == "moakapot":
+        logging.warning("Mokapot rescoring engine is not supported in this version. Please use Percolator.")
+        raise ValueError("Mokapot rescoring engine is not supported in this version. Please use Percolator.")
+
     config = parse_cli_arguments_to_config(
         config_file=config_file,
         output_path=output_path,
