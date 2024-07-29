@@ -112,7 +112,7 @@ def test_convert_psm():
             "--idxml",
             "tests/test_data/BSA1_F1_msgf_idx_fdr_idpep_switched_filter.idXML",
             "--spectra_file",
-            "tests/test_data/BSA1_F1_spectrum_df.csv",
+            "tests/test_data/BSA1_F1_spectrum_df.parquet",
         ],
     )
 
