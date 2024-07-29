@@ -132,7 +132,7 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False) -> None:
         if id_only and len(psm_part_info) > 0:
             pd.DataFrame(
                 psm_part_info, columns=["scan", "ms_level", "mz", "intensity"]
-            ).to_parquet(f"{Path(ms_path).stem}_spectrum_df.parquet", index=False)
+            ).to_parquet(f"{Path(ms_path).stem}_spectrum_df.parquet", index=False, compression="gzip")
 
         return pd.DataFrame(info, columns=file_columns)
 
@@ -227,5 +227,5 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False) -> None:
         raise RuntimeError(msg)
 
     ms_df.to_parquet(
-        f"{Path(ms_path).stem}_ms_info.parquet", engine="pyarrow", index=False
+        f"{Path(ms_path).stem}_ms_info.parquet", engine="pyarrow", index=False, compression="gzip"
     )

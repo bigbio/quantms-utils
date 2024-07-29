@@ -171,4 +171,4 @@ def convert_psm(ctx, idxml: str, spectra_file: str, export_decoy_psm: bool = Fal
             )
 
     pd.DataFrame(parquet_data, columns=_parquet_field).to_parquet(
-        f"{Path(idxml).stem}_psm.csv", index=False)
+        f"{Path(idxml).stem}_psm.csv", index=False, engine="pyarrow", compression="gzip")

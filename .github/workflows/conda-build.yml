@@ -29,7 +29,7 @@ jobs:
     - name: Install conda-build
       run: |
         source $CONDA/etc/profile.d/conda.sh
-        conda activate sdrf-pipelines
+        conda activate quantmsutils
         conda install -n quantmsutils conda-build anaconda-client
       shell: bash -l {0}
 
@@ -50,7 +50,7 @@ jobs:
     - name: Test the installed package
       run: |
         conda activate quantmsutils
-        parse_sdrf --help
+        quantmsutilsc --help
       shell: bash -l {0}
 
     - name: Test other commands
