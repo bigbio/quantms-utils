@@ -4,6 +4,7 @@ import re
 
 import click
 import pandas as pd
+import pyarrow
 from pyopenms import MSExperiment, MzMLFile
 
 
@@ -41,6 +42,14 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False) -> None:
     ]
 
     def parse_mzml(file_name: str, file_columns: list, id_only: bool = False):
+        """
+        Parse mzML file and return a pandas DataFrame with the information. If id_only is True, it will also save a csv.
+        @param file_name: The file name of the mzML file
+        @param file_columns: The columns of the DataFrame
+        @param id_only: If True, it will save a csv with the spectrum id, mz and intensity
+        @return: A pandas DataFrame with the information of the mzML file
+        """
+
         info = []
         psm_part_info = []
         exp = MSExperiment()
@@ -123,12 +132,7 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False) -> None:
         if id_only and len(psm_part_info) > 0:
             pd.DataFrame(
                 psm_part_info, columns=["scan", "ms_level", "mz", "intensity"]
-            ).to_csv(
-                f"{Path(ms_path).stem}_spectrum_df.csv",
-                mode="w",
-                index=False,
-                header=True,
-            )
+            ).to_parquet(f"{Path(ms_path).stem}_spectrum_df.parquet", index=False)
 
         return pd.DataFrame(info, columns=file_columns)
 
@@ -219,13 +223,9 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False) -> None:
     elif Path(ms_path).suffix in [".mzML", ".mzml"]:
         ms_df = parse_mzml(ms_path, file_columns, id_only)
     else:
-        msg = f"Unrecognized or inexistent mass spec file '{ms_path}'"
+        msg = f"Unrecognized or the mass spec file '{ms_path}' do not exist"
         raise RuntimeError(msg)
 
-    ms_df.to_csv(
-        f"{Path(ms_path).stem}_ms_info.tsv",
-        mode="w",
-        sep="\t",
-        index=False,
-        header=True,
+    ms_df.to_parquet(
+        f"{Path(ms_path).stem}_ms_info.parquet", engine="pyarrow", index=False
     )
