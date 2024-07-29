@@ -1,11 +1,11 @@
 import click
 
-from quantmsutils.diann.dianncfg import dianncfg
 from quantmsutils.diann.diann2mztab import diann2mztab
+from quantmsutils.diann.dianncfg import dianncfg
 from quantmsutils.features.sage_feature import add_sage_feature
-from quantmsutils.rescoring.ms2rescore import ms2rescore
 from quantmsutils.mzml.mzml_statistics import mzml_statistics
 from quantmsutils.psm.psm_conversion import convert_psm
+from quantmsutils.rescoring.ms2rescore import ms2rescore
 from quantmsutils.sdrf.check_samplesheet import check_samplesheet
 from quantmsutils.sdrf.extract_sample import extract_sample_from_expdesign
 
@@ -31,11 +31,14 @@ cli.add_command(ms2rescore)
 
 cli.add_command(convert_psm)
 
+
 def main():
     try:
         cli()
     except SystemExit as e:
         if e.code != 0:
             raise
+
+
 if __name__ == "__main__":
     main()

@@ -2,26 +2,36 @@
 # Contributions by Yasset Perez-Riverol and Dai Chengxin
 # This script is part of the quantmsutils package
 
-import click
 import importlib.resources
 import json
 import logging
 from typing import List
 
-from ms2rescore import package_data, rescore
-from psm_utils.io.idxml import IdXMLReader, IdXMLWriter
-from psm_utils import PSMList
+import click
 import pyopenms as oms
+from ms2rescore import package_data, rescore
+from psm_utils import PSMList
+from psm_utils.io.idxml import IdXMLReader, IdXMLWriter
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
 
-def parse_cli_arguments_to_config(config_file: str = None, feature_generators: str = None, ms2pip_model: str = None,
-                                  ms2_tolerance: float = None, calibration_set_size: float = None,
-                                  rescoring_engine: str = None, rng: int = None, test_fdr: float = None,
-                                  processes: int = None, spectrum_path: str = None, fasta_file: str = None,
-                                  id_decoy_pattern: str = None, lower_score_is_better: bool = None,
-                                  output_path: str = None) -> dict:
+def parse_cli_arguments_to_config(
+    config_file: str = None,
+    feature_generators: str = None,
+    ms2pip_model: str = None,
+    ms2_tolerance: float = None,
+    calibration_set_size: float = None,
+    rescoring_engine: str = None,
+    rng: int = None,
+    test_fdr: float = None,
+    processes: int = None,
+    spectrum_path: str = None,
+    fasta_file: str = None,
+    id_decoy_pattern: str = None,
+    lower_score_is_better: bool = None,
+    output_path: str = None,
+) -> dict:
     if config_file is None:
         config = json.load(
             importlib.resources.open_text(package_data, "config_default.json")
@@ -111,7 +121,7 @@ def rescore_idxml(input_file, output_file, config) -> None:
 
 
 def filter_out_artifact_psms(
-        psm_list: PSMList, peptide_ids: List[oms.PeptideIdentification]
+    psm_list: PSMList, peptide_ids: List[oms.PeptideIdentification]
 ) -> List[oms.PeptideIdentification]:
     """Filter out PeptideHits that could not be processed by all feature generators"""
     num_mandatory_features = max([len(psm.rescoring_features) for psm in psm_list])
@@ -252,23 +262,23 @@ def filter_out_artifact_psms(
 )
 @click.pass_context
 def ms2rescore(
-        ctx,
-        psm_file: str,
-        spectrum_path,
-        output_path: str,
-        log_level,
-        processes,
-        fasta_file,
-        test_fdr,
-        feature_generators,
-        ms2pip_model,
-        ms2_tolerance,
-        calibration_set_size,
-        rescoring_engine,
-        rng,
-        id_decoy_pattern,
-        lower_score_is_better,
-        config_file: str,
+    ctx,
+    psm_file: str,
+    spectrum_path,
+    output_path: str,
+    log_level,
+    processes,
+    fasta_file,
+    test_fdr,
+    feature_generators,
+    ms2pip_model,
+    ms2_tolerance,
+    calibration_set_size,
+    rescoring_engine,
+    rng,
+    id_decoy_pattern,
+    lower_score_is_better,
+    config_file: str,
 ):
     """
     Rescore PSMs in an idXML file and keep other information unchanged.
@@ -297,8 +307,12 @@ def ms2rescore(
         output_path = psm_file.replace(".idXML", "_ms2rescore.idXML")
 
     if rescoring_engine == "moakapot":
-        logging.warning("Mokapot rescoring engine is not supported in this version. Please use Percolator.")
-        raise ValueError("Mokapot rescoring engine is not supported in this version. Please use Percolator.")
+        logging.warning(
+            "Mokapot rescoring engine is not supported in this version. Please use Percolator."
+        )
+        raise ValueError(
+            "Mokapot rescoring engine is not supported in this version. Please use Percolator."
+        )
 
     config = parse_cli_arguments_to_config(
         config_file=config_file,

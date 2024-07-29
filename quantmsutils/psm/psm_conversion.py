@@ -1,10 +1,11 @@
+import os
+import re
+from pathlib import Path
+
 import click
 import numpy as np
-import pyopenms as oms
 import pandas as pd
-import re
-import os
-from pathlib import Path
+import pyopenms as oms
 
 _parquet_field = [
     "sequence",
@@ -169,6 +170,6 @@ def convert_psm(ctx, idxml: str, spectra_file: str, export_decoy_psm: bool = Fal
                 ]
             )
 
-    pd.DataFrame(parquet_data, columns=_parquet_field).to_csv(
-        f"{Path(idxml).stem}_psm.csv", mode="w", index=False, header=True
+    pd.DataFrame(parquet_data, columns=_parquet_field).to_parquet(
+        f"{Path(idxml).stem}_psm.csv", index=False, header=True
     )

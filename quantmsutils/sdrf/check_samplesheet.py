@@ -49,7 +49,6 @@ def check_sdrf(check_ms, sdrf, validate_ontologies):
     sys.exit(bool(errors))
 
 
-
 def check_expdesign(expdesign):
     data = pd.read_csv(expdesign, sep="\t", header=0, dtype=str)
     data = data.dropna()
@@ -62,10 +61,14 @@ def check_expdesign(expdesign):
         try:
             empty_row = lines.index("\n")
         except ValueError:
-            print("the one-table format parser is broken in OpenMS2.5, please use one-table or sdrf")
+            print(
+                "the one-table format parser is broken in OpenMS2.5, please use one-table or sdrf"
+            )
             sys.exit(1)
         if lines.index("\n") >= len(lines):
-            print("the one-table format parser is broken in OpenMS2.5, please use one-table or sdrf")
+            print(
+                "the one-table format parser is broken in OpenMS2.5, please use one-table or sdrf"
+            )
             sys.exit(1)
 
         s_table = [i.replace("\n", "").split("\t") for i in lines[empty_row + 1 :]][1:]
@@ -118,7 +121,9 @@ def check_expdesign_logic(f_table, s_table):
     help="Check mass spectrometry fields in sample metadata.",
     default=False,
 )
-@click.option("--validate_ontologies", help="Validate the ontologies", is_flag=True, default=False)
+@click.option(
+    "--validate_ontologies", help="Validate the ontologies", is_flag=True, default=False
+)
 @click.option(
     "-in",
     "--input_file",
@@ -127,7 +132,9 @@ def check_expdesign_logic(f_table, s_table):
     help="Input SDRF or Expdesign file",
 )
 @click.pass_context
-def check_samplesheet(ctx, is_sdrf: bool, check_ms: bool, validate_ontologies: bool, input_file: str) -> None:
+def check_samplesheet(
+    ctx, is_sdrf: bool, check_ms: bool, validate_ontologies: bool, input_file: str
+) -> None:
     """
     Check the samplesheet for errors.
     """

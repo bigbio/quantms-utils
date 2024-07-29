@@ -1,6 +1,6 @@
-from pathlib import Path
-import sqlite3
 import re
+import sqlite3
+from pathlib import Path
 
 import click
 import pandas as pd
