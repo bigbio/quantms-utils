@@ -6,3 +6,4 @@ psm-utils==0.8.0
 pydantic
 pandas
 numpy
+pyarrow

@@ -14,6 +14,7 @@ dependencies:
   - pandas
   - protobuf>=3.9.2,<4  # Ensure compatibility with tensorboard
   - numpy
+  - pyarrow
   - pip
   - pip:
     - tensorboard

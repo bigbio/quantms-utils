@@ -37,6 +37,7 @@ INSTALL_REQUIRES = [
     "pydantic",
     "pandas",
     "numpy",
+    "pyarrow"
 ]
 PYTHON_REQUIRES = ">=3.8,<4"
 

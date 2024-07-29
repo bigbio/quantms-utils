@@ -172,7 +172,7 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False) -> None:
         except sqlite3.OperationalError as e:
             if "no such table: Precursors" in str(e):
                 print(
-                    f"No precursers recorded in {file_name}, This is normal for DIA data."
+                    f"No precursors recorded in {file_name}, This is normal for DIA data."
                 )
                 precursor_df = pd.DataFrame()
             else:
