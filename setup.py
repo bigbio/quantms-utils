@@ -1,6 +1,6 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
-VERSION = "0.0.2"
+VERSION = "0.0.3"
 
 NAME = "quantms-utils"
 LICENSE = "MIT License"
@@ -37,7 +37,7 @@ INSTALL_REQUIRES = [
     "pydantic",
     "pandas",
     "numpy",
-    "pyarrow"
+    "pyarrow",
 ]
 PYTHON_REQUIRES = ">=3.8,<4"
 
@@ -59,9 +59,7 @@ setup(
     classifiers=CLASSIFIERS,
     packages=find_packages(),
     include_package_data=True,
-    entry_points={
-        "console_scripts": ["quantmsutilsc=quantmsutils.quantmsutilsc:main"]
-    },
+    entry_points={"console_scripts": ["quantmsutilsc=quantmsutils.quantmsutilsc:main"]},
     install_requires=INSTALL_REQUIRES,
     python_requires=PYTHON_REQUIRES,
 )
