@@ -19,16 +19,11 @@ def cli():
 
 cli.add_command(dianncfg)
 cli.add_command(diann2mztab)
-
 cli.add_command(add_sage_feature)
-
 cli.add_command(mzml_statistics)
-
 cli.add_command(extract_sample_from_expdesign)
 cli.add_command(check_samplesheet)
-
 cli.add_command(ms2rescore)
-
 cli.add_command(convert_psm)
 
 
