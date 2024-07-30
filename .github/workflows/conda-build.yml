@@ -40,7 +40,7 @@ jobs:
       run: |
         source $CONDA/etc/profile.d/conda.sh
         conda activate quantmsutils
-        mamba install --use-local quantmsutils
+        mamba install --use-local quantms-utils
       shell: bash -l {0}
 
     - name: Test the installed package
