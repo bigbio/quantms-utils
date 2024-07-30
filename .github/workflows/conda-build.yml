@@ -25,20 +25,21 @@ jobs:
         source $CONDA/etc/profile.d/conda.sh
         conda activate quantmsutils
         conda install conda-forge::mamba
+        conda install conda-forge::boa
       shell: bash -l {0}
 
     - name: Install conda-build
       run: |
         source $CONDA/etc/profile.d/conda.sh
         conda activate quantmsutils
-        conda install -n quantmsutils conda-build anaconda-client
+        mamba install -n quantmsutils conda-build anaconda-client
       shell: bash -l {0}
 
     - name: Activate conda environment and build package
       run: |
         source $CONDA/etc/profile.d/conda.sh
         conda activate quantmsutils
-        conda build recipe
+        conda mambabuild recipe
       shell: bash -l {0}
 
     - name: Install the built package
