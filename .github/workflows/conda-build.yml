@@ -20,11 +20,12 @@ jobs:
     - name: Create conda environment
       run: conda env create -f environment.yml
 
-    - name: Activate conda environment
+    - name: Install mamba
       run: |
         source $CONDA/etc/profile.d/conda.sh
         conda activate quantmsutils
-      shell: bash
+        conda install conda-forge::mamba
+      shell: bash -l {0}
 
     - name: Install conda-build
       run: |
@@ -44,17 +45,11 @@ jobs:
       run: |
         source $CONDA/etc/profile.d/conda.sh
         conda activate quantmsutils
-        conda install --use-local quantmsutils
+        mamba install --use-local quantmsutils
       shell: bash -l {0}
 
     - name: Test the installed package
       run: |
-        conda activate quantmsutils
-        quantmsutilsc --help
-      shell: bash -l {0}
-
-    - name: Test other commands
-      run: |
-        conda activate quantmsutils
+        mamba activate quantmsutils
         quantmsutilsc --help
       shell: bash -l {0}
