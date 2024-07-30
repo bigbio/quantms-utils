@@ -20,19 +20,13 @@ jobs:
     - name: Create conda environment
       run: conda env create -f environment.yml
 
-    - name: Install mamba
+    - name: Install mamba, boa and conda-build
       run: |
         source $CONDA/etc/profile.d/conda.sh
         conda activate quantmsutils
         conda install conda-forge::mamba
         conda install conda-forge::boa
-      shell: bash -l {0}
-
-    - name: Install conda-build
-      run: |
-        source $CONDA/etc/profile.d/conda.sh
-        conda activate quantmsutils
-        mamba install -n quantmsutils conda-build anaconda-client
+        mamba install conda-build anaconda-client
       shell: bash -l {0}
 
     - name: Activate conda environment and build package
