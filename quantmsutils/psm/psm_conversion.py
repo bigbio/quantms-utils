@@ -15,7 +15,7 @@ _parquet_field = [
     "modifications",
     "retention_time",
     "charge",
-    "calc_mass_to_charge",
+    "exp_mass_to_charge",
     "reference_file_name",
     "scan_number",
     "peptidoform",
@@ -33,6 +33,8 @@ _parquet_field = [
 
 
 def mods_position(peptide):
+    if peptide.startswith("."):
+        peptide = peptide[1:]
     pattern = re.compile(r"\((.*?)\)")
     original_mods = pattern.findall(peptide)
     peptide = re.sub(r"\(.*?\)", ".", peptide)
@@ -95,7 +97,7 @@ def convert_psm(ctx, idxml: str, spectra_file: str, export_decoy_psm: bool = Fal
 
     for peptide_id in pep_ids:
         retention_time = peptide_id.getRT()
-        calc_mass_to_charge = peptide_id.getMZ()
+        exp_mass_to_charge = peptide_id.getMZ()
         scan_number = int(
             re.findall(
                 r"(spectrum|scan)=(\d+)", peptide_id.getMetaValue("spectrum_reference")
@@ -153,7 +155,7 @@ def convert_psm(ctx, idxml: str, spectra_file: str, export_decoy_psm: bool = Fal
                     modifications,
                     retention_time,
                     charge,
-                    calc_mass_to_charge,
+                    exp_mass_to_charge,
                     reference_file_name,
                     scan_number,
                     peptidoform,

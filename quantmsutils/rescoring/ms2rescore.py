@@ -19,6 +19,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 def parse_cli_arguments_to_config(
     config_file: str = None,
     feature_generators: str = None,
+    ms2pip_model_dir: str = None,
     ms2pip_model: str = None,
     ms2_tolerance: float = None,
     calibration_set_size: float = None,
@@ -46,6 +47,7 @@ def parse_cli_arguments_to_config(
             config["ms2rescore"]["feature_generators"]["basic"] = {}
         if "ms2pip" in feature_generators_list:
             config["ms2rescore"]["feature_generators"]["ms2pip"] = {
+                "model_dir": ms2pip_model_dir,
                 "model": ms2pip_model,
                 "ms2_tolerance": ms2_tolerance,
             }
@@ -76,6 +78,8 @@ def parse_cli_arguments_to_config(
                 "Percolator rescoring engine has been specified. Use the idXML containing rescoring features and run Percolator in a separate step."
             )
 
+    if ms2pip_model_dir is not None:
+        config["ms2rescore"]["ms2pip_model_dir"] = ms2pip_model_dir
     if ms2pip_model is not None:
         config["ms2rescore"]["ms2pip_model"] = ms2pip_model
     if ms2_tolerance is not None:
@@ -217,6 +221,13 @@ def filter_out_artifact_psms(
     default="Immuno-HCD",
 )
 @click.option(
+    "-md",
+    "--ms2pip_model_dir",
+    help="The path of MS²PIP model (default: `./`)",
+    type=str,
+    default="./"
+)
+@click.option(
     "-ms2tol",
     "--ms2_tolerance",
     help="Fragment mass tolerance [Da](default: `0.02`)",
@@ -271,6 +282,7 @@ def ms2rescore(
     fasta_file,
     test_fdr,
     feature_generators,
+    ms2pip_model_dir,
     ms2pip_model,
     ms2_tolerance,
     calibration_set_size,
@@ -318,6 +330,7 @@ def ms2rescore(
         config_file=config_file,
         output_path=output_path,
         feature_generators=feature_generators,
+        ms2pip_model_dir=ms2pip_model_dir,
         ms2pip_model=ms2pip_model,
         processes=processes,
         ms2_tolerance=ms2_tolerance,
