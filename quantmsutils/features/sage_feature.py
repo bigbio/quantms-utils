@@ -1,6 +1,6 @@
 import click
-import pyopenms as oms
 import pandas as pd
+import pyopenms as oms
 
 
 @click.command("sage2feature")

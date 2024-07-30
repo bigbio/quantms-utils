@@ -1,10 +1,11 @@
+import os
+import re
+from pathlib import Path
+
 import click
 import numpy as np
-import pyopenms as oms
 import pandas as pd
-import re
-import os
-from pathlib import Path
+import pyopenms as oms
 
 _parquet_field = [
     "sequence",
@@ -50,10 +51,10 @@ def mods_position(peptide):
 
 
 @click.command(
-    "psmconvert", short_help="Convert idXML to csv file with PSMs information."
+    "psmconvert", short_help="Convert idXML to parquet file with PSMs information."
 )
 @click.option("--idxml", type=click.Path(exists=True))
-@click.option("--spectra_file", type=click.Path(exists=True))
+@click.option("--spectra_file", type=click.Path(exists=True), help="Parquet file from mzml_statistics")
 @click.option("--export_decoy_psm", is_flag=True)
 @click.pass_context
 def convert_psm(ctx, idxml: str, spectra_file: str, export_decoy_psm: bool = False):
@@ -90,7 +91,7 @@ def convert_psm(ctx, idxml: str, spectra_file: str, export_decoy_psm: bool = Fal
     reference_file_name = os.path.splitext(
         prot_ids[0].getMetaValue("spectra_data")[0].decode("UTF-8")
     )[0]
-    spectra_df = pd.read_csv(spectra_file) if spectra_file else None
+    spectra_df = pd.read_parquet(spectra_file) if spectra_file else None
 
     for peptide_id in pep_ids:
         retention_time = peptide_id.getRT()
@@ -169,6 +170,5 @@ def convert_psm(ctx, idxml: str, spectra_file: str, export_decoy_psm: bool = Fal
                 ]
             )
 
-    pd.DataFrame(parquet_data, columns=_parquet_field).to_csv(
-        f"{Path(idxml).stem}_psm.csv", mode="w", index=False, header=True
-    )
+    pd.DataFrame(parquet_data, columns=_parquet_field).to_parquet(
+        f"{Path(idxml).stem}_psm.csv", index=False, engine="pyarrow", compression="gzip")
