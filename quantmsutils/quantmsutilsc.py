@@ -8,10 +8,12 @@ from quantmsutils.psm.psm_conversion import convert_psm
 from quantmsutils.rescoring.ms2rescore import ms2rescore
 from quantmsutils.sdrf.check_samplesheet import check_samplesheet
 from quantmsutils.sdrf.extract_sample import extract_sample_from_expdesign
+from quantmsutils import __version__
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
 
+@click.version_option(version=__version__, package_name="quantmsutils", message="%(package)s %(version)s")
 @click.group(context_settings=CONTEXT_SETTINGS)
 def cli():
     pass
