@@ -45,6 +45,6 @@ jobs:
 
     - name: Test the installed package
       run: |
-        mamba activate quantmsutils
+        conda activate quantmsutils
         quantmsutilsc --help
       shell: bash -l {0}
