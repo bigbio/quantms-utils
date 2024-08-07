@@ -56,7 +56,11 @@ def mods_position(peptide):
     "psmconvert", short_help="Convert idXML to parquet file with PSMs information."
 )
 @click.option("--idxml", type=click.Path(exists=True))
-@click.option("--spectra_file", type=click.Path(exists=True), help="Parquet file from mzml_statistics")
+@click.option(
+    "--spectra_file",
+    type=click.Path(exists=True),
+    help="Parquet file from mzml_statistics",
+)
 @click.option("--export_decoy_psm", is_flag=True)
 @click.pass_context
 def convert_psm(ctx, idxml: str, spectra_file: str, export_decoy_psm: bool = False):
@@ -173,4 +177,5 @@ def convert_psm(ctx, idxml: str, spectra_file: str, export_decoy_psm: bool = Fal
             )
 
     pd.DataFrame(parquet_data, columns=_parquet_field).to_parquet(
-        f"{Path(idxml).stem}_psm.csv", index=False, engine="pyarrow", compression="gzip")
+        f"{Path(idxml).stem}_psm.csv", index=False, engine="pyarrow", compression="gzip"
+    )

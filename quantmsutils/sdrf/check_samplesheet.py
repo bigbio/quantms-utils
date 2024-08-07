@@ -30,26 +30,50 @@ def print_error(error, context="Line", context_str=""):
     sys.exit(1)
 
 
-def check_sdrf(check_ms, sdrf, validate_ontologies):
-    df = SdrfDataFrame.parse(sdrf)
-    if validate_ontologies:
-        errors = df.validate(DEFAULT_TEMPLATE)
-        if check_ms:
-            errors = errors + df.validate(MASS_SPECTROMETRY)
-        for error in errors:
-            print(error)
-        if not errors:
-            print("Everying seems to be fine. Well done.")
-        else:
-            print("There were validation errors!")
-    else:
-        errors = False
-        print("No ontology term validation was performed.")
+def check_sdrf(
+    input_sdrf: str,
+    skip_ms_validation: bool = False,
+    skip_factor_validation: bool = False,
+    skip_experimental_design_validation: bool = False,
+    use_ols_cache_only: bool = False,
+    skip_sdrf_validation: bool = False,
+):
+    """
+    Check the SDRF file for errors. If any errors are found, print them and exit with a non-zero status code.
+    @param input_sdrf: Path to the SDRF file to check
+    @param skip_ms_validation: Disable the validation of mass spectrometry fields in SDRF (e.g. posttranslational modifications)
+    @param skip_factor_validation: Disable the validation of factor values in SDRF
+    @param skip_experimental_design_validation: Disable the validation of experimental design
+    @param use_ols_cache_only: Use ols cache for validation of the terms and not OLS internet service
+    @param skip_sdrf_validation: Disable the validation of SDRF
+    """
+    if skip_sdrf_validation:
+        print("No SDRF validation was performed.")
+        sys.exit(0)
+
+    df = SdrfDataFrame.parse(input_sdrf)
+    errors = df.validate(DEFAULT_TEMPLATE, use_ols_cache_only)
+
+    if not skip_ms_validation:
+        errors = errors + df.validate(MASS_SPECTROMETRY, use_ols_cache_only)
+
+    if not skip_factor_validation:
+        errors = errors + df.validate_factor_values()
+
+    if not skip_experimental_design_validation:
+        errors = errors + df.validate_experimental_design()
+
+    for error in errors:
+        print(error)
 
     sys.exit(bool(errors))
 
 
 def check_expdesign(expdesign):
+    """
+    Check the expdesign file for errors. If any errors are found, print them and exit with a non-zero status code.
+    @param expdesign: Path to the expdesign file to check
+    """
     data = pd.read_csv(expdesign, sep="\t", header=0, dtype=str)
     data = data.dropna()
     schema_file = ["Fraction_Group", "Fraction", "Spectra_Filepath", "Label", "Sample"]
@@ -111,34 +135,64 @@ def check_expdesign_logic(f_table, s_table):
         sys.exit(1)
 
 
-@click.command("checksamplesheet", short_help="Check samplesheet")
-@click.option("--is_sdrf", "-s", help="In Sdrf format", is_flag=True, default=False)
+@click.command(
+    "check_samplesheet",
+    short_help="Reformat nf-core/quantms sdrf file and check its contents.",
+)
+@click.option("--exp_design", help="SDRF/Expdesign file to be validated")
+@click.option("--is_sdrf", help="SDRF file or Expdesign file", is_flag=True)
 @click.option(
-    "--check_ms",
-    "-m",
-    required=False,
+    "--skip_sdrf_validation", help="Disable the validation of SDRF", is_flag=True
+)
+@click.option(
+    "--skip_ms_validation",
+    help="Disable the validation of mass spectrometry fields in SDRF (e.g. posttranslational modifications)",
     is_flag=True,
-    help="Check mass spectrometry fields in sample metadata.",
-    default=False,
 )
 @click.option(
-    "--validate_ontologies", help="Validate the ontologies", is_flag=True, default=False
+    "--skip_factor_validation",
+    help="Disable the validation of factor values in SDRF",
+    is_flag=True,
 )
 @click.option(
-    "-in",
-    "--input_file",
-    type=click.Path(exists=True),
-    required=True,
-    help="Input SDRF or Expdesign file",
+    "--skip_experimental_design_validation",
+    help="Disable the validation of experimental design",
+    is_flag=True,
 )
-@click.pass_context
+@click.option(
+    "--use_ols_cache_only",
+    help="Use ols cache for validation of the terms and not OLS internet service",
+    is_flag=True,
+)
 def check_samplesheet(
-    ctx, is_sdrf: bool, check_ms: bool, validate_ontologies: bool, input_file: str
-) -> None:
+    exp_design: str,
+    is_sdrf: bool = False,
+    skip_sdrf_validation: bool = False,
+    skip_ms_validation: bool = False,
+    skip_factor_validation: bool = False,
+    skip_experimental_design_validation: bool = False,
+    use_ols_cache_only: bool = False,
+):
     """
-    Check the samplesheet for errors.
+    Reformat nf-core/quantms sdrf file and check its contents.
+    @param exp_design: SDRF/Expdesign file to be validated
+    @param is_sdrf: SDRF file or Expdesign file
+    @param skip_sdrf_validation: Disable the validation of SDRF
+    @param skip_ms_validation: Disable the validation of mass spectrometry fields in SDRF (e.g. posttranslational modifications)
+    @param skip_factor_validation: Disable the validation of factor values in SDRF
+    @param skip_experimental_design_validation: Disable the validation of experimental design
+    @param use_ols_cache_only: Use ols cache for validation of the terms and not OLS internet service
+
     """
+    # TODO validate expdesign file
     if is_sdrf:
-        check_sdrf(check_ms, input_file, validate_ontologies)
+        check_sdrf(
+            input_sdrf=exp_design,
+            skip_sdrf_validation=skip_sdrf_validation,
+            skip_ms_validation=skip_ms_validation,
+            skip_factor_validation=skip_factor_validation,
+            skip_experimental_design_validation=skip_experimental_design_validation,
+            use_ols_cache_only=use_ols_cache_only,
+        )
     else:
-        check_expdesign(input_file)
+        check_expdesign(exp_design)
