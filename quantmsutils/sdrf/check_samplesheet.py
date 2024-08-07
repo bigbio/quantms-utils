@@ -136,7 +136,7 @@ def check_expdesign_logic(f_table, s_table):
 
 
 @click.command(
-    "check_samplesheet",
+    "checksamplesheet",
     short_help="Reformat nf-core/quantms sdrf file and check its contents.",
 )
 @click.option("--exp_design", help="SDRF/Expdesign file to be validated")
@@ -164,7 +164,7 @@ def check_expdesign_logic(f_table, s_table):
     help="Use ols cache for validation of the terms and not OLS internet service",
     is_flag=True,
 )
-def check_samplesheet(
+def checksamplesheet(
     exp_design: str,
     is_sdrf: bool = False,
     skip_sdrf_validation: bool = False,

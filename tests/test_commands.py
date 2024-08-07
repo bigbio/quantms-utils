@@ -70,7 +70,7 @@ def test_convert_psm_help():
 # test for the check_samplesheet command in cli
 def test_check_samplesheet_help():
     runner = CliRunner()
-    result = runner.invoke(cli, ["check_samplesheet", "--help"])
+    result = runner.invoke(cli, ["checksamplesheet", "--help"])
 
     assert result.exit_code == 0
 
@@ -81,7 +81,7 @@ def test_check_samplesheet_sdrf():
     result = runner.invoke(
         cli,
         [
-            "check_samplesheet",
+            "checksamplesheet",
             "--is_sdrf",
             "--exp_design",
             "tests/test_data/PXD000001.sdrf.tsv",
