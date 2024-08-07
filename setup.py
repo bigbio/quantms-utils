@@ -1,6 +1,17 @@
 from setuptools import find_packages, setup
+import os
+import codecs
 
-VERSION = "0.0.3"
+def read(rel_path):
+    here = os.path.abspath(os.path.dirname(__file__))
+    with codecs.open(os.path.join(here, rel_path), "r") as fp:
+        return fp.read()
+def get_version(rel_path):
+    for line in read(rel_path).splitlines():
+        if line.startswith("__version__"):
+            delim = '"' if '"' in line else "'"
+            return line.split(delim)[1]
+    raise RuntimeError("Unable to find version string.")
 
 NAME = "quantms-utils"
 LICENSE = "MIT License"
@@ -46,7 +57,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name=NAME,
-    version=VERSION,
+    version=get_version("quantmsutils/__init__.py"),
     license=LICENSE,
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
