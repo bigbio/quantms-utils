@@ -81,10 +81,9 @@ def test_check_samplesheet_sdrf():
     result = runner.invoke(
         cli,
         [
-            "checksamplesheet",
+            "check_samplesheet",
             "--is_sdrf",
-            "--check_ms",
-            "--input_file",
+            "--exp_design",
             "tests/test_data/PXD000001.sdrf.tsv",
         ],
     )
