@@ -136,7 +136,8 @@ def check_expdesign_logic(f_table, s_table):
 
 
 @click.command(
-    "check_samplesheet", short_help="Reformat nf-core/quantms sdrf file and check its contents."
+    "check_samplesheet",
+    short_help="Reformat nf-core/quantms sdrf file and check its contents.",
 )
 @click.option("--exp_design", help="SDRF/Expdesign file to be validated")
 @click.option("--is_sdrf", help="SDRF file or Expdesign file", is_flag=True)
