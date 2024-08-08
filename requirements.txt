@@ -12,5 +12,5 @@
   numpy
   pyarrow
   pygam==0.9.1
-  scipy==1.13.0
+  scipy
   scikit-learn
