@@ -2,16 +2,20 @@ from setuptools import find_packages, setup
 import os
 import codecs
 
+
 def read(rel_path):
     here = os.path.abspath(os.path.dirname(__file__))
     with codecs.open(os.path.join(here, rel_path), "r") as fp:
         return fp.read()
+
+
 def get_version(rel_path):
     for line in read(rel_path).splitlines():
         if line.startswith("__version__"):
             delim = '"' if '"' in line else "'"
             return line.split(delim)[1]
     raise RuntimeError("Unable to find version string.")
+
 
 NAME = "quantms-utils"
 LICENSE = "MIT License"
@@ -55,7 +59,7 @@ INSTALL_REQUIRES = [
     "pyarrow",
     "pygam",
     "scipy",
-    "scikit-learn"
+    "scikit-learn",
 ]
 PYTHON_REQUIRES = ">=3.8,<4"
 
