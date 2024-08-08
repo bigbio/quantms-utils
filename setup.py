@@ -41,14 +41,21 @@ CLASSIFIERS = [
 
 INSTALL_REQUIRES = [
     "click",
-    "sdrf-pipelines==0.0.29",
+    "sdrf-pipelines>=0.0.29",
     "pyopenms",
-    "ms2rescore==3.0.2",
-    "psm-utils==0.8.0",
+    "ms2rescore==3.0.3",
+    "deeplc==2.2.27",
+    "ms2pip==4.0.0.dev8",
+    "psm-utils==0.8.2",
+    "deeplcretrainer==0.2.11"
     "pydantic",
     "pandas",
+    "protobuf>=3.9.2,< 4",
     "numpy",
     "pyarrow",
+    "pygam==0.9.1",
+    "scipy",
+    "scikit-learn"
 ]
 PYTHON_REQUIRES = ">=3.8,<4"
 

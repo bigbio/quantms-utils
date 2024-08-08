@@ -1,9 +1,16 @@
-click
-sdrf-pipelines==0.0.29
-pyopenms
-ms2rescore==3.0.2
-psm-utils==0.8.0
-pydantic
-pandas
-numpy
-pyarrow
+  click
+  sdrf-pipelines>=0.0.29
+  pyopenms
+  ms2rescore==3.0.3
+  deeplc==2.2.27
+  ms2pip==4.0.0.dev8
+  psm-utils==0.8.2
+  deeplcretrainer==0.2.11
+  pydantic==1.10.14
+  pandas
+  protobuf>=3.9.2,<4  # Ensure compatibility with tensorboard
+  numpy
+  pyarrow
+  pygam==0.9.1
+  scipy==1.13.0
+  scikit-learn
