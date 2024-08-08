@@ -53,7 +53,7 @@ INSTALL_REQUIRES = [
     "protobuf>=3.9.2,< 4",
     "numpy",
     "pyarrow",
-    "pygam==0.9.1",
+    "pygam",
     "scipy",
     "scikit-learn"
 ]

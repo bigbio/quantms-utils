@@ -18,7 +18,7 @@ dependencies:
   - protobuf>=3.9.2,<4  # Ensure compatibility with tensorboard
   - numpy
   - pyarrow
-  - pygam=0.9.1
+  - pygam
   - scipy
   - scikit-learn
   - pip
