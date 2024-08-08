@@ -47,7 +47,7 @@ INSTALL_REQUIRES = [
     "deeplc==2.2.27",
     "ms2pip==4.0.0.dev8",
     "psm-utils==0.8.2",
-    "deeplcretrainer==0.2.11"
+    "deeplcretrainer==0.2.11",
     "pydantic",
     "pandas",
     "protobuf>=3.9.2,< 4",
