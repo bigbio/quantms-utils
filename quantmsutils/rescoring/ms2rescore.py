@@ -225,7 +225,7 @@ def filter_out_artifact_psms(
     "--ms2pip_model_dir",
     help="The path of MS²PIP model (default: `./`)",
     type=str,
-    default="./"
+    default="./",
 )
 @click.option(
     "-ms2tol",

@@ -161,5 +161,3 @@ cython_debug/
 *.tsv
 *.csv
 *_df.csv
-/tests/test_data/TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01.mzML
-/tests/test_data/TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01_comet.idXML

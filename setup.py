@@ -1,6 +1,21 @@
 from setuptools import find_packages, setup
+import os
+import codecs
 
-VERSION = "0.0.3"
+
+def read(rel_path):
+    here = os.path.abspath(os.path.dirname(__file__))
+    with codecs.open(os.path.join(here, rel_path), "r") as fp:
+        return fp.read()
+
+
+def get_version(rel_path):
+    for line in read(rel_path).splitlines():
+        if line.startswith("__version__"):
+            delim = '"' if '"' in line else "'"
+            return line.split(delim)[1]
+    raise RuntimeError("Unable to find version string.")
+
 
 NAME = "quantms-utils"
 LICENSE = "MIT License"
@@ -30,14 +45,21 @@ CLASSIFIERS = [
 
 INSTALL_REQUIRES = [
     "click",
-    "sdrf-pipelines",
+    "sdrf-pipelines>=0.0.29",
     "pyopenms",
-    "ms2rescore==3.0.2",
-    "psm-utils==0.8.0",
+    "ms2rescore==3.0.3",
+    "deeplc==2.2.27",
+    "ms2pip==4.0.0.dev8",
+    "psm-utils==0.8.2",
+    "deeplcretrainer==0.2.11",
     "pydantic",
     "pandas",
+    "protobuf>=3.9.2,< 4",
     "numpy",
     "pyarrow",
+    "pygam",
+    "scipy",
+    "scikit-learn",
 ]
 PYTHON_REQUIRES = ">=3.8,<4"
 
@@ -46,7 +68,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name=NAME,
-    version=VERSION,
+    version=get_version("quantmsutils/__init__.py"),
     license=LICENSE,
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
