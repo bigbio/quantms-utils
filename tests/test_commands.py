@@ -95,6 +95,22 @@ def test_sage_feature_file():
 
     assert result.exit_code == 0
 
+def test_snr_file():
+    runner = CliRunner()
+    result = runner.invoke(
+        cli,
+        [
+            "snr",
+            "--ms_path",
+            "tests/test_data/TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01.mzML",
+            "--idxml",
+            "tests/test_data/TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01_sage_ms2rescore.idXML",
+            "--output",
+            "tests/test_data/TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01_sage_ms2rescore_snr.idXML",
+        ],
+    )
+
+    assert result.exit_code == 0
 
 # test for the convert_psm command in cli
 def test_convert_psm_help():

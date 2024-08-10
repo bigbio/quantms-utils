@@ -1,6 +1,8 @@
+import re
+
 import click
 import numpy as np
-from pyopenms import MzMLFile, MSExperiment
+from pyopenms import MzMLFile, MSExperiment, SpectrumLookup
 import pyopenms as oms
 
 
@@ -17,12 +19,39 @@ def compute_signal_to_noise(intensities):
 
     return snr
 
+    def get_spectrum_from_scan(self, mzml_path: str, scan_number: int) -> Tuple[Any, Any]:
+        """
+        Get a spectrum from a mzML file using the scan number
+        :param mzml_path: path to the mzML file
+        :param scan_number: scan number
+        :return: spectrum
+        """
+        if self._mzml_exp is None:
+            self._mzml_exp = oms.MSExperiment()
+            oms.MzMLFile().load(mzml_path, self._mzml_exp)
+
+        try:
+            index = self._spec_lookup.findByScanNumber(scan_number)
+        except IndexError:
+            message = "scan_number" + str(scan_number) + "not found in file: " + mzml_path
+            warnings.warn(message, category=None, stacklevel=1, source=None)
+            return [], []
+        spectrum = self._mzml_exp.getSpectrum(index)
+        spectrum_mz, spectrum_intensities = spectrum.get_peaks()
+        return spectrum_mz, spectrum_intensities
+
 @click.command("snr")
 @click.option("--ms_path", type=click.Path(exists=True), required=True)
 @click.option(
-    "--idxml", help="The idxml file with the PSMs corresponding to the mzML file", required=True
+    "--idxml",
+    help="The idxml file with the PSMs corresponding to the mzML file",
+    required=True,
 )
-@click.option("--output", help="The output idXML file with the signal-to-noise ratio", required=True)
+@click.option(
+    "--output",
+    help="The output idXML file with the signal-to-noise ratio",
+    required=True,
+)
 @click.pass_context
 def snr_cmd(ctx, ms_path: str, idxml: str, output: str) -> None:
     """
@@ -38,14 +67,36 @@ def snr_cmd(ctx, ms_path: str, idxml: str, output: str) -> None:
     mzml_file = MSExperiment()
     MzMLFile().load(ms_path, mzml_file)
 
+    lookup = SpectrumLookup()
+    lookup.readSpectra(mzml_file, "scan=(?<SCAN>\\d+)")
+
     protein_ids = []
     peptide_ids = []
     oms.IdXMLFile().load(idxml, protein_ids, peptide_ids)
 
 
 
+    for peptide in peptide_ids:
+        spectrum_reference = peptide.getMetaValue("spectrum_reference")
+        scan_number = int(re.findall(r"(spectrum|scan)=(\d+)", spectrum_reference)[0][1])
+
+        try:
+           index = lookup.findByScanNumber(scan_number)
+           spectrum = mzml_file.getSpectrum(index)
+           intensity_array = spectrum.get_peaks()[1]
+           snr = compute_signal_to_noise(intensity_array)
+           for hit in peptide.getHits():
+               hit.setMetaValue("quantms:SNR", str(snr))
+        except IndexError:
+            message = "scan_number" + str(scan_number) + "not found in file: " + ms_path
+            print(message)
+
+    # Add quantms:SNR as a feature
+    search_parameters = protein_ids[0].getSearchParameters()
+    features = search_parameters.getMetaValue("extra_features")
+    extra_features = features + ",quantms:SNR"
+    search_parameters.setMetaValue("extra_features", extra_features)
+    protein_ids[0].setSearchParameters(search_parameters)
+
     oms.IdXMLFile().store(output, protein_ids, peptide_ids)
     print("The output file with the signal-to-noise ratio has been saved at: ", output)
-
-
-
