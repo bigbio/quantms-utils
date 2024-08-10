@@ -19,7 +19,7 @@ def compute_signal_to_noise(intensities):
 
     return snr
 
-@click.command("snr")
+@click.command("snr2feature")
 @click.option("--ms_path", type=click.Path(exists=True), required=True)
 @click.option(
     "--idxml",
@@ -32,7 +32,7 @@ def compute_signal_to_noise(intensities):
     required=True,
 )
 @click.pass_context
-def snr_cmd(ctx, ms_path: str, idxml: str, output: str) -> None:
+def snr2feature(ctx, ms_path: str, idxml: str, output: str) -> None:
     """
     The snr function computes the signal-to-noise ratio for a given mass spectrometry file and its corresponding
     identification file.
