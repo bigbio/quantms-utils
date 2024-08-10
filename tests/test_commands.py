@@ -95,6 +95,7 @@ def test_sage_feature_file():
 
     assert result.exit_code == 0
 
+
 def test_snr_file():
     runner = CliRunner()
     result = runner.invoke(
@@ -111,6 +112,7 @@ def test_snr_file():
     )
 
     assert result.exit_code == 0
+
 
 # test for the convert_psm command in cli
 def test_convert_psm_help():
