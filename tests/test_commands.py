@@ -95,12 +95,13 @@ def test_sage_feature_file():
 
     assert result.exit_code == 0
 
+
 def test_snr_file():
     runner = CliRunner()
     result = runner.invoke(
         cli,
         [
-            "snr",
+            "snr2feature",
             "--ms_path",
             "tests/test_data/TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01.mzML",
             "--idxml",
@@ -111,6 +112,7 @@ def test_snr_file():
     )
 
     assert result.exit_code == 0
+
 
 # test for the convert_psm command in cli
 def test_convert_psm_help():

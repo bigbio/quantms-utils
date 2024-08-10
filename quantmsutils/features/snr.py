@@ -19,7 +19,8 @@ def compute_signal_to_noise(intensities):
 
     return snr
 
-@click.command("snr")
+
+@click.command("snr2feature")
 @click.option("--ms_path", type=click.Path(exists=True), required=True)
 @click.option(
     "--idxml",
@@ -32,7 +33,7 @@ def compute_signal_to_noise(intensities):
     required=True,
 )
 @click.pass_context
-def snr_cmd(ctx, ms_path: str, idxml: str, output: str) -> None:
+def snr2feature(ctx, ms_path: str, idxml: str, output: str) -> None:
     """
     The snr function computes the signal-to-noise ratio for a given mass spectrometry file and its corresponding
     identification file.
@@ -55,15 +56,17 @@ def snr_cmd(ctx, ms_path: str, idxml: str, output: str) -> None:
 
     for peptide in peptide_ids:
         spectrum_reference = peptide.getMetaValue("spectrum_reference")
-        scan_number = int(re.findall(r"(spectrum|scan)=(\d+)", spectrum_reference)[0][1])
+        scan_number = int(
+            re.findall(r"(spectrum|scan)=(\d+)", spectrum_reference)[0][1]
+        )
 
         try:
-           index = lookup.findByScanNumber(scan_number)
-           spectrum = mzml_file.getSpectrum(index)
-           intensity_array = spectrum.get_peaks()[1]
-           snr = compute_signal_to_noise(intensity_array)
-           for hit in peptide.getHits():
-               hit.setMetaValue("quantms:SNR", str(snr))
+            index = lookup.findByScanNumber(scan_number)
+            spectrum = mzml_file.getSpectrum(index)
+            intensity_array = spectrum.get_peaks()[1]
+            snr = compute_signal_to_noise(intensity_array)
+            for hit in peptide.getHits():
+                hit.setMetaValue("quantms:SNR", str(snr))
         except IndexError:
             message = "scan_number" + str(scan_number) + "not found in file: " + ms_path
             print(message)
