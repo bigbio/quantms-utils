@@ -19,27 +19,6 @@ def compute_signal_to_noise(intensities):
 
     return snr
 
-    def get_spectrum_from_scan(self, mzml_path: str, scan_number: int) -> Tuple[Any, Any]:
-        """
-        Get a spectrum from a mzML file using the scan number
-        :param mzml_path: path to the mzML file
-        :param scan_number: scan number
-        :return: spectrum
-        """
-        if self._mzml_exp is None:
-            self._mzml_exp = oms.MSExperiment()
-            oms.MzMLFile().load(mzml_path, self._mzml_exp)
-
-        try:
-            index = self._spec_lookup.findByScanNumber(scan_number)
-        except IndexError:
-            message = "scan_number" + str(scan_number) + "not found in file: " + mzml_path
-            warnings.warn(message, category=None, stacklevel=1, source=None)
-            return [], []
-        spectrum = self._mzml_exp.getSpectrum(index)
-        spectrum_mz, spectrum_intensities = spectrum.get_peaks()
-        return spectrum_mz, spectrum_intensities
-
 @click.command("snr")
 @click.option("--ms_path", type=click.Path(exists=True), required=True)
 @click.option(
@@ -73,8 +52,6 @@ def snr_cmd(ctx, ms_path: str, idxml: str, output: str) -> None:
     protein_ids = []
     peptide_ids = []
     oms.IdXMLFile().load(idxml, protein_ids, peptide_ids)
-
-
 
     for peptide in peptide_ids:
         spectrum_reference = peptide.getMetaValue("spectrum_reference")
