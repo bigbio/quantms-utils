@@ -2,7 +2,7 @@ click
 sdrf-pipelines>=0.0.29
 pyopenms
 ms2rescore==3.0.3
-deeplc==2.2.27
+deeplc==2.2.38
 ms2pip==4.0.0.dev8
 psm-utils==0.8.2
 deeplcretrainer==0.2.11
