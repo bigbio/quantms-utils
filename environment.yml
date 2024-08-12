@@ -1,7 +1,6 @@
 # environment.yml
 name: quantmsutils
 channels:
-  - defaults
   - bioconda
   - conda-forge
 dependencies:
