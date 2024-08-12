@@ -101,7 +101,7 @@ def test_snr_file():
     result = runner.invoke(
         cli,
         [
-            "snr2feature",
+            "spectrum2feature",
             "--ms_path",
             "tests/test_data/TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01.mzML",
             "--idxml",
