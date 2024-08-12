@@ -96,7 +96,7 @@ def test_sage_feature_file():
     assert result.exit_code == 0
 
 
-def test_snr_file():
+def test_spectrum2fature_file():
     runner = CliRunner()
     result = runner.invoke(
         cli,
