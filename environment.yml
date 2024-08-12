@@ -12,14 +12,14 @@ dependencies:
   - deeplc=2.2.38
   - ms2pip=4.0.0.dev8
   - psm-utils=0.8.2
-  - deeplcretrainer=0.2.11
+  - deeplcretrainer
   - pydantic=1.10.14
   - pandas
   - protobuf>=3.9.2,<4  # Ensure compatibility with tensorboard
   - numpy
   - pyarrow
   - pygam
-  - scipy
+  - scipy==1.13.1
   - scikit-learn
   - pip
   - pip:
