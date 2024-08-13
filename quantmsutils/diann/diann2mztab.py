@@ -60,7 +60,7 @@ def diann2mztab(
     :param ctx: Click context
     :param folder: DiannConvert specifies the folder where the required file resides. The folder contains
         the DiaNN main report, protein matrix, precursor matrix, experimental design file, protein sequence
-        FASTA file, version file of DiaNN and ms_info TSVs
+        FASTA file, version file of DiaNN and ms_info parquet
     :param exp_design: Experimental design file
     :param dia_params: A list contains DIA parameters
     :type dia_params: list
@@ -342,7 +342,7 @@ class DiannDirectory:
 
     @property
     def ms_info(self) -> os.PathLike:
-        return self.find_first_file_with_suffix("ms_info.tsv")
+        return self.find_first_file_with_suffix("ms_info.parquet")
 
     @property
     def diann_version(self) -> str:
@@ -1064,7 +1064,7 @@ def mztab_psh(report, folder, database):
     :type report: pandas.core.frame.DataFrame
     :param folder: DiannConvert specifies the folder where the required file resides. The folder contains
         the DiaNN main report, protein matrix, precursor matrix, experimental design file, protein sequence
-        FASTA file, version file of DiaNN and ms_info TSVs
+        FASTA file, version file of DiaNN and ms_info parquet
     :type folder: str
     :param database: Path to fasta file
     :type database: str
@@ -1075,8 +1075,8 @@ def mztab_psh(report, folder, database):
 
     def __find_info(directory, n):
         # This line matches n="220101_myfile", folder="." to
-        # "myfolder/220101_myfile_ms_info.tsv"
-        files = list(Path(directory).rglob(f"{n}_ms_info.tsv"))
+        # "myfolder/220101_myfile_ms_info.parquet"
+        files = list(Path(directory).rglob(f"{n}_ms_info.parquet"))
         # Check that it matches one and only one file
         if not files:
             raise ValueError(f"Could not find {n} info file in {directory}")
@@ -1094,7 +1094,7 @@ def mztab_psh(report, folder, database):
             n = n[0]
 
         file = __find_info(folder, n)
-        target = pd.read_csv(file, sep="\t")
+        target = pd.read_parquet(file)
         group.sort_values(by="RT.Start", inplace=True)
         target = target[["Retention_Time", "SpectrumID", "Exp_Mass_To_Charge"]]
         target.columns = [
