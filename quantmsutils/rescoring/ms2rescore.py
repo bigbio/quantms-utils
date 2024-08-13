@@ -294,6 +294,7 @@ def ms2rescore(
 ):
     """
     Rescore PSMs in an idXML file and keep other information unchanged.
+    :param ms2pip_model_dir: Folder for models.
     :param ctx: Click context object
     :param psm_file: PSM file (idXML)
     :param spectrum_path: Spectrum file or dictionary with spectrum files (MGF/mzML)
