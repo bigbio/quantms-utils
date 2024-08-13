@@ -1,3 +1,5 @@
+import filecmp
+
 from click.testing import CliRunner
 
 from quantmsutils.quantmsutilsc import cli
@@ -73,6 +75,42 @@ def test_ms2rescore():
             "0.05",
         ],
     )
+    assert result.exit_code == 0
+
+
+def test_sage_feature_file():
+    runner = CliRunner()
+    result = runner.invoke(
+        cli,
+        [
+            "sage2feature",
+            "--idx_file",
+            "tests/test_data/TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01_sage_ms2rescore.idXML",
+            "--output_file",
+            "tests/test_data/TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01_sage_ms2rescore_feat_gen.idXML",
+            "--feat_file",
+            "tests/test_data/tmt_erwinia_1ulsike_top10hcd_isol2_45stepped_60min_01_sage_ms2rescore.idxml.feature_names.tsv",
+        ],
+    )
+
+    assert result.exit_code == 0
+
+
+def test_spectrum2fature_file():
+    runner = CliRunner()
+    result = runner.invoke(
+        cli,
+        [
+            "spectrum2feature",
+            "--ms_path",
+            "tests/test_data/TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01.mzML",
+            "--idxml",
+            "tests/test_data/TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01_sage_ms2rescore.idXML",
+            "--output",
+            "tests/test_data/TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01_sage_ms2rescore_snr.idXML",
+        ],
+    )
+
     assert result.exit_code == 0
 
 
