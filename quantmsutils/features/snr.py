@@ -55,6 +55,7 @@ def spectrum2feature(ctx, ms_path: str, idxml: str, output: str) -> None:
     peptide_ids = []
     oms.IdXMLFile().load(idxml, protein_ids, peptide_ids)
 
+    result_peptides = []
     for peptide in peptide_ids:
         spectrum_reference = peptide.getMetaValue("spectrum_reference")
         scan_number = int(
@@ -88,6 +89,13 @@ def spectrum2feature(ctx, ms_path: str, idxml: str, output: str) -> None:
                 hit.setMetaValue("quantms:SpectralEntropy", str(spectral_entropy))
                 hit.setMetaValue("quantms:FracTICinTop10Peaks", str(fraction_tic_top_10))
                 hit.setMetaValue("quantms:WeightedStdMz", str(weighted_std_mz))
+
+                # update hit in peptidehits list
+                peptide.setHits([hit])
+            ## update peptide in peptide_ids list
+            result_peptides.append(peptide)
+
+
         except IndexError:
             message = "scan_number" + str(scan_number) + "not found in file: " + ms_path
             print(message)
