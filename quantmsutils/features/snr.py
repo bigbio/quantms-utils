@@ -109,7 +109,10 @@ def spectrum2feature(ctx, ms_path: str, idxml: str, output: str) -> None:
     # Add quantms:SNR as a feature
     search_parameters = protein_ids[0].getSearchParameters()
     features = search_parameters.getMetaValue("extra_features")
-    extra_features = features + ",quantms:SNR,quantms:SpectralEntropy,quantms:FracTICinTop10Peaks,quantms:WeightedStdMz"
+    extra_features = (
+        features
+        + ",quantms:SNR,quantms:SpectralEntropy,quantms:FracTICinTop10Peaks,quantms:WeightedStdMz"
+    )
     search_parameters.setMetaValue("extra_features", extra_features)
     protein_ids[0].setSearchParameters(search_parameters)
 
