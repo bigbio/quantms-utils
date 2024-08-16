@@ -113,19 +113,28 @@ def test_spectrum2fature_file():
 
     assert result.exit_code == 0
 
+
 def test_diann2mztab_example():
     runner = CliRunner()
     result = runner.invoke(
-        cli, [
+        cli,
+        [
             "diann2mztab",
-            "--folder", "tests/test_data/diann2mztab/",
-            "--exp_design", "tests/test_data/diann2mztab/PXD026600.sdrf_openms_design.tsv",
-            "--diann_version", "tests/test_data/diann2mztab/versions.yml",
-            "--dia_params", "20.0;ppm;10.0;ppm;Trypsin;Carbamidomethyl (C);Oxidation (M)",
-            "--charge", "3",
-            "--missed_cleavages", "1",
-            "--qvalue_threshold", "0.01"
-            ],
+            "--folder",
+            "tests/test_data/diann2mztab/",
+            "--exp_design",
+            "tests/test_data/diann2mztab/PXD026600.sdrf_openms_design.tsv",
+            "--diann_version",
+            "tests/test_data/diann2mztab/versions.yml",
+            "--dia_params",
+            "20.0;ppm;10.0;ppm;Trypsin;Carbamidomethyl (C);Oxidation (M)",
+            "--charge",
+            "3",
+            "--missed_cleavages",
+            "1",
+            "--qvalue_threshold",
+            "0.01",
+        ],
     )
     assert result.exit_code == 0
 
