@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "quantms-utils"
-version = "0.0.9"
+version = "0.0.10"
 description = "Python scripts and helpers for the quantMS workflow"
 authors = ["Yasset Perez-Riverol", "Dai Chengxin"]
 packages = [

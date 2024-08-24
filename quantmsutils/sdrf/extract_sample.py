@@ -39,7 +39,7 @@ def extract_sample_from_expdesign(cxt, expdesign: str) -> None:
         for _, row in f_table.iterrows():
             mixture_id = s_data_frame[s_data_frame["Sample"] == row["Sample"]][
                 "MSstats_Mixture"
-            ]
+            ].values[0]
             sample_dt = sample_dt.append(
                 {"Spectra_Filepath": row["Spectra_Filepath"], "Sample": mixture_id},
                 ignore_index=True,
