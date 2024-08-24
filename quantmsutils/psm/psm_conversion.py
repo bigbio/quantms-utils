@@ -62,14 +62,22 @@ def mods_position(peptide):
     help="Parquet file from mzml_statistics",
 )
 @click.option("--export_decoy_psm", is_flag=True)
+@click.option("--output_file", help="Output file name in parquet format")
 @click.pass_context
-def convert_psm(ctx, idxml: str, spectra_file: str, export_decoy_psm: bool = False):
+def convert_psm(
+    ctx,
+    idxml: str,
+    spectra_file: str,
+    export_decoy_psm: bool = False,
+    output_file: str = None,
+):
     """
     Convert idXML to csv file with PSMs information.
     :param ctx: click context
     :param idxml: Input idXML file
     :param spectra_file: Spectra file
     :param export_decoy_psm: Export decoy PSM
+    :param output_file: Output file name in parquet format, if not it will be constructed from idXML file name
     :return: None
     """
 
@@ -176,6 +184,9 @@ def convert_psm(ctx, idxml: str, spectra_file: str, export_decoy_psm: bool = Fal
                 ]
             )
 
+    if output_file is None:
+        output_file = f"{Path(idxml).stem}_psm.parquet"
+
     pd.DataFrame(parquet_data, columns=_parquet_field).to_parquet(
-        f"{Path(idxml).stem}_psm.csv", index=False, engine="pyarrow", compression="gzip"
+        output_file, index=False, engine="pyarrow", compression="gzip"
     )
