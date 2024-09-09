@@ -32,6 +32,9 @@ def parse_cli_arguments_to_config(
     id_decoy_pattern: str = None,
     lower_score_is_better: bool = None,
     output_path: str = None,
+    log_level: str = None,
+    spectrum_id_pattern: str = None,
+    psm_id_pattern: str = None
 ) -> dict:
     if config_file is None:
         config = json.load(
@@ -103,6 +106,12 @@ def parse_cli_arguments_to_config(
         config["ms2rescore"]["output_path"] = output_path
     else:
         raise ValueError("Output path must be specified.")
+    if log_level is not None:
+        config["ms2rescore"]["log_level"] = log_level
+    if spectrum_id_pattern is not None:
+        config["ms2rescore"]["spectrum_id_pattern"] = spectrum_id_pattern
+    if psm_id_pattern is not None:
+        config["ms2rescore"]["psm_id_pattern"] = psm_id_pattern
 
     return config
 
@@ -271,6 +280,16 @@ def filter_out_artifact_psms(
     help="Path to MS²Rescore config file (default: `config_default.json`)",
     default=None,
 )
+@click.option(
+    "--spectrum_id_pattern",
+    help="Regex pattern to extract index or scan number from spectrum file. Requires at least one capturing group.",
+    default="(.*)",
+)
+@click.option(
+    "--psm_id_pattern",
+    help="Regex pattern to extract index or scan number from PSM file. Requires at least one capturing group.",
+    default="(.*)",
+)
 @click.pass_context
 def ms2rescore(
     ctx,
@@ -291,6 +310,8 @@ def ms2rescore(
     id_decoy_pattern,
     lower_score_is_better,
     config_file: str,
+    spectrum_id_pattern: str,
+    psm_id_pattern: str
 ):
     """
     Rescore PSMs in an idXML file and keep other information unchanged.
@@ -312,6 +333,8 @@ def ms2rescore(
     :param id_decoy_pattern: id decoy pattern
     :param lower_score_is_better: lower score is better
     :param config_file: config file
+    :param spectrum_id_pattern:egex pattern to extract index or scan number from spectrum file
+    :param psm_id_pattern: Regex pattern to extract index or scan number from PSM file
     :return:
     """
     logging.getLogger().setLevel(log_level.upper())
@@ -343,6 +366,9 @@ def ms2rescore(
         fasta_file=fasta_file,
         id_decoy_pattern=id_decoy_pattern,
         lower_score_is_better=lower_score_is_better,
+        log_level=log_level,
+        spectrum_id_pattern=spectrum_id_pattern,
+        psm_id_pattern=psm_id_pattern
     )
     logging.info("MS²Rescore config:")
     logging.info(config)
