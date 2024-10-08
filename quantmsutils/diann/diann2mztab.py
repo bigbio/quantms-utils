@@ -1116,20 +1116,41 @@ def mztab_psh(report, folder, database):
 
         # TODO seconds returned from precursor.getRT()
         target.loc[:, "RT"] = target.apply(lambda x: x["RT"] / 60, axis=1)
+
+        RT_matched = pd.merge_asof(group, target, on="RT", direction="nearest")
+        new_target = target
+        new_target.columns = [
+            "scan_RT",
+            "scan_opt_global_spectrum_reference",
+            "MS2.Scan",
+            "scan_exp_mass_to_charge",
+        ]
+        scan_matched = pd.merge(RT_matched, new_target, on="MS2.Scan")
+
+        #  Cross validation spectrum ID between scan matched and RT matched
+        # Keep Scan matched When RT matched and DIA-NN Scan matched are inconsistent in mzML.
+        scan_matched["unassigned_matched"] = scan_matched.apply(
+            lambda row: 1 if row["MS2.Scan"] != row["DIANN-intraID"] else 0, axis=1)
+        if len(scan_matched[scan_matched["unassigned_matched"] == 1]) > 0:
+            v_str = scan_matched[scan_matched["unassigned_matched"] == 1]["MS2.Scan"].tolist()
+            logger.info(f"RT matched and DIA-NN Scan matched are inconsistent in mzML. Keep Scan matched: {v_str}")
+            scan_matched.drop(["RT", "opt_global_spectrum_reference", "DIANN-intraID", "exp_mass_to_charge", "unassigned_matched"],
+                              inplace=True, axis=1)
+            scan_matched.rename(
+                columns={"scan_RT": "RT", "scan_opt_global_spectrum_reference": "opt_global_spectrum_reference",
+                         "scan_exp_mass_to_charge": "exp_mass_to_charge"}, inplace=True)
+        else:
+            scan_matched.drop(["scan_RT", "scan_opt_global_spectrum_reference", "scan_exp_mass_to_charge", "unassigned_matched"],
+                              inplace=True, axis=1)
+
         out_mztab_psh = pd.concat(
             [
                 out_mztab_psh,
-                pd.merge_asof(group, target, on="RT", direction="nearest"),
+                scan_matched
             ]
         )
-    del report
 
-    #  Cross validation spectrum ID between scan matched and RT matched
-    if "MS2.Scan" in out_mztab_psh.columns:
-        out_mztab_psh["unassigned_matched"] = out_mztab_psh.apply(lambda row: 1 if row["MS2.Scan"] != row["DIANN-intraID"] else 0, axis=1)
-        if len(out_mztab_psh[out_mztab_psh["unassigned_matched"] == 1]) > 0:
-            v_str = out_mztab_psh[out_mztab_psh["unassigned_matched"] == 1]["MS2.Scan"].tolist()
-            raise ValueError(f"Can't matched correctly DIA-NN scan in mzML: {v_str}")
+    del report
 
     # Score at PSM level: Q.Value
     out_mztab_psh = out_mztab_psh[
