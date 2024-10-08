@@ -45,7 +45,7 @@ CLASSIFIERS = [
 
 INSTALL_REQUIRES = [
     "click",
-    "sdrf-pipelines>=0.0.29",
+    "sdrf-pipelines>=0.0.30",
     "pyopenms",
     "ms2rescore==3.0.3",
     "deeplc==2.2.38",
