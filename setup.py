@@ -60,6 +60,7 @@ INSTALL_REQUIRES = [
     "pygam",
     "scipy==1.13.1",
     "scikit-learn",
+    "setuptools",
 ]
 PYTHON_REQUIRES = ">=3.8,<4"
 
