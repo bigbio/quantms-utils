@@ -33,7 +33,7 @@ jobs:
       run: |
         source $CONDA/etc/profile.d/conda.sh
         conda activate quantmsutils
-        conda mambabuild recipe
+        conda build recipe
       shell: bash -l {0}
 
     - name: Install the built package
