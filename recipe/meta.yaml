@@ -1,7 +1,7 @@
 # recipe/meta.yaml
 package:
   name: quantms-utils
-  version: "0.0.3"
+  version: "0.0.12"
 
 source:
   path: ../
@@ -19,16 +19,24 @@ requirements:
   host:
     - python >=3.8,<4.0
     - pip
+    - setuptools
   run:
-    - python >=3.7.0,<4.0.0
-    - click >=7.0
-    - pydantic >=1.10,<2
-    - sdrf-pipelines >=0.0.26
-    - pyopenms >=2.6.0
-    - ms2rescore ==3.0.2
-    - psm-utils ==0.8.0
-    - pandas >=1.0.0
+    - click
+    - sdrf-pipelines>=0.0.30
+    - pyopenms
+    - ms2rescore=3.0.3
+    - deeplc=2.2.38
+    - ms2pip=4.0.0.dev8
+    - psm-utils=0.8.2
+    - deeplcretrainer
+    - pydantic=1.10.14
+    - pandas
+    - protobuf>=3.9.2,<4  # Ensure compatibility with tensorboard
     - numpy
+    - pyarrow
+    - pygam
+    - scipy==1.13.1
+    - scikit-learn
 
 test:
   imports:

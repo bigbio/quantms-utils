@@ -5,7 +5,7 @@ channels:
   - conda-forge
 dependencies:
   - click
-  - sdrf-pipelines>=0.0.29
+  - sdrf-pipelines>=0.0.30
   - pyopenms
   - ms2rescore=3.0.3
   - deeplc=2.2.38
@@ -20,6 +20,7 @@ dependencies:
   - pygam
   - scipy==1.13.1
   - scikit-learn
+  - setuptools
   - pip
   - pip:
     - tensorboard
