@@ -25,7 +25,8 @@ jobs:
         source $CONDA/etc/profile.d/conda.sh
         conda activate quantmsutils
         conda install conda-forge::mamba
-        conda install conda-forge::boa
+        conda install conda-forge::rattler-build
+        conda install conda-forge::conda-recipe-manager
         mamba install conda-build anaconda-client
       shell: bash -l {0}
 
@@ -33,7 +34,8 @@ jobs:
       run: |
         source $CONDA/etc/profile.d/conda.sh
         conda activate quantmsutils
-        conda build recipe
+        conda-recipe-manager convert recipe/meta.yaml > recipe/recipe.yaml
+        rattler-build build -r recipe/recipe.yaml
       shell: bash -l {0}
 
     - name: Install the built package
