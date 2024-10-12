@@ -1,5 +1,5 @@
 click
-sdrf-pipelines>=0.0.30
+sdrf-pipelines>=0.0.31
 pyopenms
 ms2rescore==3.0.3
 deeplc==2.2.38
