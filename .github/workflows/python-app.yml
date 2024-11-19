@@ -29,8 +29,11 @@ jobs:
         pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         pip install poetry
-        poetry build
+
+    - name: Install dependencies with Poetry
+      run: |
         poetry install
+
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
@@ -39,11 +42,11 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        pytest
+        poetry run pytest
     - name: Download test data
       run: |
         wget https://ftp.pride.ebi.ac.uk/pub/databases/pride/resources/proteomes/quantms-ci-github/quantms-utils/TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01.mzML
         wget https://ftp.pride.ebi.ac.uk/pub/databases/pride/resources/proteomes/quantms-ci-github/quantms-utils/TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01_comet.idXML
     - name: Test percolator ms2rescore
       run: |
-        quantmsutilsc ms2rescore --psm_file TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01_comet.idXML --spectrum_path TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01.mzML --processes 2 --ms2pip_model HCD2021 --feature_generators 'ms2pip,deeplc' --id_decoy_pattern ^rev --test_fdr 0.05
+        poetry run quantmsutilsc ms2rescore --psm_file TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01_comet.idXML --spectrum_path TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01.mzML --processes 2 --ms2pip_model HCD2021 --feature_generators 'ms2pip,deeplc' --id_decoy_pattern ^rev --test_fdr 0.05
