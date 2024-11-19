@@ -29,7 +29,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.8,<4.0"
+python = ">=3.9,<4.0"
 click = "*"
 sdrf-pipelines = ">=0.0.31"
 pyopenms = "*"
@@ -61,4 +61,4 @@ profile = "black"
 
 [tool.black]
 line-length = 99
-target-version = ["py38"]
+target-version = ["py39"]
