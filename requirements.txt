@@ -14,4 +14,3 @@ pyarrow
 pygam
 scipy==1.13.1
 scikit-learn
-setuptools

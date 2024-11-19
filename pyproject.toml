@@ -2,10 +2,10 @@
 name = "quantms-utils"
 description = "Python scripts and helpers for the quantMS workflow"
 readme = "README.md"
-license = { file = "LICENSE" }
+license-file = "LICENSE"
 authors = [
-    { name = "Yasset Perez-Riverol", email="ypriverol@gmail.com"},
-    { name = "Dai Chengxin", email="chengxin2024@126.com"}
+    { name = "Yasset Perez-Riverol", email = "ypriverol@gmail.com" },
+    { name = "Dai Chengxin", email = "chengxin2024@126.com" }
 ]
 keywords = [
     "quantms",
@@ -16,43 +16,40 @@ keywords = [
 ]
 classifiers = [
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: Apache Software License",
+    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3 :: Only",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
-    "Development Status :: 5 - Production/Stable",
+    "Development Status :: 5 - Production/Stable"
 ]
 dynamic = ["version"]
 requires-python = ">=3.8,<4.0"
-packages = [
-    { include = "quantmsutils" }
-]
-dependencies = [
-    "click",
-    "sdrf-pipelines>=0.0.31",
-    "pyopenms",
-    "ms2rescore==3.0.3",
-    "deeplc==2.2.38",
-    "ms2pip==4.0.0.dev8",
-    "psm-utils==0.8.2",
-    "deeplcretrainer",
-    "pydantic",
-    "pandas",
-    "protobuf>=3.9.2,< 4",
-    "numpy",
-    "pyarrow",
-    "pygam",
-    "scipy==1.13.1",
-    "scikit-learn"
-]
 
+[tool.poetry.dependencies]
+python = ">=3.8,<4.0"
+click = "*"
+sdrf-pipelines = ">=0.0.31"
+pyopenms = "*"
+ms2rescore = "3.0.3"
+deeplc = "2.2.38"
+ms2pip = "4.0.0.dev8"
+psm-utils = "0.8.2"
+deeplcretrainer = "*"
+pydantic = "*"
+pandas = "*"
+protobuf = ">=3.9.2,<4"
+numpy = "*"
+pyarrow = "*"
+pygam = "*"
+scipy = "1.13.1"
+scikit-learn = "*"
 
-[project.urls]
-GiHub = "https://github.com/bigbio/quantms-utils"
-PyPi  = "https://pypi.org/project/quantms-utils/"
+[tool.poetry.urls]
+GitHub = "https://github.com/bigbio/quantms-utils"
+PyPi = "https://pypi.org/project/quantms-utils/"
 Quantms = "https://quantms.org"
 
-[project.scripts]
+[tool.poetry.scripts]
 quantmsutilsc = "quantmsutils.quantmsutilsc:main"
 
 [tool.isort]
@@ -60,4 +57,4 @@ profile = "black"
 
 [tool.black]
 line-length = 99
-target-version = ['py38']
+target-version = ["py38"]
