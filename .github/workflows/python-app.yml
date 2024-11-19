@@ -46,4 +46,4 @@ jobs:
         wget https://ftp.pride.ebi.ac.uk/pub/databases/pride/resources/proteomes/quantms-ci-github/quantms-utils/TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01_comet.idXML
     - name: Test percolator ms2rescore
       run: |
-        poetry run quantmsutilsc ms2rescore --psm_file TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01_comet.idXML --spectrum_path TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01.mzML --processes 2 --ms2pip_model HCD2021 --feature_generators 'ms2pip,deeplc' --id_decoy_pattern ^rev --test_fdr 0.05
+        quantmsutilsc ms2rescore --psm_file TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01_comet.idXML --spectrum_path TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01.mzML --processes 2 --ms2pip_model HCD2021 --feature_generators 'ms2pip,deeplc' --id_decoy_pattern ^rev --test_fdr 0.05
