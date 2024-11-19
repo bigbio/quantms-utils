@@ -14,8 +14,8 @@ jobs:
       uses: conda-incubator/setup-miniconda@v3
       with:
         auto-update-conda: true
-        python-version: 3.10
-        channels: conda-forge,bioconda
+        python-version: 3.11
+        channels: conda-forge,bioconda,defaults
 
     - name: Create conda environment
       run: conda env create -f environment.yml
