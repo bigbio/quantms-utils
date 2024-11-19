@@ -2,7 +2,7 @@
 name = "quantms-utils"
 description = "Python scripts and helpers for the quantMS workflow"
 readme = "README.md"
-license-file = "LICENSE"
+license = "MIT"
 authors = [
     { name = "Yasset Perez-Riverol", email = "ypriverol@gmail.com" },
     { name = "Dai Chengxin", email = "chengxin2024@126.com" }
@@ -22,8 +22,8 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Bio-Informatics",
     "Development Status :: 5 - Production/Stable"
 ]
-dynamic = ["version"]
-requires-python = ">=3.8,<4.0"
+version = "0.0.13"
+
 
 [tool.poetry.dependencies]
 python = ">=3.8,<4.0"
@@ -48,6 +48,7 @@ scikit-learn = "*"
 GitHub = "https://github.com/bigbio/quantms-utils"
 PyPi = "https://pypi.org/project/quantms-utils/"
 Quantms = "https://quantms.org"
+LICENSE = "https://github.com/bigbio/quantms-utils/blob/main/LICENSE"
 
 [tool.poetry.scripts]
 quantmsutilsc = "quantmsutils.quantmsutilsc:main"
