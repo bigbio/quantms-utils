@@ -33,7 +33,7 @@ jobs:
       run: |
         source $CONDA/etc/profile.d/conda.sh
         conda activate quantmsutils
-        conda mambabuild recipe --suppress-variables
+        conda mambabuild recipe --suppress-variables --override-channels --channel conda-forge --channel --channel bioconda
       shell: bash -l {0}
 
     - name: Install the built package
