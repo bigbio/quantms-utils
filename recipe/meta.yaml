@@ -24,7 +24,6 @@ requirements:
     - sdrf-pipelines>=0.0.31
     - pyopenms
     - ms2rescore=3.0.3
-    - psm-utils=0.8.2
     - pydantic=1.10.14
     - pandas
     - protobuf>=3.9.2,<4  # Ensure compatibility with tensorboard
