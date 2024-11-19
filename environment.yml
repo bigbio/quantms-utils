@@ -3,6 +3,7 @@ name: quantmsutils
 channels:
   - bioconda
   - conda-forge
+  - nodefaults
 dependencies:
   - click
   - sdrf-pipelines>=0.0.31
