@@ -5,7 +5,6 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30  # Add timeout to prevent hanging
 
     steps:
     - name: Checkout repository
@@ -15,33 +14,45 @@ jobs:
       uses: conda-incubator/setup-miniconda@v3
       with:
         auto-update-conda: true
-        python-version: 3.10
-        channels: conda-forge,bioconda,defaults
-        activate-environment: quantmsutils
-        cache-downloads: true
-        cache-environment: true
-        environment-file: environment.yml
-        use-mamba: true
+        python-version: 3.8
+        channels: conda-forge,bioconda
 
-    - name: Install build dependencies
-      shell: bash -l {0}
-      run: |
-        conda install -q conda-forge::boa conda-build anaconda-client
-        mamba install -q conda-build anaconda-client
+    - name: Create conda environment
+      run: conda env create -f environment.yml
 
-    - name: Build package
-      shell: bash -l {0}
+    - name: Install mamba, boa and conda-build
       run: |
-        conda mambabuild recipe --output-folder conda-bld
+        source $CONDA/etc/profile.d/conda.sh
+        conda activate quantmsutils
+        conda install conda-forge::mamba
+        conda install conda-forge::boa
+        mamba install conda-build anaconda-client
+      shell: bash -l {0}
 
-    - name: Install built package
-      shell: bash -l {0}
+    - name: Activate conda environment and build package
       run: |
-        mamba install -q --use-local quantms-utils
+        source $CONDA/etc/profile.d/conda.sh
+        conda activate quantmsutils
+        conda mambabuild recipe --suppress-variables
+      shell: bash -l {0}
 
-    - name: Verify package
-      shell: bash -l {0}
+    - name: Install the built package
       run: |
+        source $CONDA/etc/profile.d/conda.sh
+        conda activate quantmsutils
+        mamba install --use-local quantms-utils
+      shell: bash -l {0}
+
+    - name: Output package info
+      run: |
+        source $CONDA/etc/profile.d/conda.sh
+        conda activate quantmsutils
         conda list
-        quantmsutilsc --help || true  # Prevent failure if help command doesn't exist
-        quantmsutilsc --version || true
+      shell: bash -l {0}
+
+    - name: Test the installed package
+      run: |
+        conda activate quantmsutils
+        quantmsutilsc --help
+        quantmsutilsc --version
+      shell: bash -l {0}
