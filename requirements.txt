@@ -2,7 +2,10 @@ click
 sdrf-pipelines>=0.0.31
 pyopenms
 ms2rescore==3.0.3
+deeplc==2.2.38
+ms2pip==4.0.0.dev8
 psm-utils==0.8.2
+deeplcretrainer
 pydantic==1.10.14
 pandas
 protobuf>=3.9.2,<4  # Ensure compatibility with tensorboard
