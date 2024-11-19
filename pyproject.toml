@@ -3,7 +3,11 @@ name = "quantms-utils"
 description = "Python scripts and helpers for the quantMS workflow"
 readme = "README.md"
 license = "MIT"
-authors = "Yasset Perez-Riverol, Dai Chengxin"
+authors = [
+    "Yasset Perez-Riverol <ypriverol@gmail.com>",
+    "Dai Chengxin <chengxin2024@126.com>",
+    "Julianus Pfeuffer <jule.pf@gmail.com>"
+]
 keywords = [
     "quantms",
     "proteomics",
