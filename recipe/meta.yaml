@@ -19,7 +19,6 @@ requirements:
   host:
     - python >=3.8,<4.0
     - pip
-    - setuptools
   run:
     - click
     - sdrf-pipelines>=0.0.31
@@ -37,6 +36,7 @@ requirements:
     - pygam
     - scipy==1.13.1
     - scikit-learn
+    - setuptools
 
 test:
   imports:
