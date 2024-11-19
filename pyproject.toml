@@ -62,3 +62,7 @@ profile = "black"
 [tool.black]
 line-length = 99
 target-version = ["py39"]
+
+[build-system]
+requires = ["poetry-core>=1.2.0"]
+build-backend = "poetry.core.masonry.api"

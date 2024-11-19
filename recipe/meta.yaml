@@ -19,6 +19,7 @@ requirements:
   host:
     - python >=3.9,<3.12
     - pip
+    - poetry-core >=1.2.0
   run:
     - click
     - sdrf-pipelines>=0.0.31
