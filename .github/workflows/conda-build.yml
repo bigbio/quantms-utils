@@ -16,7 +16,7 @@ jobs:
       with:
         auto-update-conda: true
         python-version: 3.10
-        channels: conda-forge,bioconda
+        channels: conda-forge,bioconda,defaults
         activate-environment: quantmsutils
         cache-downloads: true
         cache-environment: true
