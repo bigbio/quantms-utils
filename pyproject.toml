@@ -3,6 +3,7 @@ name = "quantms-utils"
 description = "Python scripts and helpers for the quantMS workflow"
 readme = "README.md"
 license = "MIT"
+version = "0.0.13"
 authors = [
     "Yasset Perez-Riverol <ypriverol@gmail.com>",
     "Dai Chengxin <chengxin2024@126.com>",
@@ -23,8 +24,9 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Bio-Informatics",
     "Development Status :: 5 - Production/Stable"
 ]
-version = "0.0.13"
-
+packages = [
+    { include = "quantmsutils" }
+]
 
 [tool.poetry.dependencies]
 python = ">=3.8,<4.0"
