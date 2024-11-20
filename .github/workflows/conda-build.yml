@@ -33,16 +33,10 @@ jobs:
         conda config --set channel_priority strict
         conda build recipe --suppress-variables --override-channels --channel conda-forge --channel bioconda --no-anaconda-upload
 
-    - name: Install the built package
+    - name: Install the built package and test
       run: |
-        mamba install --use-local quantms-utils
-
-    - name: Output package info
-      run: |
+        mamba create --name quantmsutils quantms-utils --use-local
+        conda activate quantmsutils
         conda list
-
-    - name: Test the installed package
-      run: |
-        # this will fail. you need to create a quantmsutil env first
         quantmsutilsc --help
         quantmsutilsc --version
