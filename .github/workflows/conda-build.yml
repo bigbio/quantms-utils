@@ -16,13 +16,17 @@ jobs:
       uses: conda-incubator/setup-miniconda@v3
       with:
         mamba-version: "*"
-        create-args: >-
-            python=3.11
-            conda-build
-            boa
-            pip
         channels: conda-forge,bioconda
         cache-downloads: true
+        auto-update-conda: false
+        activate-environment: test
+
+    - name: Setup conda-build and anaconda-client
+      run: |
+         echo "::group::Setup conda-build and anaconda-client"
+         conda install -q conda-build anaconda-client
+         echo "::endgroup::"
+      shell: bash -l {0}
 
     - name: Build package
       run: |
