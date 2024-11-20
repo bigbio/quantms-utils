@@ -38,7 +38,6 @@ pandas = "*"
 numpy = "*"
 pyarrow = "*"
 psm-utils = "0.8.3"
-ms2pip = "4.0.0.dev8"
 
 [tool.poetry.urls]
 GitHub = "https://github.com/bigbio/quantms-utils"
