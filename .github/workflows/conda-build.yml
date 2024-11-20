@@ -5,54 +5,38 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        shell: bash -el {0}
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4  # Update to latest version
 
     - name: Set up Miniconda
-      uses: conda-incubator/setup-miniconda@v2
+      uses: conda-incubator/setup-miniconda@v3
       with:
-        auto-update-conda: true
-        python-version: 3.8
-        channels: conda-forge,defaults,bioconda
+        mamba-version: "*"
+        channels: conda-forge,bioconda
+        cache-downloads: true
+        auto-update-conda: false
+        activate-environment: test
+        python-version: 3.11
 
-    - name: Create conda environment
-      run: conda env create -f environment.yml
-
-    - name: Install mamba, boa and conda-build
+    - name: Setup conda-build and anaconda-client
       run: |
-        source $CONDA/etc/profile.d/conda.sh
-        conda activate quantmsutils
-        conda install conda-forge::mamba
-        conda install conda-forge::boa
-        mamba install conda-build anaconda-client
-      shell: bash -l {0}
+         mamba install -q conda-build anaconda-client conda-verify
 
-    - name: Activate conda environment and build package
+    - name: Build package
       run: |
-        source $CONDA/etc/profile.d/conda.sh
-        conda activate quantmsutils
-        conda mambabuild recipe
-      shell: bash -l {0}
+        conda build purge-all
+        conda config --set solver libmamba
+        conda config --set channel_priority strict
+        conda build recipe --suppress-variables --override-channels --channel conda-forge --channel bioconda --no-anaconda-upload
 
-    - name: Install the built package
+    - name: Install the built package and test
       run: |
-        source $CONDA/etc/profile.d/conda.sh
-        conda activate quantmsutils
-        mamba install --use-local quantms-utils
-      shell: bash -l {0}
-
-    - name: Output package info
-      run: |
-        source $CONDA/etc/profile.d/conda.sh
+        mamba create --name quantmsutils quantms-utils --use-local
         conda activate quantmsutils
         conda list
-      shell: bash -l {0}
-
-    - name: Test the installed package
-      run: |
-        conda activate quantmsutils
         quantmsutilsc --help
         quantmsutilsc --version
-      shell: bash -l {0}

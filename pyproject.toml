@@ -1,41 +1,60 @@
 [tool.poetry]
 name = "quantms-utils"
-version = "0.0.10"
 description = "Python scripts and helpers for the quantMS workflow"
-authors = ["Yasset Perez-Riverol", "Dai Chengxin"]
+readme = "README.md"
+license = "MIT"
+version = "0.0.13"
+authors = [
+    "Yasset Perez-Riverol <ypriverol@gmail.com>",
+    "Dai Chengxin <chengxin2024@126.com>",
+    "Julianus Pfeuffer <jule.pf@gmail.com>"
+]
+keywords = [
+    "quantms",
+    "proteomics",
+    "mass-spectrometry",
+    "data-analysis",
+    "big data"
+]
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Development Status :: 5 - Production/Stable"
+]
 packages = [
     { include = "quantmsutils" }
 ]
 
-[build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
-
 [tool.poetry.dependencies]
-click = ">=7.0"
-pydantic = ">=1.10,<2"
-python = "^3.7"
-sdrf-pipelines = ">=0.0.29"
-pyopenms = ">=2.6.0"
-pandas = ">=1.0.0"
-ms2rescore = "==3.0.3"
-deeplc = "==2.2.38"
-ms2pip = "==4.0.0.dev8"
-psm-utils = "==0.8.2"
-protobuf = ">=3.9.2,<4"
-scipy = "==1.13.1"
+python = ">=3.8,<3.12"
+click = "*"
+sdrf-pipelines = ">=0.0.31"
+pyopenms = "*"
+ms2rescore = "3.0.3"
+pandas = "*"
+numpy = "*"
+pyarrow = "*"
+psm-utils = "0.8.3"
 
-[tool.poetry.dev-dependencies]
-pytest = "*"
-
-[tool.pytest.ini_options]
-minversion = "6.0"
-addopts = "-ra -q"
-testpaths = ["tests"]
-
-[tool.black]
-line-length = 88
-target-version = ['py37', 'py38', 'py39', 'py310', 'py311']
+[tool.poetry.urls]
+GitHub = "https://github.com/bigbio/quantms-utils"
+PyPi = "https://pypi.org/project/quantms-utils/"
+Quantms = "https://quantms.org"
+LICENSE = "https://github.com/bigbio/quantms-utils/blob/main/LICENSE"
 
 [tool.poetry.scripts]
 quantmsutilsc = "quantmsutils.quantmsutilsc:main"
+
+[tool.isort]
+profile = "black"
+
+[tool.black]
+line-length = 99
+target-version = ["py39"]
+
+[build-system]
+requires = ["poetry-core>=1.2.0"]
+build-backend = "poetry.core.masonry.api"

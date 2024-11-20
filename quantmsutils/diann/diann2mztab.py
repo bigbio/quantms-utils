@@ -362,7 +362,7 @@ class DiannDirectory:
         return diann_version_id
 
     def validate_diann_version(self) -> None:
-        supported_diann_versions = ["1.8.1", "1.9.beta.1"]
+        supported_diann_versions = ["1.8.1", "1.9.beta.1", "1.9.2"]
         if self.diann_version not in supported_diann_versions:
             raise ValueError(f"Unsupported DIANN version {self.diann_version}")
 
@@ -411,7 +411,7 @@ class DiannDirectory:
         )
 
         mtd, database = mztab_mtd(
-            index_ref, dia_params, str(self.fasta), charge, missed_cleavages
+            index_ref, dia_params, str(self.fasta), charge, missed_cleavages, self.diann_version
         )
         pg = pd.read_csv(
             self.pg_matrix,
@@ -545,7 +545,7 @@ def mtd_mod_info(fix_mod, var_mod):
     return fix_ptm, var_ptm, fix_flag, var_flag
 
 
-def mztab_mtd(index_ref, dia_params, fasta, charge, missed_cleavages):
+def mztab_mtd(index_ref, dia_params, fasta, charge, missed_cleavages, diann_version):
     """
     Construct MTD sub-table.
 
@@ -587,7 +587,7 @@ def mztab_mtd(index_ref, dia_params, fasta, charge, missed_cleavages):
     out_mztab_mtd.loc[1, "psm_search_engine_score[1]"] = (
         "[MS, MS:MS:1001869, protein-level q-value, ]"
     )
-    out_mztab_mtd.loc[1, "software[1]"] = "[MS, MS:1003253, DIA-NN, Release (v1.8.1)]"
+    out_mztab_mtd.loc[1, "software[1]"] = "[MS, MS:1003253, DIA-NN, {}]".format(diann_version)
     out_mztab_mtd.loc[1, "software[1]-setting[1]"] = fasta
     out_mztab_mtd.loc[1, "software[1]-setting[2]"] = "db_version:null"
     out_mztab_mtd.loc[1, "software[1]-setting[3]"] = (

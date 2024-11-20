@@ -1,7 +1,7 @@
 # recipe/meta.yaml
 package:
   name: quantms-utils
-  version: "0.0.12"
+  version: "0.0.13"
 
 source:
   path: ../
@@ -12,32 +12,24 @@ build:
   noarch: python
   run_exports:
     - {{ pin_subpackage('quantms-utils', max_pin="x.x") }}
-  script: "{{ PYTHON }} -m pip install . --no-deps -vvv"
+  script: "{{ PYTHON }} -m pip install . --no-deps --no-build-isolation --no-cache-dir -vvv"
   number: 0
 
 requirements:
   host:
-    - python >=3.8,<4.0
+    - python
     - pip
-    - setuptools
+    - poetry-core >=1.2.0
   run:
+    - python
     - click
     - sdrf-pipelines>=0.0.31
     - pyopenms
     - ms2rescore=3.0.3
-    - deeplc=2.2.38
-    - ms2pip=4.0.0.dev8
-    - psm-utils=0.8.2
-    - deeplcretrainer
-    - pydantic=1.10.14
     - pandas
-    - protobuf>=3.9.2,<4  # Ensure compatibility with tensorboard
     - numpy
     - pyarrow
-    - pygam
-    - scipy==1.13.1
-    - scikit-learn
-
+    - psm-utils=0.8.3
 test:
   imports:
     - quantmsutils
