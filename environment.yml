@@ -12,4 +12,4 @@ dependencies:
   - pandas
   - numpy
   - pyarrow
-  - psm-utils<1.1
+  - psm-utils<1.0
