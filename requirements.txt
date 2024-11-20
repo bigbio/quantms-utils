@@ -5,4 +5,4 @@ ms2rescore==3.0.3
 pandas
 numpy
 pyarrow
-psm-utils==1.0.0
+psm-utils==0.8.3
