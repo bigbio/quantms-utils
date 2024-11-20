@@ -24,8 +24,8 @@ jobs:
 
     - name: Setup conda-build and anaconda-client
       run: |
-         echo "::group::Setup conda-build and anaconda-client"
-         conda install -q conda-build anaconda-client
+         echo "::group::Setup conda-build and anaconda-client conda-verify"
+         conda install -q conda-build anaconda-client conda-verify
          echo "::endgroup::"
       shell: bash -l {0}
 
