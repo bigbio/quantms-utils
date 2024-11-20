@@ -15,17 +15,20 @@ jobs:
     - name: Set up Miniconda
       uses: conda-incubator/setup-miniconda@v3
       with:
-        mamba-version: "*"
-        python-version: 3.11
-        channels: conda-forge,bioconda,defaults
-
-    - name: Install mamba, boa and conda-build
-      run: |
-        mamba install conda-forge::boa
+        environment-file: false
+        create-args: >-
+            python=3.11
+            conda-build
+            boa
+            pip
+        channels: conda-forge,bioconda
+        cache-downloads: true
 
     - name: Build package
       run: |
-        conda build recipe --suppress-variables --override-channels --channel conda-forge --channel bioconda
+        conda build recipe --suppress-variables \
+        --override-channels --channel conda-forge \
+        --channel bioconda --no-anaconda-upload
 
     - name: Install the built package
       run: |
@@ -38,6 +41,5 @@ jobs:
     - name: Test the installed package
       run: |
         # this will fail. you need to create a quantmsutil env first
-        conda activate quantmsutils
         quantmsutilsc --help
         quantmsutilsc --version
