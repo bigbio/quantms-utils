@@ -15,7 +15,7 @@ jobs:
     - name: Set up Miniconda
       uses: conda-incubator/setup-miniconda@v3
       with:
-        environment-file: false
+        mamba-version: "*"
         create-args: >-
             python=3.11
             conda-build
