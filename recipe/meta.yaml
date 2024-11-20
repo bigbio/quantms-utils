@@ -29,6 +29,7 @@ requirements:
     - pandas
     - numpy
     - pyarrow
+    - psm-utils=1.0.0
 
 test:
   imports:
