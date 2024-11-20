@@ -12,5 +12,3 @@ dependencies:
   - pandas
   - numpy
   - pyarrow
-  - pydantic=1.10.14
-  - psm-utils
