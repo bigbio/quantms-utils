@@ -17,13 +17,9 @@ jobs:
         python-version: 3.11
         channels: conda-forge,bioconda,defaults
 
-    - name: Create conda environment
-      run: conda env create -n quantmsutils python=3.11
-
     - name: Install mamba, boa and conda-build
       run: |
         source $CONDA/etc/profile.d/conda.sh
-        conda activate quantmsutils
         conda install conda-forge::mamba
         conda install conda-forge::boa
         mamba install conda-build anaconda-client
@@ -32,21 +28,18 @@ jobs:
     - name: Activate conda environment and build package
       run: |
         source $CONDA/etc/profile.d/conda.sh
-        conda activate quantmsutils
         conda mambabuild recipe --suppress-variables --override-channels --channel conda-forge --channel bioconda
       shell: bash -l {0}
 
     - name: Install the built package
       run: |
         source $CONDA/etc/profile.d/conda.sh
-        conda activate quantmsutils
         mamba install --use-local quantms-utils
       shell: bash -l {0}
 
     - name: Output package info
       run: |
         source $CONDA/etc/profile.d/conda.sh
-        conda activate quantmsutils
         conda list
       shell: bash -l {0}
 
