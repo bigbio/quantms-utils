@@ -37,6 +37,7 @@ ms2rescore = "3.0.3"
 pandas = "*"
 numpy = "*"
 pyarrow = "*"
+pydantic = "*"
 
 [tool.poetry.urls]
 GitHub = "https://github.com/bigbio/quantms-utils"

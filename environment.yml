@@ -12,3 +12,4 @@ dependencies:
   - pandas
   - numpy
   - pyarrow
+  - pydantic

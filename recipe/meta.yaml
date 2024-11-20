@@ -29,6 +29,7 @@ requirements:
     - pandas
     - numpy
     - pyarrow
+    - pydantic
 
 test:
   imports:

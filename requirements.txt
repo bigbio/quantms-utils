@@ -5,3 +5,4 @@ ms2rescore==3.0.3
 pandas
 numpy
 pyarrow
+pydantic
