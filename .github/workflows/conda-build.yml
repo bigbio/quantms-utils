@@ -25,7 +25,7 @@ jobs:
 
     - name: Build package
       run: |
-        conda mambabuild recipe --debug --suppress-variables --override-channels --channel conda-forge --channel bioconda
+        mamba build recipe --suppress-variables --override-channels --channel conda-forge --channel bioconda
 
     - name: Install the built package
       run: |
