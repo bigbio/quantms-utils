@@ -33,8 +33,8 @@ jobs:
       run: |
         conda build purge-all
         conda config --set solver libmamba
-        conda config –set channel_priority strict
-        conda config –set safety_checks disabled
+        conda config –-set channel_priority strict
+        conda config –-set safety_checks disabled
         conda build recipe --suppress-variables --override-channels --channel conda-forge --channel bioconda --no-anaconda-upload
 
     - name: Install the built package
