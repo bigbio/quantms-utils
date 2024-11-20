@@ -30,8 +30,6 @@ requirements:
     - numpy
     - pyarrow
     - psm-utils=0.8.3
-    - ms2pip>=4.0.0-dev8
-    - deeplc>=2.2
 
 test:
   imports:
