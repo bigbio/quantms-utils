@@ -6,3 +6,4 @@ pandas
 numpy
 pyarrow
 pydantic
+psm-utils

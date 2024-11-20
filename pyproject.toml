@@ -38,6 +38,7 @@ pandas = "*"
 numpy = "*"
 pyarrow = "*"
 pydantic = "*"
+psm-utils = "*"
 
 [tool.poetry.urls]
 GitHub = "https://github.com/bigbio/quantms-utils"
