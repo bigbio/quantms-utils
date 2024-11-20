@@ -25,13 +25,15 @@ jobs:
     - name: Setup conda-build and anaconda-client
       run: |
          echo "::group::Setup conda-build and anaconda-client conda-verify"
-         conda install -q conda-build anaconda-client conda-verify
+         conda install -q conda-build anaconda-client conda-verify -n base conda-libmamba-solver
+
          echo "::endgroup::"
       shell: bash -l {0}
 
     - name: Build package
       run: |
         conda build purge-all
+        conda config --set solver libmamba
         conda config –set channel_priority strict
         conda config –set safety_checks disabled
         conda build recipe --suppress-variables --override-channels --channel conda-forge --channel bioconda --no-anaconda-upload
