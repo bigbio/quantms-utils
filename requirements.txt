@@ -1,7 +1,10 @@
 click
 sdrf-pipelines>=0.0.31
 pyopenms
-ms2rescore==3.1.3
+ms2rescore==3.0.3
 pandas
 numpy
 pyarrow
+deepLC==2.2.38
+psm-utils==0.8.3
+ms2pip==4.0.0dev8
