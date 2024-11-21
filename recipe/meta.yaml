@@ -30,7 +30,7 @@ requirements:
     - pyarrow
     - ms2rescore==3.0.3
     - deepLC==2.2.38
-    - ms2pip==4.0.0
+    - ms2pip==4.0.0dev8
     - psm-utils=0.8.3
 test:
   imports:
