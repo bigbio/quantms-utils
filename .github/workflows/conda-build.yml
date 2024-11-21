@@ -32,3 +32,4 @@ jobs:
         conda config --set solver libmamba
         conda config --set channel_priority strict
         conda build recipe --suppress-variables --override-channels --channel conda-forge --channel bioconda --no-anaconda-upload
+        conda install --use-local quantms-utils --update-all
