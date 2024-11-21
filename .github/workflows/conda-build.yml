@@ -35,8 +35,9 @@ jobs:
 
     - name: Install the built package and test
       run: |
-        mamba create --name quantmsutils quantms-utils==0.0.14 --use-local
+        mamba create --name quantmsutils python=3.11
         conda activate quantmsutils
+        mamba install --use-local quantms-utils==0.0.14
         conda list
         quantmsutilsc --help
         quantmsutilsc --version
