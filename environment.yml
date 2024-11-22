@@ -15,3 +15,5 @@ dependencies:
   - deepLC=2.2.38
   - psm-utils=0.8.3
   - scipy=1.13.1
+  - pygam=0.9.1
+  - protobuf=3.19.6

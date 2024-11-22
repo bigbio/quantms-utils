@@ -40,6 +40,8 @@ pyarrow = "*"
 psm-utils = "0.8.3"
 deepLC = "2.2.38"
 scipy = "1.13.1"
+pygam = "0.9.1"
+protobuf= "3.19.6"
 
 [tool.poetry.urls]
 GitHub = "https://github.com/bigbio/quantms-utils"
