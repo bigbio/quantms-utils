@@ -3,13 +3,14 @@ name: quantmsutils
 channels:
   - bioconda
   - conda-forge
-  - defaults
+  - nodefaults
 dependencies:
   - click
   - sdrf-pipelines>=0.0.31
   - pyopenms
-  - ms2rescore=3.0.3
   - pandas
   - numpy
   - pyarrow
+  - ms2rescore=3.0.3
+  - deepLC=2.2.38
   - psm-utils=0.8.3

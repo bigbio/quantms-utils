@@ -5,4 +5,5 @@ ms2rescore==3.0.3
 pandas
 numpy
 pyarrow
+deepLC==2.2.38
 psm-utils==0.8.3
