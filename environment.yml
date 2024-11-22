@@ -7,7 +7,7 @@ channels:
 dependencies:
   - click
   - sdrf-pipelines>=0.0.31
-  - pyopenms >=2.9.1
+  - pyopenms
   - pandas
   - numpy
   - pyarrow
