@@ -24,7 +24,7 @@ requirements:
     - python
     - click
     - sdrf-pipelines>=0.0.31
-    - pyopenms
+    - pyopenms >=2.9.1
     - pandas
     - numpy
     - pyarrow
