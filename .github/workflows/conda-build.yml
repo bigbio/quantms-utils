@@ -33,6 +33,7 @@ jobs:
         conda config --set channel_priority strict
         conda build recipe --suppress-variables --override-channels --channel conda-forge --channel bioconda --no-anaconda-upload --output-folder ./
         mamba install ./noarch/quantms-utils-0.0.14-py_0.tar.bz2 --update-all
+        mamba env update --file environment.yml
         conda list
 
     - name: Download test data
