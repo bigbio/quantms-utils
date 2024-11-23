@@ -3,7 +3,7 @@ name = "quantms-utils"
 description = "Python scripts and helpers for the quantMS workflow"
 readme = "README.md"
 license = "MIT"
-version = "0.0.14"
+version = "0.0.15"
 authors = [
     "Yasset Perez-Riverol <ypriverol@gmail.com>",
     "Dai Chengxin <chengxin2024@126.com>",
@@ -29,7 +29,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.12"
+python = ">=3.8,<3.11"
 click = "*"
 sdrf-pipelines = ">=0.0.31"
 pyopenms = "*"
@@ -39,6 +39,9 @@ numpy = "*"
 pyarrow = "*"
 psm-utils = "0.8.3"
 deepLC = "2.2.38"
+scipy = "1.13.1"
+pygam = "*"
+protobuf= "3.19.6"
 
 [tool.poetry.urls]
 GitHub = "https://github.com/bigbio/quantms-utils"

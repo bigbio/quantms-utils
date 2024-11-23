@@ -1,7 +1,7 @@
 # recipe/meta.yaml
 package:
   name: quantms-utils
-  version: "0.0.14"
+  version: "0.0.15"
 
 source:
   path: ../
@@ -17,20 +17,23 @@ build:
 
 requirements:
   host:
-    - python
+    - python >=3.8,<3.11
     - pip
     - poetry-core >=1.2.0
   run:
-    - python
+    - python >=3.8,<3.11
     - click
     - sdrf-pipelines>=0.0.31
     - pyopenms
     - pandas
     - numpy
     - pyarrow
-    - ms2rescore==3.0.3
-    - deepLC==2.2.38
-    - psm-utils=0.8.3
+    - ms2rescore ==3.0.3
+    - deepLC ==2.2.38
+    - psm-utils ==0.8.3
+    - scipy ==1.13.1
+    - pygam
+    - protobuf ==3.19.6
 test:
   imports:
     - quantmsutils
