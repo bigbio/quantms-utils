@@ -55,6 +55,7 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False) -> None:
         exp = MSExperiment()
         acquisition_datetime = exp.getDateTime().get()
         MzMLFile().load(file_name, exp)
+        scan_pattern = re.compile(r"[scan|spectrum]=(\d+)")
         for spectrum in exp:
             id_ = spectrum.getNativeID()
             ms_level = spectrum.getMSLevel()
@@ -121,7 +122,7 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False) -> None:
             if id_only and ms_level == 2:
                 psm_part_info.append(
                     [
-                        re.findall(r"[scan|spectrum]=(\d+)", id_)[0],
+                        scan_pattern.findall(id_)[0],
                         ms_level,
                         mz_array,
                         intensity_array,
