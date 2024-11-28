@@ -5,15 +5,108 @@
 import importlib.resources
 import json
 import logging
-from typing import List
 
 import click
 import pyopenms as oms
 from ms2rescore import package_data, rescore
 from psm_utils import PSMList
 from psm_utils.io.idxml import IdXMLReader, IdXMLWriter
+from typing import Iterable, List, Tuple, Union
+from pathlib import Path
+from psm_utils.psm import PSM
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+
+
+class IDXMLReaderPatch(IdXMLReader):
+    def __init__(self, filename: Union[Path, str], *args, **kwargs) -> None:
+        """
+        Patch Reader for idXML files based on IDXMLReader.
+
+        Parameters
+        ----------
+        filename: str, pathlib.Path
+            Path to idXML file.
+
+        Examples
+        --------
+        """
+        super().__init__(filename, *args, **kwargs)
+        self.protein_ids, self.peptide_ids = self._parse_idxml()
+        self.user_params_metadata = self._get_userparams_metadata(self.peptide_ids[0].getHits()[0])
+        self.rescoring_features = self._get_rescoring_features(self.peptide_ids[0].getHits()[0])
+        self.skip_invalid_psm = 0
+
+    def __iter__(self) -> Iterable[PSM]:
+        """
+        Iterate over file and return PSMs one-by-one.
+        """
+        for peptide_id in self.peptide_ids:
+            for peptide_hit in peptide_id.getHits():
+                psm = self._parse_psm(self.protein_ids, peptide_id, peptide_hit)
+                if psm is not None:
+                    yield psm
+                else:
+                    self.skip_invalid_psm += 1
+
+    def _parse_psm(
+            self,
+            protein_ids: oms.ProteinIdentification,
+            peptide_id: oms.PeptideIdentification,
+            peptide_hit: oms.PeptideHit,
+    ) -> PSM:
+        """
+        Parse idXML :py:class:`~pyopenms.PeptideHit` to :py:class:`~psm_utils.psm.PSM`.
+
+        Uses additional information from :py:class:`~pyopenms.ProteinIdentification` and
+        :py:class:`~pyopenms.PeptideIdentification` to annotate parameters of the
+        :py:class:`~psm_utils.psm.PSM` object.
+        """
+        peptidoform = self._parse_peptidoform(
+            peptide_hit.getSequence().toString(), peptide_hit.getCharge()
+        )
+        # This is needed to calculate a qvalue before rescoring the PSMList
+        peptide_id_metadata = {
+            "idxml:score_type": str(peptide_id.getScoreType()),
+            "idxml:higher_score_better": str(peptide_id.isHigherScoreBetter()),
+            "idxml:significance_threshold": str(peptide_id.getSignificanceThreshold()),
+        }
+        peptide_hit_metadata = {
+            key: peptide_hit.getMetaValue(key) for key in self.user_params_metadata
+        }
+
+        # Get search engines score features and check valueExits
+        rescoring_features = {}
+        for key in self.rescoring_features:
+            feature = peptide_hit.metaValueExists(key)
+            if not feature:
+                print(type(feature))
+                return None
+            else:
+                rescoring_features[key] = float(peptide_hit.getMetaValue(key))
+
+        return PSM(
+            peptidoform=peptidoform,
+            spectrum_id=peptide_id.getMetaValue("spectrum_reference"),
+            run=self._get_run(protein_ids, peptide_id),
+            is_decoy=self._is_decoy(peptide_hit),
+            score=peptide_hit.getScore(),
+            precursor_mz=peptide_id.getMZ(),
+            retention_time=peptide_id.getRT(),
+            # NOTE: ion mobility will be supported by OpenMS in the future
+            protein_list=[
+                accession.decode() for accession in peptide_hit.extractProteinAccessionsSet()
+            ],
+            rank=peptide_hit.getRank() + 1,  # 0-based to 1-based
+            source="idXML",
+            # Storing proforma notation of peptidoform and UNIMOD peptide sequence for mapping back
+            # to original sequence in writer
+            provenance_data={str(peptidoform): peptide_hit.getSequence().toString()},
+            # Store metadata of PeptideIdentification and PeptideHit objects
+            metadata={**peptide_id_metadata, **peptide_hit_metadata},
+
+            rescoring_features=rescoring_features,
+        )
 
 
 def parse_cli_arguments_to_config(
@@ -119,8 +212,13 @@ def parse_cli_arguments_to_config(
 def rescore_idxml(input_file, output_file, config) -> None:
     """Rescore PSMs in an idXML file and keep other information unchanged."""
     # Read PSMs
-    reader = IdXMLReader(input_file)
+    reader = IDXMLReaderPatch(input_file)
     psm_list = reader.read_file()
+
+    if reader.skip_invalid_psm != 0:
+        logging.warning(
+            f"Removed {reader.skip_invalid_psm} PSMs without search engine features!"
+        )
 
     # Rescore
     rescore(config, psm_list)
