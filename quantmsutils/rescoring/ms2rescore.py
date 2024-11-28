@@ -40,6 +40,27 @@ class IDXMLReaderPatch(IdXMLReader):
     def __iter__(self) -> Iterable[PSM]:
         """
         Iterate over file and return PSMs one-by-one.
+                Test cases will:
+
+        Input PSM 1: PeptideHit	with metavalue
+            "MSGF:ScoreRatio" value="0.212121212121212"/>
+            "MSGF:Energy" value="130.0"/>
+            "MSGF:lnEValue" value="-3.603969939390662"/>
+            "MSGF:lnExplainedIonCurrentRatio" value="-0.881402756873971"/>
+            "MSGF:lnNTermIonCurrentRatio" value="-1.931878317286471"/>
+            "MSGF:lnCTermIonCurrentRatio" value="-1.311462733724937"/>
+            "MSGF:lnMS2IonCurrent" value="9.702930189540499"/>
+            "MSGF:MeanErrorTop7" value="259.986879999999985"/>
+            "MSGF:sqMeanErrorTop7" value="6.75931777721344e04"/>
+            "MSGF:StdevErrorTop7" value="143.678020000000004"/>
+        PSM2: PeptideHit No above metaValue
+
+        Run:
+        reader = IDXMLReaderPatch(input_file)
+        psm_list = reader.read_file()
+
+        psm_list: return [PSM 1]
+
         """
         for peptide_id in self.peptide_ids:
             for peptide_hit in peptide_id.getHits():
@@ -80,7 +101,6 @@ class IDXMLReaderPatch(IdXMLReader):
         for key in self.rescoring_features:
             feature = peptide_hit.metaValueExists(key)
             if not feature:
-                print(type(feature))
                 return None
             else:
                 rescoring_features[key] = float(peptide_hit.getMetaValue(key))
