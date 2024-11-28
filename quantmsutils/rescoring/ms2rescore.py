@@ -11,7 +11,7 @@ import pyopenms as oms
 from ms2rescore import package_data, rescore
 from psm_utils import PSMList
 from psm_utils.io.idxml import IdXMLReader, IdXMLWriter
-from typing import Iterable, List, Tuple, Union
+from typing import Iterable, List, Union
 from pathlib import Path
 from psm_utils.psm import PSM
 
