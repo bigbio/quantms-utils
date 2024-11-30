@@ -235,7 +235,13 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False, batch_size: int = 
         """
         Parse mzML file in a streaming manner and write to Parquet.
         """
-        consumer = BatchWritingConsumer(parquet_schema, output_path, batch_size, id_only)
+        consumer = BatchWritingConsumer(
+            parquet_schema=parquet_schema,
+            output_path=output_path,
+            batch_size=batch_size,
+            id_only=id_only,
+            id_parquet_schema=id_parquet_schema,
+        )
         try:
             MzMLFile().transform(file_name.encode(), consumer)
             consumer.finalize()
@@ -290,7 +296,9 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False, batch_size: int = 
             if "MonoisotopicMz" in columns:
                 base_columns.insert(-1, "MonoisotopicMz")
 
-            safe_columns = [col for col in base_columns if col.replace(" ", "").isalnum()] # Remove spaces
+            safe_columns = [
+                col for col in base_columns if col.replace(" ", "").isalnum()
+            ]  # Remove spaces
             query = f"""SELECT {', '.join(safe_columns)} FROM frames """
 
             try:
