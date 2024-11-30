@@ -73,8 +73,8 @@ class BatchWritingConsumer:
                         {
                             "scan": scan_id,
                             "ms_level": ms_level,
-                            "mz": mz_array.tolist(),
-                            "intensity": intensity_array.tolist(),
+                            "mz": mz_array,
+                            "intensity": intensity_array,
                         }
                     ]
                 )
