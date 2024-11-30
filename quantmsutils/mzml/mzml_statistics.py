@@ -17,14 +17,16 @@ class BatchWritingConsumer:
     pyopenms streaming.
     """
 
-    def __init__(self, parquet_schema, output_path, batch_size=10000, id_only=False):
+    def __init__(self, parquet_schema: pa.Schema, id_parquet_schema: pa.Schema, output_path, batch_size=10000, id_only=False):
         self.parquet_schema = parquet_schema
+        self.id_parquet_schema = id_parquet_schema
         self.output_path = output_path
         self.batch_size = batch_size
         self.id_only = id_only
         self.batch_data = []
         self.psm_parts = []
         self.parquet_writer = None
+        self.id_parquet_writer = None
         self.acquisition_datetime = None
         self.scan_pattern = re.compile(r"[scan|spectrum]=(\d+)")
 
@@ -60,9 +62,12 @@ class BatchWritingConsumer:
             if self.id_only:
                 scan_id = self.scan_pattern.findall(spectrum.getNativeID())[0]
                 self.psm_parts.append([
-                    scan_id, ms_level,
-                    mz_array.tolist(),
-                    intensity_array.tolist()
+                    {
+                        "scan": scan_id,
+                        "ms_level": ms_level,
+                        "mz": mz_array.tolist(),
+                        "intensity": intensity_array.tolist()
+                    }
                 ])
 
             row_data = {
@@ -108,6 +113,22 @@ class BatchWritingConsumer:
 
             self.parquet_writer.write_table(batch_table)
             self.batch_data = []
+
+            if self.id_only and self.psm_parts:
+                spectrum_table = pa.Table.from_pylist(
+                    self.psm_parts, schema=self.id_parquet_schema
+                )
+
+                if self.id_parquet_writer is None:
+                    self.id_parquet_writer = pq.ParquetWriter(
+                        where=f"{Path(self.output_path).stem}_spectrum_df.parquet",
+                        schema=self.id_parquet_schema,
+                        compression="gzip"
+                    )
+
+                self.parquet_writer.write_table(spectrum_table)
+                self.psm_parts = []
+
         except Exception as e:
             print(f"Error during batch writing: {e}")
             raise
@@ -122,23 +143,13 @@ class BatchWritingConsumer:
 
         # Write spectrum data if id_only
         if self.id_only and self.psm_parts:
-            spectrum_table = pa.Table.from_pylist(
-                self.psm_parts,
-                schema=pa.schema([
-                    ("scan", pa.string()),
-                    ("ms_level", pa.int32()),
-                    ("mz", pa.list_(pa.float64())),
-                    ("intensity", pa.list_(pa.float64()))
-                ])
-            )
-            pq.write_table(
-                spectrum_table,
-                f"{Path(self.output_path).stem}_spectrum_df.parquet",
-                compression="gzip"
-            )
+            self._write_batch()
 
         if self.parquet_writer:
             self.parquet_writer.close()
+
+        if self.id_parquet_writer:
+            self.id_parquet_writer.close()
 
 def column_exists(conn, table_name: str) -> List[str]:
     """
@@ -195,7 +206,15 @@ def mzml_statistics(
         pa.field("AcquisitionDateTime", pa.string(), nullable=True),
     ])
 
-    def batch_write_mzml_streaming(file_name: str, parquet_schema: pa.Schema, output_path: str, id_only: bool = False,
+    id_schema = pa.schema([
+        ("scan", pa.string()),
+        ("ms_level", pa.int32()),
+        ("mz", pa.list_(pa.float64())),
+        ("intensity", pa.list_(pa.float64()))
+    ])
+
+    def batch_write_mzml_streaming(file_name: str, parquet_schema: pa.Schema, output_path: str,
+                                   id_parquet_schema: pa.Schema, id_only: bool = False,
                                    batch_size: int = 10000) -> Optional[str]:
         """
         Parse mzML file in a streaming manner and write to Parquet.
@@ -290,7 +309,7 @@ def mzml_statistics(
     if Path(ms_path).suffix == ".d":
         batch_write_bruker_d(file_name=ms_path, output_path=output_path, batch_size=batch_size)
     elif Path(ms_path).suffix.lower() in [".mzml"]:
-        batch_write_mzml_streaming(file_name=ms_path, parquet_schema=schema, output_path=output_path, id_only=id_only,
+        batch_write_mzml_streaming(file_name=ms_path, parquet_schema=schema, id_parquet_schema=id_schema, output_path=output_path, id_only=id_only,
                                    batch_size=batch_size)
     else:
         raise RuntimeError(f"Unsupported file type: {ms_path}")
