@@ -290,11 +290,8 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False, batch_size: int = 
             if "MonoisotopicMz" in columns:
                 base_columns.insert(-1, "MonoisotopicMz")
 
-            query = f"""
-            SELECT 
-                {', '.join(base_columns)}
-            FROM frames
-            """
+            safe_columns = [col for col in base_columns if col.replace(" ", "").isalnum()] # Remove spaces
+            query = f"""SELECT {', '.join(safe_columns)} FROM frames """
 
             try:
                 # Stream data in batches
