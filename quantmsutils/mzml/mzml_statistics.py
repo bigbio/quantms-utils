@@ -1,7 +1,7 @@
 import re
 import sqlite3
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List, Dict
 
 import click
 import numpy as np
@@ -12,6 +12,11 @@ from pyopenms import MzMLFile
 
 
 class BatchWritingConsumer:
+    """
+    A class to consume mass spectrometry data and write to parquet file in batches from mzML files using
+    pyopenms streaming.
+    """
+
     def __init__(self, parquet_schema, output_path, batch_size=10000, id_only=False):
         self.parquet_schema = parquet_schema
         self.output_path = output_path
@@ -24,21 +29,19 @@ class BatchWritingConsumer:
         self.scan_pattern = re.compile(r"[scan|spectrum]=(\d+)")
 
     def setExperimentalSettings(self, settings):
-        # Extract acquisition date/time from experimental settings
         self.acquisition_datetime = settings.getDateTime().get()
 
     def setExpectedSize(self, a, b):
         pass
 
     def consumeChromatogram(self, chromatogram):
-        # Optionally handle chromatograms if needed
         pass
 
     def consumeSpectrum(self, spectrum):
         """
         Consume spectrum data and write to parquet file.
-        :param spectrum: spectrum data
-        :return:
+        :param spectrum: spectrum data.
+        :return: None
         """
 
         peaks = spectrum.get_peaks()
@@ -108,8 +111,12 @@ class BatchWritingConsumer:
         except Exception as e:
             print(f"Error during batch writing: {e}")
             raise
+
     def finalize(self):
-        # Write remaining data
+        """
+        Finalize the writing process.
+        :return:
+        """
         if self.batch_data:
             self._write_batch()
 
@@ -133,6 +140,14 @@ class BatchWritingConsumer:
         if self.parquet_writer:
             self.parquet_writer.close()
 
+def column_exists(conn, table_name: str) -> List[str]:
+    """
+    Fetch the existing columns in the specified SQLite table.
+    """
+    table_info = pd.read_sql_query(f"PRAGMA table_info({table_name});", conn)
+    return set(table_info['name'].tolist())
+
+
 @click.command("mzmlstats")
 @click.option("--ms_path", type=click.Path(exists=True), required=True)
 @click.option(
@@ -147,10 +162,10 @@ class BatchWritingConsumer:
 )
 @click.pass_context
 def mzml_statistics(
-    ctx,
-    ms_path: str,
-    id_only: bool = False,
-    batch_size: int = 10000
+        ctx,
+        ms_path: str,
+        id_only: bool = False,
+        batch_size: int = 10000
 ) -> None:
     """
     The mzml_statistics function parses mass spectrometry data files, either in
@@ -158,7 +173,7 @@ def mzml_statistics(
     It supports generating detailed or ID-only CSV files based on the spectra data.
 
     # Command line usage example
-    python script_name.py mzml_statistics --ms_path "path/to/file.mzML"
+    quantmsutilsc mzmlstats --ms_path "path/to/file.mzML"
 
     :param ctx: Click context
 
@@ -195,10 +210,9 @@ def mzml_statistics(
             return None
 
     def batch_write_bruker_d(
-        file_name: str,
-        output_path: str,
-        parquet_schema: pa.Schema,
-        batch_size: int = 10000
+            file_name: str,
+            output_path: str,
+            batch_size: int = 10000
     ) -> str:
         """
         Batch processing and writing of Bruker .d files.
@@ -211,40 +225,56 @@ def mzml_statistics(
                 "SELECT Value FROM GlobalMetadata WHERE key='AcquisitionDateTime'"
             ).fetchone()[0]
 
+            columns = column_exists(conn, "frames")
+
+            schema = pa.schema([
+                pa.field("Id", pa.int32(), nullable=False),
+                pa.field("MsMsType", pa.int32(), nullable=True),
+                pa.field("NumPeaks", pa.int32(), nullable=True),
+                pa.field("MaxIntensity", pa.float64(), nullable=True),
+                pa.field("SummedIntensities", pa.float64(), nullable=True),
+                pa.field("Time", pa.float64(), nullable=True),
+                pa.field("Charge", pa.int32(), nullable=True),
+                pa.field("MonoisotopicMz", pa.float64(), nullable=True),
+                pa.field("AcquisitionDateTime", pa.string(), nullable=True)]
+            )
+
             # Set up parquet writer
             parquet_writer = pq.ParquetWriter(
                 output_path,
-                parquet_schema,
+                schema=schema,
                 compression='gzip'
             )
 
+            base_columns = [
+                "Id",
+                "CASE WHEN MsMsType IN (8, 9) THEN 2 WHEN MsMsType = 0 THEN 1 ELSE NULL END as MsMsType",
+                "NumPeaks",
+                "MaxIntensity",
+                "SummedIntensities",
+                "Time"
+            ]
+
+            if "Charge" in columns:
+                base_columns.insert(-1, "Charge")  # Add before the last column for logical flow
+
+            if "MonoisotopicMz" in columns:
+                base_columns.insert(-1, "MonoisotopicMz")
+
+            query = f"""
+            SELECT 
+                {', '.join(base_columns)}
+            FROM frames
+            """
+
             try:
                 # Stream data in batches
-                for chunk in pd.read_sql_query(
-                    """
-                    SELECT 
-                        Id, 
-                        CASE 
-                            WHEN MsMsType IN (8, 9) THEN 2 
-                            WHEN MsMsType = 0 THEN 1 
-                            ELSE NULL 
-                        END as MsMsType,
-                        NumPeaks, 
-                        MaxIntensity, 
-                        SummedIntensities, 
-                        Time,
-                        Charge,
-                        MonoisotopicMz
-                    FROM frames
-                    """,
-                    conn,
-                    chunksize=batch_size
-                ):
-                    # Prepare batch
+                for chunk in pd.read_sql_query(query, conn, chunksize=batch_size):
                     chunk['AcquisitionDateTime'] = acquisition_date_time
-
-                    # Convert to pyarrow table and write
-                    batch_table = pa.Table.from_pandas(chunk, schema=parquet_schema)
+                    for col in schema.names:
+                        if col not in chunk.columns:
+                            chunk[col] = None
+                    batch_table = pa.Table.from_pandas(chunk, schema=schema)
                     parquet_writer.write_table(batch_table)
 
             finally:
@@ -258,11 +288,13 @@ def mzml_statistics(
 
     # Choose processing method based on file type
     if Path(ms_path).suffix == ".d":
-        batch_write_bruker_d(file_name=ms_path, output_path=output_path, parquet_schema=schema, batch_size=batch_size)
+        batch_write_bruker_d(file_name=ms_path, output_path=output_path, batch_size=batch_size)
     elif Path(ms_path).suffix.lower() in [".mzml"]:
-        batch_write_mzml_streaming(file_name=ms_path, parquet_schema=schema, output_path=output_path, id_only=id_only, batch_size=batch_size)
+        batch_write_mzml_streaming(file_name=ms_path, parquet_schema=schema, output_path=output_path, id_only=id_only,
+                                   batch_size=batch_size)
     else:
         raise RuntimeError(f"Unsupported file type: {ms_path}")
+
 
 def _resolve_ms_path(ms_path: str) -> str:
     """
