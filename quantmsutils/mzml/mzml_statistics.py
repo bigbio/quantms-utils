@@ -158,9 +158,11 @@ def mzml_statistics(
     python script_name.py mzml_statistics --ms_path "path/to/file.mzML"
 
     :param ctx: Click context
+
     :param ms_path: A string specifying the path to the mass spectrometry file.
     :param id_only: A boolean flag that, when set to True, generates a CSV file containing only the spectrum ID and
     peaks data for MS level 2 spectra.
+    :param batch_size: An integer specifying the number of rows to write in each batch.
 
     """
     schema = pa.schema([
@@ -279,6 +281,3 @@ def _resolve_ms_path(ms_path: str) -> str:
         return candidates[0]
 
     raise FileNotFoundError(f"No unique file found for {ms_path}")
-
-if __name__ == "__main__":
-    mzml_statistics()
