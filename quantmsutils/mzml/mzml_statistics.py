@@ -283,7 +283,31 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False, batch_size: int = 
                 "SELECT Value FROM GlobalMetadata WHERE key='AcquisitionDateTime'"
             ).fetchone()[0]
 
+            # Check which optional columns exist
             columns = column_exists(conn, "frames")
+
+            # Get allowed columns from the schema
+            allowed_columns = {
+                'Id': 'Id',
+                'MsMsType': 'CASE WHEN MsMsType IN (8, 9) THEN 2 WHEN MsMsType = 0 THEN 1 ELSE NULL END',
+                'NumPeaks': 'NumPeaks',
+                'MaxIntensity': 'MaxIntensity',
+                'SummedIntensities': 'SummedIntensities',
+                'Time': 'Time',
+                'Charge': 'Charge',
+                'MonoisotopicMz': 'MonoisotopicMz'
+            }
+
+            # Construct safe column list
+            safe_columns = []
+            column_mapping = {}
+            for schema_col_name, sql_expr in allowed_columns.items():
+                if schema_col_name in columns or schema_col_name == 'Id':
+                    safe_columns.append(sql_expr)
+                    column_mapping[schema_col_name] = sql_expr
+
+            # Construct the query using parameterized safe columns
+            query = f"""SELECT {', '.join(safe_columns)} FROM frames"""
 
             schema = pa.schema(
                 [
@@ -301,26 +325,6 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False, batch_size: int = 
 
             # Set up parquet writer
             parquet_writer = pq.ParquetWriter(output_path, schema=schema, compression="gzip")
-
-            base_columns = [
-                "Id",
-                "CASE WHEN MsMsType IN (8, 9) THEN 2 WHEN MsMsType = 0 THEN 1 ELSE NULL END as MsMsType",
-                "NumPeaks",
-                "MaxIntensity",
-                "SummedIntensities",
-                "Time",
-            ]
-
-            if "Charge" in columns:
-                base_columns.insert(-1, "Charge")  # Add before the last column for logical flow
-
-            if "MonoisotopicMz" in columns:
-                base_columns.insert(-1, "MonoisotopicMz")
-
-            safe_columns = [
-                col for col in base_columns if col.replace(" ", "").isalnum()
-            ]  # Remove spaces
-            query = f"""SELECT {', '.join(safe_columns)} FROM frames """
 
             try:
                 # Stream data in batches
