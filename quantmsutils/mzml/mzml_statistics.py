@@ -13,7 +13,7 @@ from pyopenms import MzMLFile
 
 class BatchWritingConsumer:
     """
-    A class to consume mass spectrometry data and write to parquet file in batches from mzML files using
+    A class to consume mass spectrometry data and write to a parquet file in batches from mzML files using
     pyopenms streaming.
     """
 
