@@ -141,6 +141,8 @@ def convert_psm(
 
             if hit.metaValueExists("MS:1001491"):
                 global_qvalue = hit.getMetaValue("MS:1001491")
+            elif hit.metaValueExists("q-value"):
+                global_qvalue = hit.getMetaValue("q-value")
 
             charge = hit.getCharge()
             peptidoform = hit.getSequence().toString()
