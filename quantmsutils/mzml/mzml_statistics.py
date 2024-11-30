@@ -136,9 +136,7 @@ class BatchWritingConsumer:
             # Initialize writers lazily if not already created
             if self.parquet_writer is None:
                 self.parquet_writer = pq.ParquetWriter(
-                    where=self.output_path,
-                    schema=self.parquet_schema,
-                    compression="gzip"
+                    where=self.output_path, schema=self.parquet_schema, compression="gzip"
                 )
 
             # Create a RecordBatch directly from the current batch
@@ -157,12 +155,11 @@ class BatchWritingConsumer:
                     self.id_parquet_writer = pq.ParquetWriter(
                         where=f"{Path(self.output_path).stem}_spectrum_df.parquet",
                         schema=self.id_parquet_schema,
-                        compression="gzip"
+                        compression="gzip",
                     )
 
                 id_batch = pa.RecordBatch.from_pylist(
-                    self.psm_parts,
-                    schema=self.id_parquet_schema
+                    self.psm_parts, schema=self.id_parquet_schema
                 )
                 self.id_parquet_writer.write_batch(id_batch)
                 self.psm_parts = []
@@ -288,21 +285,21 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False, batch_size: int = 
 
             # Get allowed columns from the schema
             allowed_columns = {
-                'Id': 'Id',
-                'MsMsType': 'CASE WHEN MsMsType IN (8, 9) THEN 2 WHEN MsMsType = 0 THEN 1 ELSE NULL END',
-                'NumPeaks': 'NumPeaks',
-                'MaxIntensity': 'MaxIntensity',
-                'SummedIntensities': 'SummedIntensities',
-                'Time': 'Time',
-                'Charge': 'Charge',
-                'MonoisotopicMz': 'MonoisotopicMz'
+                "Id": "Id",
+                "MsMsType": "CASE WHEN MsMsType IN (8, 9) THEN 2 WHEN MsMsType = 0 THEN 1 ELSE NULL END",
+                "NumPeaks": "NumPeaks",
+                "MaxIntensity": "MaxIntensity",
+                "SummedIntensities": "SummedIntensities",
+                "Time": "Time",
+                "Charge": "Charge",
+                "MonoisotopicMz": "MonoisotopicMz",
             }
 
             # Construct safe column list
             safe_columns = []
             column_mapping = {}
             for schema_col_name, sql_expr in allowed_columns.items():
-                if schema_col_name in columns or schema_col_name == 'Id':
+                if schema_col_name in columns or schema_col_name == "Id":
                     safe_columns.append(sql_expr)
                     column_mapping[schema_col_name] = sql_expr
 
