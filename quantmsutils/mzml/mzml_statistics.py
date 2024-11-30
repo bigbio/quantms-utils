@@ -95,16 +95,19 @@ class BatchWritingConsumer:
             self._write_batch()
 
     def _write_batch(self):
-        batch_table = pa.Table.from_pylist(self.batch_data, schema=self.parquet_schema)
+        try:
+            batch_table = pa.Table.from_pylist(self.batch_data, schema=self.parquet_schema)
 
-        if self.parquet_writer is None:
-            self.parquet_writer = pq.ParquetWriter(
-                where=self.output_path, schema=self.parquet_schema, compression="gzip"
-            )
+            if self.parquet_writer is None:
+                self.parquet_writer = pq.ParquetWriter(
+                    where=self.output_path, schema=self.parquet_schema, compression="gzip"
+                )
 
-        self.parquet_writer.write_table(batch_table)
-        self.batch_data = []
-
+            self.parquet_writer.write_table(batch_table)
+            self.batch_data = []
+        except Exception as e:
+            print(f"Error during batch writing: {e}")
+            raise
     def finalize(self):
         # Write remaining data
         if self.batch_data:
