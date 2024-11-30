@@ -120,30 +120,51 @@ class BatchWritingConsumer:
             self._write_batch()
 
     def _write_batch(self):
-        try:
-            batch_table = pa.Table.from_pylist(self.batch_data, schema=self.parquet_schema)
+        """
+        Write accumulated batch data more efficiently using PyArrow's streaming writer.
 
+        Improvements:
+        - Directly stream data without creating a full in-memory table
+        - Reduce memory overhead for large datasets
+        - More efficient batch processing
+        """
+        try:
+            # If no data, return early
+            if not self.batch_data:
+                return
+
+            # Initialize writers lazily if not already created
             if self.parquet_writer is None:
                 self.parquet_writer = pq.ParquetWriter(
-                    where=self.output_path, schema=self.parquet_schema, compression="gzip"
+                    where=self.output_path,
+                    schema=self.parquet_schema,
+                    compression="gzip"
                 )
 
-            self.parquet_writer.write_table(batch_table)
+            # Create a RecordBatch directly from the current batch
+            batch = pa.RecordBatch.from_pylist(self.batch_data, schema=self.parquet_schema)
+
+            # Write the batch directly
+            self.parquet_writer.write_batch(batch)
+
+            # Clear the batch data
             self.batch_data = []
 
+            # Handle ID-only data if applicable
             if self.id_only and self.psm_parts:
-                spectrum_table = pa.Table.from_pylist(
-                    self.psm_parts, schema=self.id_parquet_schema
-                )
-
+                # Similar approach for spectrum ID data
                 if self.id_parquet_writer is None:
                     self.id_parquet_writer = pq.ParquetWriter(
                         where=f"{Path(self.output_path).stem}_spectrum_df.parquet",
                         schema=self.id_parquet_schema,
-                        compression="gzip",
+                        compression="gzip"
                     )
 
-                self.id_parquet_writer.write_table(spectrum_table)
+                id_batch = pa.RecordBatch.from_pylist(
+                    self.psm_parts,
+                    schema=self.id_parquet_schema
+                )
+                self.id_parquet_writer.write_batch(id_batch)
                 self.psm_parts = []
 
         except Exception as e:
