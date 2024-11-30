@@ -8,8 +8,127 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
-from pyopenms import MSExperiment, MzMLFile
+from pyopenms import MzMLFile
 
+
+class BatchWritingConsumer:
+    def __init__(self, parquet_schema, output_path, batch_size=10000, id_only=False):
+        self.parquet_schema = parquet_schema
+        self.output_path = output_path
+        self.batch_size = batch_size
+        self.id_only = id_only
+        self.batch_data = []
+        self.psm_parts = []
+        self.parquet_writer = None
+        self.acquisition_datetime = None
+        self.scan_pattern = re.compile(r"[scan|spectrum]=(\d+)")
+
+    def setExperimentalSettings(self, settings):
+        # Extract acquisition date/time from experimental settings
+        self.acquisition_datetime = settings.getDateTime().get()
+
+    def setExpectedSize(self, a, b):
+        pass
+
+    def consumeChromatogram(self, chromatogram):
+        # Optionally handle chromatograms if needed
+        pass
+
+    def consumeSpectrum(self, spectrum):
+        """
+        Consume spectrum data and write to parquet file.
+        :param spectrum: spectrum data
+        :return:
+        """
+
+        peaks = spectrum.get_peaks()
+        mz_array, intensity_array = peaks[0], peaks[1]
+        peak_per_ms = len(mz_array)
+        base_peak_intensity = float(np.max(intensity_array)) if peak_per_ms > 0 else None
+        total_intensity = float(np.sum(intensity_array)) if peak_per_ms > 0 else None
+        ms_level = spectrum.getMSLevel()
+        rt = spectrum.getRT()
+
+        if ms_level == 2:
+            precursor = spectrum.getPrecursors()[0]
+            charge_state = precursor.getCharge()
+            exp_mz = precursor.getMZ()
+
+            if self.id_only:
+                scan_id = self.scan_pattern.findall(spectrum.getNativeID())[0]
+                self.psm_parts.append([
+                    scan_id, ms_level,
+                    mz_array.tolist(),
+                    intensity_array.tolist()
+                ])
+
+            row_data = {
+                "SpectrumID": spectrum.getNativeID(),
+                "MSLevel": float(ms_level),
+                "Charge": float(charge_state) if charge_state is not None else None,
+                "MS_peaks": float(peak_per_ms),
+                "Base_Peak_Intensity": float(base_peak_intensity) if base_peak_intensity is not None else None,
+                "Summed_Peak_Intensities": float(total_intensity) if total_intensity is not None else None,
+                "Retention_Time": float(rt),
+                "Exp_Mass_To_Charge": float(exp_mz) if exp_mz is not None else None,
+                "AcquisitionDateTime": str(self.acquisition_datetime)
+            }
+        elif ms_level == 1:
+            row_data = {
+                "SpectrumID": spectrum.getNativeID(),
+                "MSLevel": float(ms_level),
+                "Charge": None,
+                "MS_peaks": float(peak_per_ms),
+                "Base_Peak_Intensity": float(base_peak_intensity) if base_peak_intensity is not None else None,
+                "Summed_Peak_Intensities": float(total_intensity) if total_intensity is not None else None,
+                "Retention_Time": float(rt),
+                "Exp_Mass_To_Charge": None,
+                "AcquisitionDateTime": str(self.acquisition_datetime)
+            }
+        else:
+            return
+
+        self.batch_data.append(row_data)
+
+        # Write batch when it reaches specified size
+        if len(self.batch_data) >= self.batch_size:
+            self._write_batch()
+
+    def _write_batch(self):
+        batch_table = pa.Table.from_pylist(self.batch_data, schema=self.parquet_schema)
+
+        if self.parquet_writer is None:
+            self.parquet_writer = pq.ParquetWriter(
+                where=self.output_path, schema=self.parquet_schema, compression="gzip"
+            )
+
+        self.parquet_writer.write_table(batch_table)
+        self.batch_data = []
+
+    def finalize(self):
+        # Write remaining data
+        if self.batch_data:
+            self._write_batch()
+
+        # Write spectrum data if id_only
+        if self.id_only and self.psm_parts:
+            spectrum_table = pa.Table.from_pylist(
+                self.psm_parts,
+                schema=pa.schema([
+                    ("scan", pa.string()),
+                    ("ms_level", pa.int32()),
+                    ("mz", pa.list_(pa.float64())),
+                    ("intensity", pa.list_(pa.float64()))
+                ])
+            )
+            pq.write_table(
+                spectrum_table,
+                f"{Path(self.output_path).stem}_spectrum_df.parquet",
+                compression="gzip"
+            )
+
+        if self.parquet_writer:
+            self.parquet_writer.close()
 
 @click.command("mzmlstats")
 @click.option("--ms_path", type=click.Path(exists=True), required=True)
@@ -56,126 +175,19 @@ def mzml_statistics(
         pa.field("AcquisitionDateTime", pa.string(), nullable=True),
     ])
 
-    def batch_write_mzml(
-        file_name: str,
-        parquet_schema: pa.Schema,
-        output_path: str,
-        id_only: bool = False,
-        batch_size: int = 10000
-    ) -> Optional[str]:
+    def batch_write_mzml_streaming(file_name: str, parquet_schema: pa.Schema, output_path: str, id_only: bool = False,
+                                   batch_size: int = 10000) -> Optional[str]:
         """
-        Parse mzML file and return a pandas DataFrame with the information. If id_only is True, it will also save a csv.
-        @param file_name: The file name of the mzML file
-        @param id_only: If True, it will save a csv with the spectrum id, mz and intensity
-        @return: A pandas DataFrame with the information of the mzML file
+        Parse mzML file in a streaming manner and write to Parquet.
         """
-        exp = MSExperiment()
-        MzMLFile().load(file_name, exp)
-        acquisition_datetime = exp.getDateTime().get()
-        scan_pattern = re.compile(r"[scan|spectrum]=(\d+)")
-
-        # Prepare parquet writer
-        parquet_writer = None
-        batch_data = []
-        psm_parts = []
-
+        consumer = BatchWritingConsumer(parquet_schema, output_path, batch_size, id_only)
         try:
-            for spectrum in exp:
-                # Peak extraction
-                peaks = spectrum.get_peaks()
-                mz_array, intensity_array = peaks[0], peaks[1]
-
-                # Compute peaks efficiently
-                peak_per_ms = len(mz_array)
-                base_peak_intensity = float(np.max(intensity_array)) if peak_per_ms > 0 else None
-                total_intensity = float(np.sum(intensity_array)) if peak_per_ms > 0 else None
-
-                # Metadata extraction
-                ms_level = spectrum.getMSLevel()
-                rt = spectrum.getRT()
-
-                if ms_level == 2:
-                    precursor = spectrum.getPrecursors()[0]
-                    charge_state = precursor.getCharge()
-                    exp_mz = precursor.getMZ()
-
-                    if id_only:
-                        scan_id = scan_pattern.findall(spectrum.getNativeID())[0]
-                        psm_parts.append([
-                            scan_id, ms_level,
-                            mz_array.tolist(),
-                            intensity_array.tolist()
-                        ])
-
-                    row_data = {
-                        "SpectrumID": spectrum.getNativeID(),
-                        "MSLevel": float(ms_level),
-                        "Charge": float(charge_state) if charge_state is not None else None,
-                        "MS_peaks": float(peak_per_ms),
-                        "Base_Peak_Intensity": float(base_peak_intensity) if base_peak_intensity is not None else None,
-                        "Summed_Peak_Intensities": float(total_intensity) if total_intensity is not None else None,
-                        "Retention_Time": float(rt),
-                        "Exp_Mass_To_Charge": float(exp_mz) if exp_mz is not None else None,
-                        "AcquisitionDateTime": str(acquisition_datetime)
-                    }
-                elif ms_level == 1:
-                    row_data = {
-                        "SpectrumID": spectrum.getNativeID(),
-                        "MSLevel": float(ms_level),
-                        "Charge": None,
-                        "MS_peaks": float(peak_per_ms),
-                        "Base_Peak_Intensity": float(base_peak_intensity) if base_peak_intensity is not None else None,
-                        "Summed_Peak_Intensities": float(total_intensity) if total_intensity is not None else None,
-                        "Retention_Time": float(rt),
-                        "Exp_Mass_To_Charge": None,
-                        "AcquisitionDateTime": str(acquisition_datetime)
-                    }
-                else:
-                    continue
-
-                batch_data.append(row_data)
-
-                # Write batch when it reaches specified size
-                if len(batch_data) >= batch_size:
-                    batch_table = pa.Table.from_pylist(batch_data, schema=parquet_schema)
-
-                    if parquet_writer is None:
-                        parquet_writer = pq.ParquetWriter(where=output_path, schema=parquet_schema, compression='gzip')
-
-                    parquet_writer.write_table(batch_table)
-                    batch_data = []
-
-            # Write any remaining data
-            if batch_data:
-                batch_table = pa.Table.from_pylist(batch_data, schema=parquet_schema)
-                if parquet_writer is None:
-                    parquet_writer = pq.ParquetWriter(where=output_path, schema=parquet_schema, compression='gzip')
-                parquet_writer.write_table(batch_table)
-
-            # Write spectrum data if id_only
-            if id_only and psm_parts:
-                spectrum_table = pa.Table.from_pylist(
-                    psm_parts,
-                    schema=pa.schema([
-                        ('scan', pa.string()),
-                        ('ms_level', pa.int32()),
-                        ('mz', pa.list_(pa.float64())),
-                        ('intensity', pa.list_(pa.float64()))
-                    ])
-                )
-                pq.write_table(
-                    spectrum_table,
-                    f"{Path(file_name).stem}_spectrum_df.parquet",
-                    compression='gzip'
-                )
-
-            if parquet_writer is not None:
-                parquet_writer.close()
+            MzMLFile().transform(file_name.encode(), consumer)
+            consumer.finalize()
             return output_path
-
-        finally:
-            if parquet_writer:
-                parquet_writer.close()
+        except Exception as e:
+            print(f"Error during streaming: {e}")
+            return None
 
     def batch_write_bruker_d(
         file_name: str,
@@ -243,7 +255,7 @@ def mzml_statistics(
     if Path(ms_path).suffix == ".d":
         batch_write_bruker_d(file_name=ms_path, output_path=output_path, parquet_schema=schema, batch_size=batch_size)
     elif Path(ms_path).suffix.lower() in [".mzml"]:
-        batch_write_mzml(file_name=ms_path, parquet_schema=schema, output_path=output_path, id_only=id_only, batch_size=batch_size)
+        batch_write_mzml_streaming(file_name=ms_path, parquet_schema=schema, output_path=output_path, id_only=id_only, batch_size=batch_size)
     else:
         raise RuntimeError(f"Unsupported file type: {ms_path}")
 
