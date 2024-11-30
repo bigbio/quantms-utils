@@ -1,6 +1,6 @@
 click
 sdrf-pipelines>=0.0.31
-pyopenms>=2.4.0
+pyopenms>=3.0.0
 ms2rescore==3.0.3
 pandas
 numpy
