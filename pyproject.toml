@@ -41,7 +41,7 @@ psm-utils = "0.8.3"
 deepLC = "2.2.38"
 scipy = "1.13.1"
 pygam = "*"
-protobuf= "3.19.6"
+protobuf= "*"
 
 [tool.poetry.urls]
 GitHub = "https://github.com/bigbio/quantms-utils"

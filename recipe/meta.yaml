@@ -33,7 +33,7 @@ requirements:
     - psm-utils ==0.8.3
     - scipy ==1.13.1
     - pygam
-    - protobuf ==3.19.6
+    - protobuf
 test:
   imports:
     - quantmsutils
