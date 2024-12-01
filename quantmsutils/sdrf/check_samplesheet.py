@@ -122,13 +122,9 @@ def check_expdesign_logic(f_table, s_table):
     if int(max(f_table.Fraction_Group)) > len(set(f_table.Fraction_Group)):
         print("Fraction_Group discontinuous!")
         sys.exit(1)
-    f_table_d = f_table.drop_duplicates(
-        ["Fraction_Group", "Fraction", "Label", "Sample"]
-    )
+    f_table_d = f_table.drop_duplicates(["Fraction_Group", "Fraction", "Label", "Sample"])
     if f_table_d.shape[0] < f_table.shape[0]:
-        print(
-            "Existing duplicate entries in Fraction_Group, Fraction, Label and Sample"
-        )
+        print("Existing duplicate entries in Fraction_Group, Fraction, Label and Sample")
         sys.exit(1)
     if len(set(s_table.Sample)) < s_table.shape[0]:
         print("Existing duplicate Sample in sample table!")
@@ -141,9 +137,7 @@ def check_expdesign_logic(f_table, s_table):
 )
 @click.option("--exp_design", help="SDRF/Expdesign file to be validated")
 @click.option("--is_sdrf", help="SDRF file or Expdesign file", is_flag=True)
-@click.option(
-    "--skip_sdrf_validation", help="Disable the validation of SDRF", is_flag=True
-)
+@click.option("--skip_sdrf_validation", help="Disable the validation of SDRF", is_flag=True)
 @click.option(
     "--skip_ms_validation",
     help="Disable the validation of mass spectrometry fields in SDRF (e.g. posttranslational modifications)",
