@@ -161,3 +161,4 @@ cython_debug/
 *.csv
 *_df.csv
 *.tsv
+/tests/test_data/hMICAL1_coiPAnP-N2-200_3Murea-1Mthiourea-200mMtcep_14733.d/

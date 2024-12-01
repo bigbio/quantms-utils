@@ -3,7 +3,7 @@ name = "quantms-utils"
 description = "Python scripts and helpers for the quantMS workflow"
 readme = "README.md"
 license = "MIT"
-version = "0.0.15"
+version = "0.0.16"
 authors = [
     "Yasset Perez-Riverol <ypriverol@gmail.com>",
     "Dai Chengxin <chengxin2024@126.com>",
@@ -32,7 +32,7 @@ packages = [
 python = ">=3.8,<3.11"
 click = "*"
 sdrf-pipelines = ">=0.0.31"
-pyopenms = "*"
+pyopenms = ">=2.4.0"
 ms2rescore = "3.0.3"
 pandas = "*"
 numpy = "*"

@@ -1,7 +1,7 @@
 # recipe/meta.yaml
 package:
   name: quantms-utils
-  version: "0.0.15"
+  version: "0.0.16"
 
 source:
   path: ../
@@ -24,7 +24,7 @@ requirements:
     - python >=3.8,<3.11
     - click
     - sdrf-pipelines>=0.0.31
-    - pyopenms
+    - pyopenms>=2.4.0
     - pandas
     - numpy
     - pyarrow
