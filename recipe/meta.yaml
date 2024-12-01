@@ -1,7 +1,7 @@
 # recipe/meta.yaml
 package:
   name: quantms-utils
-  version: "0.0.16"
+  version: "0.0.17"
 
 source:
   path: ../
@@ -27,7 +27,7 @@ requirements:
     - pyopenms>=2.4.0
     - pandas
     - numpy
-    - pyarrow
+    - pyarrow >=18.0.0
     - ms2rescore ==3.0.3
     - deepLC ==2.2.38
     - psm-utils ==0.8.3

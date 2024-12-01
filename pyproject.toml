@@ -3,7 +3,7 @@ name = "quantms-utils"
 description = "Python scripts and helpers for the quantMS workflow"
 readme = "README.md"
 license = "MIT"
-version = "0.0.16"
+version = "0.0.17"
 authors = [
     "Yasset Perez-Riverol <ypriverol@gmail.com>",
     "Dai Chengxin <chengxin2024@126.com>",
@@ -36,7 +36,7 @@ pyopenms = ">=2.4.0"
 ms2rescore = "3.0.3"
 pandas = "*"
 numpy = "*"
-pyarrow = "*"
+pyarrow = ">=18.0.0"
 psm-utils = "0.8.3"
 deepLC = "2.2.38"
 scipy = "1.13.1"
