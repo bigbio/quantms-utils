@@ -139,8 +139,8 @@ class BatchWritingConsumer:
                     where=self.output_path, schema=self.parquet_schema, compression="gzip"
                 )
 
-            # Create a RecordBatch directly from the current batch
-            batch = pa.RecordBatch.from_pylist(self.batch_data, schema=self.parquet_schema)
+            # Create a Table directly from the current batch
+            batch = pa.Table.from_pylist(self.batch_data, schema=self.parquet_schema)
 
             # Write the batch directly
             self.parquet_writer.write_batch(batch)
@@ -158,7 +158,7 @@ class BatchWritingConsumer:
                         compression="gzip",
                     )
 
-                id_batch = pa.RecordBatch.from_pylist(
+                id_batch = pa.Table.from_pylist(
                     self.psm_parts, schema=self.id_parquet_schema
                 )
                 self.id_parquet_writer.write_batch(id_batch)

@@ -5,7 +5,6 @@ from quantmsutils.diann.dianncfg import dianncfg
 from quantmsutils.features.sage_feature import add_sage_feature
 from quantmsutils.mzml.mzml_statistics import mzml_statistics
 from quantmsutils.psm.psm_conversion import convert_psm
-from quantmsutils.rescoring.ms2rescore import ms2rescore
 from quantmsutils.sdrf.check_samplesheet import checksamplesheet
 from quantmsutils.sdrf.extract_sample import extract_sample_from_expdesign
 from quantmsutils.features.snr import spectrum2feature
@@ -28,7 +27,6 @@ cli.add_command(add_sage_feature)
 cli.add_command(mzml_statistics)
 cli.add_command(extract_sample_from_expdesign)
 cli.add_command(checksamplesheet)
-cli.add_command(ms2rescore)
 cli.add_command(convert_psm)
 cli.add_command(spectrum2feature)
 
