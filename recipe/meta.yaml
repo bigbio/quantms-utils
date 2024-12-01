@@ -26,8 +26,7 @@ requirements:
     - sdrf-pipelines>=0.0.31
     - pyopenms
     - pandas
-    - numpy
-    - pyarrow>=18.0.0
+    - conda-forge::pyarrow>=18.0.0
     - scipy
 test:
   imports:
