@@ -11,3 +11,4 @@ dependencies:
   - pandas
   - numpy
   - pyarrow>=18.0.0
+  - scipy

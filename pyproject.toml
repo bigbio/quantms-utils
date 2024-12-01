@@ -36,6 +36,7 @@ pyopenms = "*"
 pandas = "*"
 numpy = "*"
 pyarrow = ">=18.0.0"
+scipy = "*"
 
 [tool.poetry.urls]
 GitHub = "https://github.com/bigbio/quantms-utils"
