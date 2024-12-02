@@ -10,7 +10,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 from pyopenms import MzMLFile
 
-from quantmsutils.utils.constants import CHARGE, SPECTRUM_ID, MS_LEVEL, MS_PEAKS, BASE_PEAK_INTENSITY, \
+from quantmsutils.utils.constants import CHARGE, SCAN, MS_LEVEL, NUM_PEAKS, BASE_PEAK_INTENSITY, \
     SUMMED_PEAK_INTENSITY, RETENTION_TIME, EXPERIMENTAL_MASS_TO_CHARGE, ACQUISITION_DATETIME, MZ_ARRAY, \
     INTENSITY_ARRAY, MONOISOTOPIC_MZ, MAX_INTENSITY
 
@@ -82,10 +82,10 @@ class BatchWritingConsumer:
                 )
 
             row_data = {
-                SPECTRUM_ID: spectrum.getNativeID(),
+                SCAN: spectrum.getNativeID(),
                 MS_LEVEL: int(ms_level),
                 CHARGE: int(charge_state) if charge_state is not None else None,
-                MS_PEAKS: int(peak_per_ms),
+                NUM_PEAKS: int(peak_per_ms),
                 BASE_PEAK_INTENSITY: (
                     float(base_peak_intensity) if base_peak_intensity is not None else None
                 ),
@@ -98,10 +98,10 @@ class BatchWritingConsumer:
             }
         elif ms_level == 1:
             row_data = {
-                SPECTRUM_ID: spectrum.getNativeID(),
+                SCAN: spectrum.getNativeID(),
                 MS_LEVEL: int(ms_level),
                 CHARGE: None,
-                MS_PEAKS: int(peak_per_ms),
+                NUM_PEAKS: int(peak_per_ms),
                 BASE_PEAK_INTENSITY: (
                     float(base_peak_intensity) if base_peak_intensity is not None else None
                 ),
@@ -206,10 +206,10 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False, batch_size: int = 
     """
     schema = pa.schema(
         [
-            pa.field(SPECTRUM_ID, pa.string(), nullable=True),
+            pa.field(SCAN, pa.string(), nullable=True),
             pa.field(MS_LEVEL, pa.int32(), nullable=True),
             pa.field(CHARGE, pa.int32(), nullable=True),
-            pa.field(MS_PEAKS, pa.int32(), nullable=True),
+            pa.field(NUM_PEAKS, pa.int32(), nullable=True),
             pa.field(BASE_PEAK_INTENSITY, pa.float64(), nullable=True),
             pa.field(SUMMED_PEAK_INTENSITY, pa.float64(), nullable=True),
             pa.field(RETENTION_TIME, pa.float64(), nullable=True),
@@ -220,7 +220,7 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False, batch_size: int = 
 
     id_schema = pa.schema(
         [
-            (SPECTRUM_ID, pa.string()),
+            (SCAN, pa.string()),
             (MS_LEVEL, pa.int32()),
             (MZ_ARRAY, pa.list_(pa.float64())),
             (INTENSITY_ARRAY, pa.list_(pa.float64())),
@@ -295,9 +295,9 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False, batch_size: int = 
 
             schema = pa.schema(
                 [
-                    pa.field(SPECTRUM_ID, pa.int32(), nullable=False),
+                    pa.field(SCAN, pa.int32(), nullable=False),
                     pa.field(MS_LEVEL, pa.int32(), nullable=True),
-                    pa.field(MS_PEAKS, pa.int32(), nullable=True),
+                    pa.field(NUM_PEAKS, pa.int32(), nullable=True),
                     pa.field(MAX_INTENSITY, pa.float64(), nullable=True),
                     pa.field(SUMMED_PEAK_INTENSITY, pa.float64(), nullable=True),
                     pa.field(RETENTION_TIME, pa.float64(), nullable=True),
