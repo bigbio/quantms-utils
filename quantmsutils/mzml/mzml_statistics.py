@@ -11,7 +11,7 @@ import pyarrow.parquet as pq
 from pyopenms import MzMLFile
 
 from quantmsutils.utils.constants import CHARGE, SPECTRUM_ID, MS_LEVEL, MS_PEAKS, BASE_PEAK_INTENSITY, \
-    SUMMED_PEAK_INTENSITY, RETENTION_TIME, EXPERIMENTAL_MASS_TO_CHARGE, ACQUISITION_DATE_TIME, MZ_ARRAY, \
+    SUMMED_PEAK_INTENSITY, RETENTION_TIME, EXPERIMENTAL_MASS_TO_CHARGE, ACQUISITION_DATETIME, MZ_ARRAY, \
     INTENSITY_ARRAY, MONOISOTOPIC_MZ, MAX_INTENSITY
 
 
@@ -94,7 +94,7 @@ class BatchWritingConsumer:
                 ),
                 RETENTION_TIME: float(rt),
                 EXPERIMENTAL_MASS_TO_CHARGE: float(exp_mz) if exp_mz is not None else None,
-                ACQUISITION_DATE_TIME: str(self.acquisition_datetime),
+                ACQUISITION_DATETIME: str(self.acquisition_datetime),
             }
         elif ms_level == 1:
             row_data = {
@@ -214,7 +214,7 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False, batch_size: int = 
             pa.field(SUMMED_PEAK_INTENSITY, pa.float64(), nullable=True),
             pa.field(RETENTION_TIME, pa.float64(), nullable=True),
             pa.field(EXPERIMENTAL_MASS_TO_CHARGE, pa.float64(), nullable=True),
-            pa.field(ACQUISITION_DATE_TIME, pa.string(), nullable=True),
+            pa.field(ACQUISITION_DATETIME, pa.string(), nullable=True),
         ]
     )
 
@@ -303,7 +303,7 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False, batch_size: int = 
                     pa.field(RETENTION_TIME, pa.float64(), nullable=True),
                     pa.field(CHARGE, pa.int32(), nullable=True),
                     pa.field(MONOISOTOPIC_MZ, pa.float64(), nullable=True),
-                    pa.field(ACQUISITION_DATE_TIME, pa.string(), nullable=True),
+                    pa.field(ACQUISITION_DATETIME, pa.string(), nullable=True),
                 ]
             )
 
