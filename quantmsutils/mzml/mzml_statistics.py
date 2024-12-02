@@ -81,9 +81,9 @@ class BatchWritingConsumer:
 
             row_data = {
                 "SpectrumID": spectrum.getNativeID(),
-                "MSLevel": float(ms_level),
-                "Charge": float(charge_state) if charge_state is not None else None,
-                "MS_peaks": float(peak_per_ms),
+                "MSLevel": int(ms_level),
+                "Charge": int(charge_state) if charge_state is not None else None,
+                "MS_peaks": int(peak_per_ms),
                 "Base_Peak_Intensity": (
                     float(base_peak_intensity) if base_peak_intensity is not None else None
                 ),
@@ -97,9 +97,9 @@ class BatchWritingConsumer:
         elif ms_level == 1:
             row_data = {
                 "SpectrumID": spectrum.getNativeID(),
-                "MSLevel": float(ms_level),
+                "MSLevel": int(ms_level),
                 "Charge": None,
-                "MS_peaks": float(peak_per_ms),
+                "MS_peaks": int(peak_per_ms),
                 "Base_Peak_Intensity": (
                     float(base_peak_intensity) if base_peak_intensity is not None else None
                 ),
@@ -222,9 +222,9 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False, batch_size: int = 
     schema = pa.schema(
         [
             pa.field("SpectrumID", pa.string(), nullable=True),
-            pa.field("MSLevel", pa.float64(), nullable=True),
-            pa.field("Charge", pa.float64(), nullable=True),
-            pa.field("MS_peaks", pa.float64(), nullable=True),
+            pa.field("MSLevel", pa.int32(), nullable=True),
+            pa.field("Charge", pa.int32(), nullable=True),
+            pa.field("MS_peaks", pa.int32(), nullable=True),
             pa.field("Base_Peak_Intensity", pa.float64(), nullable=True),
             pa.field("Summed_Peak_Intensities", pa.float64(), nullable=True),
             pa.field("Retention_Time", pa.float64(), nullable=True),
