@@ -170,21 +170,8 @@ def test_mzml_statistics():
         cli, ["mzmlstats", "--id_only", "--ms_path", "tests/test_data/BSA1_F1.mzML"]
     )
 
-    schema = pa.schema(
-        [
-            pa.field("SpectrumID", pa.string(), nullable=True),
-            pa.field("MSLevel", pa.int32(), nullable=True),
-            pa.field("Charge", pa.int32(), nullable=True),
-            pa.field("MS_peaks", pa.int32(), nullable=True),
-            pa.field("Base_Peak_Intensity", pa.float64(), nullable=True),
-            pa.field("Summed_Peak_Intensities", pa.float64(), nullable=True),
-            pa.field("Retention_Time", pa.float64(), nullable=True),
-            pa.field("Exp_Mass_To_Charge", pa.float64(), nullable=True),
-            pa.field("AcquisitionDateTime", pa.string(), nullable=True),
-        ]
-    )
-    table1 = pd.read_parquet("BSA1_F1_ms_info.parquet", schema=schema)
-    table2 = pd.read_parquet("tests/test_data/BSA1_F1_ms_info.parquet", schema=schema)
+    table1 = pd.read_parquet("BSA1_F1_ms_info.parquet")
+    table2 = pd.read_parquet("tests/test_data/BSA1_F1_ms_info.parquet")
     table2 = table2.set_index('SpectrumID')
     table1 = table1.set_index('SpectrumID')
 

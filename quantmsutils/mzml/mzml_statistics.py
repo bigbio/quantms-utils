@@ -110,7 +110,7 @@ class BatchWritingConsumer:
                 ),
                 RETENTION_TIME: float(rt),
                 EXPERIMENTAL_MASS_TO_CHARGE: None,
-                ACQUISITION_DATE_TIME: str(self.acquisition_datetime),
+                ACQUISITION_DATETIME: str(self.acquisition_datetime),
             }
         else:
             return
