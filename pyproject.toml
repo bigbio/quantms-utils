@@ -34,7 +34,7 @@ click = "*"
 sdrf-pipelines = ">=0.0.31"
 pyopenms = "*"
 pandas = "*"
-pyarrow = ">=18.0.0"
+pyarrow = "*"
 scipy = "*"
 
 [tool.poetry.urls]
