@@ -19,6 +19,8 @@ import pandas as pd
 from pyopenms import AASequence, FASTAFile, ModificationsDB
 from pyopenms.Constants import PROTON_MASS_U
 
+from quantmsutils.utils.constants import MS_LEVEL, RETENTION_TIME, SCAN, EXPERIMENTAL_MASS_TO_CHARGE
+
 pd.set_option("display.max_rows", 500)
 pd.set_option("display.max_columns", 500)
 pd.set_option("display.width", 1000)
@@ -1097,11 +1099,14 @@ def mztab_psh(report, folder, database):
 
         file = __find_info(folder, n)
         target = pd.read_parquet(file)
-        target = target[target["MSLevel"] == 2]
+
+        # Read original parquet columns from mzml_stats
+        target = target[target[MS_LEVEL] == 2]
         target.reset_index(inplace=True, drop=True)
         target["DIANN-intraID"] = target.index
-        group.sort_values(by="RT", inplace=True)
-        target = target[["Retention_Time", "SpectrumID", "DIANN-intraID", "Exp_Mass_To_Charge"]]
+        group.sort_values(by=RETENTION_TIME, inplace=True)
+        target = target[[RETENTION_TIME, SCAN, "DIANN-intraID", EXPERIMENTAL_MASS_TO_CHARGE]]
+
         target.columns = [
             "RT",
             "opt_global_spectrum_reference",
