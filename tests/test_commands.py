@@ -1,7 +1,6 @@
 import pandas as pd
 from click.testing import CliRunner
 import pyarrow as pa
-import pyarrow.parquet as pq
 from quantmsutils.quantmsutilsc import cli
 
 
@@ -168,7 +167,7 @@ def test_convert_psm():
 def test_mzml_statistics():
     runner = CliRunner()
     result = runner.invoke(
-        cli, ["mzmlstats", "--ms_path", "tests/test_data/BSA1_F1.mzML"]
+        cli, ["mzmlstats", "--id_only", "--ms_path", "tests/test_data/BSA1_F1.mzML"]
     )
 
     schema = pa.schema(
@@ -190,5 +189,12 @@ def test_mzml_statistics():
     table1 = table1.set_index('SpectrumID')
 
     assert table1.compare(table2).empty
+
+    id_table = pd.read_parquet("BSA1_F1_spectrum_df.parquet")
+    id_table2 = pd.read_parquet("tests/test_data/BSA1_F1_spectrum_df.parquet")
+    id_table = id_table.set_index('scan')
+    id_table2 = id_table2.set_index('scan')
+
+    assert id_table.shape == id_table2.shape
 
     assert result.exit_code == 0
