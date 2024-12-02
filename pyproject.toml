@@ -32,9 +32,9 @@ packages = [
 python = "*"
 click = "*"
 sdrf-pipelines = ">=0.0.31"
-pyopenms = "*"
+pyopenms = ">=3.2.0"
 pandas = "*"
-pyarrow = "*"
+pyarrow = ">=16.1.0"
 scipy = "*"
 
 [tool.poetry.urls]

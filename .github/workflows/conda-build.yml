@@ -20,7 +20,7 @@ jobs:
         cache-downloads: true
         auto-update-conda: false
         activate-environment: test
-        python-version: "3.9"
+        python-version: "3.12"
 
     - name: Setup conda-build and anaconda-client
       run: |

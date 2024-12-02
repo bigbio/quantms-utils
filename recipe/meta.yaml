@@ -24,9 +24,9 @@ requirements:
     - python
     - click
     - sdrf-pipelines>=0.0.31
-    - pyopenms
+    - pyopenms>=3.2.0
     - pandas
-    - conda-forge::pyarrow
+    - conda-forge::pyarrow>=16.1.0
     - conda-forge::scipy
 test:
   imports:
