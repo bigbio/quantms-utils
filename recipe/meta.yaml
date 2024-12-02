@@ -27,7 +27,7 @@ requirements:
     - pyopenms
     - pandas
     - conda-forge::pyarrow>=18.0.0
-    - scipy
+    - conda-forge::scipy
 test:
   imports:
     - quantmsutils
