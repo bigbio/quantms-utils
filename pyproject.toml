@@ -29,7 +29,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "*"
+python = ">=3.9,<3.10"
 click = "*"
 sdrf-pipelines = ">=0.0.31"
 pyopenms = "*"

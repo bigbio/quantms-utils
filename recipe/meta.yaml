@@ -13,14 +13,15 @@ build:
     - {{ pin_subpackage('quantms-utils', max_pin="x.x") }}
   script: "{{ PYTHON }} -m pip install . --no-deps --no-build-isolation --no-cache-dir -vvv"
   number: 0
+  noarch: python
 
 requirements:
   host:
-    - python
+    - python >=3.9,<3.10
     - pip
     - poetry-core >=1.2.0
   run:
-    - python
+    - python >=3.9,<3.10
     - click
     - sdrf-pipelines>=0.0.31
     - pyopenms
