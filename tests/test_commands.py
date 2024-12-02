@@ -171,4 +171,6 @@ def test_mzml_statistics():
         cli, ["mzmlstats", "--ms_path", "tests/test_data/BSA1_F1.mzML"]
     )
 
+    # compare existing
+
     assert result.exit_code == 0
