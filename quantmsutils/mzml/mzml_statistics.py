@@ -10,9 +10,21 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 from pyopenms import MzMLFile
 
-from quantmsutils.utils.constants import CHARGE, SCAN, MS_LEVEL, NUM_PEAKS, BASE_PEAK_INTENSITY, \
-    SUMMED_PEAK_INTENSITY, RETENTION_TIME, EXPERIMENTAL_MASS_TO_CHARGE, ACQUISITION_DATETIME, MZ_ARRAY, \
-    INTENSITY_ARRAY, MONOISOTOPIC_MZ, MAX_INTENSITY
+from quantmsutils.utils.constants import (
+    CHARGE,
+    SCAN,
+    MS_LEVEL,
+    NUM_PEAKS,
+    BASE_PEAK_INTENSITY,
+    SUMMED_PEAK_INTENSITY,
+    RETENTION_TIME,
+    EXPERIMENTAL_MASS_TO_CHARGE,
+    ACQUISITION_DATETIME,
+    MZ_ARRAY,
+    INTENSITY_ARRAY,
+    MONOISOTOPIC_MZ,
+    MAX_INTENSITY,
+)
 
 
 class BatchWritingConsumer:
@@ -75,10 +87,12 @@ class BatchWritingConsumer:
             if self.id_only:
                 scan_id = self.scan_pattern.findall(spectrum.getNativeID())[0]
                 self.psm_parts.append(
-                    [str(scan_id),
-                            int(ms_level),
-                            mz_array.tolist(),
-                            intensity_array.tolist(),]
+                    {
+                        SCAN: scan_id,
+                        MS_LEVEL: int(ms_level),
+                        MZ_ARRAY: mz_array.tolist(),
+                        INTENSITY_ARRAY: intensity_array.tolist(),
+                    }
                 )
 
             row_data = {
@@ -131,24 +145,39 @@ class BatchWritingConsumer:
         - More efficient batch processing
         """
         try:
-            # If no data, return early
-            if not self.batch_data:
-                return
 
-            # Initialize writers lazily if not already created
-            if self.parquet_writer is None:
-                self.parquet_writer = pq.ParquetWriter(
-                    where=self.output_path, schema=self.parquet_schema, compression="gzip"
-                )
+            if self.batch_data:
 
-            # Create a Table directly from the current batch
-            batch = pa.RecordBatch.from_pylist(self.batch_data, schema=self.parquet_schema)
+                # Initialize writers lazily if not already created
+                if self.parquet_writer is None:
+                    self.parquet_writer = pq.ParquetWriter(
+                        where=self.output_path, schema=self.parquet_schema, compression="gzip"
+                    )
 
-            # Write the batch directly
-            self.parquet_writer.write_batch(batch)
+                # Create a Table directly from the current batch
+                batch = pa.RecordBatch.from_pylist(self.batch_data, schema=self.parquet_schema)
 
-            # Clear the batch data
-            self.batch_data = []
+                # Write the batch directly
+                self.parquet_writer.write_batch(batch)
+
+                # Clear the batch data
+                self.batch_data = []
+
+            if self.id_only and self.psm_parts:
+
+                # Initialize writers lazily if not already created
+                if self.id_parquet_writer is None:
+                    self.id_parquet_writer = pq.ParquetWriter(
+                        where=self.id_output_path,
+                        schema=self.id_parquet_schema,
+                        compression="gzip",
+                    )
+
+                # Create a Table directly from the current batch
+                batch = pa.RecordBatch.from_pylist(self.psm_parts, schema=self.id_parquet_schema)
+                # Write the batch directly
+                self.id_parquet_writer.write_batch(batch)
+                self.psm_parts = []
 
         except Exception as e:
             print(f"Error during batch writing: {e}")
@@ -159,18 +188,15 @@ class BatchWritingConsumer:
         Finalize the writing process.
         :return:
         """
-        if self.batch_data:
+        if self.batch_data or self.psm_parts:
             self._write_batch()
 
         if self.parquet_writer:
             self.parquet_writer.close()
 
-        if self.id_only and self.psm_parts:
-            #Todo: We have to find a way to do it in batches, as we do with normal mz data with batch writing
-            #Todo: the problem I found is that using pa.RecordBatch.from_pylist the list of lists is not supported.
-            df = pd.DataFrame(
-                self.psm_parts, columns=["scan", "ms_level", "mz", "intensity"])
-            df.to_parquet(self.id_output_path, index=False, engine="pyarrow", compression="gzip")
+        if self.id_parquet_writer:
+            self.id_parquet_writer.close()
+
 
 def column_exists(conn, table_name: str) -> List[str]:
     """
