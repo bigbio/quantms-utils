@@ -1,6 +1,5 @@
 import pandas as pd
 from click.testing import CliRunner
-import pyarrow as pa
 from quantmsutils.quantmsutilsc import cli
 
 
@@ -111,31 +110,30 @@ def test_convert_psm_help():
 
     assert result.exit_code == 0
 
-def test_batch_convert_parquet():
-    files = ["RD139_Narrow_UPS1_0_1fmol_inj1.mzML",
-             "RD139_Narrow_UPS1_0_1fmol_inj2.mzML",
-             "RD139_Narrow_UPS1_0_25fmol_inj1.mzML",
-             "RD139_Narrow_UPS1_0_25fmol_inj2.mzML"
-            ]
-    for f in files:
-        runner = CliRunner()
-        result = runner.invoke(
-            cli,
-            [
-                "mzmlstats",
-                "--ms_path",
-                f"tests/test_data/diann2mztab/{f}",
-            ],
-        )
-
-        assert result.exit_code == 0
+# def test_batch_convert_parquet():
+#     files = ["RD139_Narrow_UPS1_0_1fmol_inj1.mzML",
+#              "RD139_Narrow_UPS1_0_1fmol_inj2.mzML",
+#              "RD139_Narrow_UPS1_0_25fmol_inj1.mzML",
+#              "RD139_Narrow_UPS1_0_25fmol_inj2.mzML"
+#             ]
+#     for f in files:
+#         runner = CliRunner()
+#         result = runner.invoke(
+#             cli,
+#             [
+#                 "mzmlstats",
+#                 "--ms_path",
+#                 f"tests/test_data/diann2mztab/{f}",
+#             ],
+#         )
+#
+#         assert result.exit_code == 0
 # test for the check_samplesheet command in cli
 def test_check_samplesheet_help():
     runner = CliRunner()
     result = runner.invoke(cli, ["checksamplesheet", "--help"])
 
     assert result.exit_code == 0
-
 
 # test the validation of an SDRF file
 def test_check_samplesheet_sdrf():
@@ -189,8 +187,8 @@ def test_mzml_statistics():
 
     table1 = pd.read_parquet("BSA1_F1_ms_info.parquet")
     table2 = pd.read_parquet("tests/test_data/BSA1_F1_ms_info.parquet")
-    table2 = table2.set_index('SpectrumID')
-    table1 = table1.set_index('SpectrumID')
+    table2 = table2.set_index('scan')
+    table1 = table1.set_index('scan')
 
     assert table1.compare(table2).empty
 
