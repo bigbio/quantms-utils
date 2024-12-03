@@ -1,7 +1,7 @@
 import re
 import sqlite3
 from pathlib import Path
-from typing import Optional, List, Set
+from typing import Optional, Set
 
 import click
 import numpy as np
