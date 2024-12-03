@@ -8,9 +8,7 @@ import pandas as pd
     "openms2sample",
     short_help="Extract sample information from an experiment design file",
 )
-@click.option(
-    "--expdesign", help="Experiment design file", type=click.Path(exists=True)
-)
+@click.option("--expdesign", help="Experiment design file", type=click.Path(exists=True))
 @click.pass_context
 def extract_sample_from_expdesign(cxt, expdesign: str) -> None:
     """

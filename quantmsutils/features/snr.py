@@ -58,9 +58,7 @@ def spectrum2feature(ctx, ms_path: str, idxml: str, output: str) -> None:
     result_peptides = []
     for peptide in peptide_ids:
         spectrum_reference = peptide.getMetaValue("spectrum_reference")
-        scan_number = int(
-            re.findall(r"(spectrum|scan)=(\d+)", spectrum_reference)[0][1]
-        )
+        scan_number = int(re.findall(r"(spectrum|scan)=(\d+)", spectrum_reference)[0][1])
 
         try:
             index = lookup.findByScanNumber(scan_number)
@@ -83,18 +81,13 @@ def spectrum2feature(ctx, ms_path: str, idxml: str, output: str) -> None:
             # Intensity Weighted m/z Standard Deviation
             weighted_mean_mz = np.sum(np.array(mz_array) * normalized_intensities)
             weighted_std_mz = np.sqrt(
-                np.sum(
-                    normalized_intensities
-                    * (np.array(mz_array) - weighted_mean_mz) ** 2
-                )
+                np.sum(normalized_intensities * (np.array(mz_array) - weighted_mean_mz) ** 2)
             )
 
             for hit in peptide.getHits():
                 hit.setMetaValue("quantms:SNR", str(snr))
                 hit.setMetaValue("quantms:SpectralEntropy", str(spectral_entropy))
-                hit.setMetaValue(
-                    "quantms:FracTICinTop10Peaks", str(fraction_tic_top_10)
-                )
+                hit.setMetaValue("quantms:FracTICinTop10Peaks", str(fraction_tic_top_10))
                 hit.setMetaValue("quantms:WeightedStdMz", str(weighted_std_mz))
 
                 # update hit in peptidehits list
