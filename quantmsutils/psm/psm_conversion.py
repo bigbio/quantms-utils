@@ -7,6 +7,8 @@ import numpy as np
 import pandas as pd
 import pyopenms as oms
 
+from quantmsutils.utils.constants import SCAN, MZ_ARRAY, INTENSITY_ARRAY
+
 _parquet_field = [
     "sequence",
     "protein_accessions",
@@ -113,9 +115,9 @@ def convert_psm(
         )
 
         if isinstance(spectra_df, pd.DataFrame):
-            spectra = spectra_df[spectra_df["scan"] == scan_number]
-            mz_array = spectra["mz"].values
-            intensity_array = spectra["intensity"].values
+            spectra = spectra_df[spectra_df[SCAN] == scan_number]
+            mz_array = spectra[MZ_ARRAY].values
+            intensity_array = spectra[INTENSITY_ARRAY].values
             num_peaks = len(mz_array)
 
         for hit in peptide_id.getHits():
