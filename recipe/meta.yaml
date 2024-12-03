@@ -26,15 +26,13 @@ requirements:
     - sdrf-pipelines>=0.0.31
     - pyopenms>=3.2.0
     - pandas
-    - conda-forge::pyarrow>=16.1.0
-    - conda-forge::scipy
+    - pyarrow>=16.1.0
+    - scipy
 test:
   imports:
     - quantmsutils
   commands:
     - quantmsutilsc --help
-  requires:
-    - pip
 
 about:
   home: https://www.github.com/bigbio/quantms-utils
