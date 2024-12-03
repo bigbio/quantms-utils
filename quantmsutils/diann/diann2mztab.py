@@ -549,6 +549,8 @@ def mztab_mtd(index_ref, dia_params, fasta, charge, missed_cleavages, diann_vers
     :type charge: int
     :param missed_cleavages: Missed cleavages set by Dia-NN
     :type missed_cleavages: int
+    :param diann_version: Version of DIA-NN
+    :type diann_version: str
     :return: MTD sub-table
     :rtype: pandas.core.frame.DataFrame
     """
@@ -1084,7 +1086,7 @@ def mztab_psh(report, folder, database):
         # TODO seconds returned from precursor.getRT()
         target.loc[:, "RT"] = target.apply(lambda x: x["RT"] / 60, axis=1)
 
-        RT_matched = pd.merge_asof(group, target, on="RT", direction="nearest")
+        rt_matched = pd.merge_asof(group, target, on="RT", direction="nearest")
         new_target = target
         new_target.columns = [
             "scan_RT",
@@ -1092,7 +1094,7 @@ def mztab_psh(report, folder, database):
             "MS2.Scan",
             "scan_exp_mass_to_charge",
         ]
-        scan_matched = pd.merge(RT_matched, new_target, on="MS2.Scan")
+        scan_matched = pd.merge(rt_matched, new_target, on="MS2.Scan")
 
         #  Cross validation spectrum ID between scan matched and RT matched
         # Keep Scan matched When RT matched and DIA-NN Scan matched are inconsistent in mzML.

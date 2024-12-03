@@ -42,6 +42,7 @@ def test_extract_sample_from_expdesign_help():
 
     assert result.exit_code == 0
 
+
 def test_sage_feature_file():
     runner = CliRunner()
     result = runner.invoke(
@@ -110,6 +111,7 @@ def test_convert_psm_help():
 
     assert result.exit_code == 0
 
+
 # def test_batch_convert_parquet():
 #     files = ["RD139_Narrow_UPS1_0_1fmol_inj1.mzML",
 #              "RD139_Narrow_UPS1_0_1fmol_inj2.mzML",
@@ -134,6 +136,7 @@ def test_check_samplesheet_help():
     result = runner.invoke(cli, ["checksamplesheet", "--help"])
 
     assert result.exit_code == 0
+
 
 # test the validation of an SDRF file
 def test_check_samplesheet_sdrf():
@@ -187,15 +190,15 @@ def test_mzml_statistics():
 
     table1 = pd.read_parquet("BSA1_F1_ms_info.parquet")
     table2 = pd.read_parquet("tests/test_data/BSA1_F1_ms_info.parquet")
-    table2 = table2.set_index('scan')
-    table1 = table1.set_index('scan')
+    table2 = table2.set_index("scan")
+    table1 = table1.set_index("scan")
 
     assert table1.compare(table2).empty
 
     id_table = pd.read_parquet("BSA1_F1_spectrum_df.parquet")
     id_table2 = pd.read_parquet("tests/test_data/BSA1_F1_spectrum_df.parquet")
-    id_table = id_table.set_index('scan')
-    id_table2 = id_table2.set_index('scan')
+    id_table = id_table.set_index("scan")
+    id_table2 = id_table2.set_index("scan")
 
     assert id_table.shape == id_table2.shape
 

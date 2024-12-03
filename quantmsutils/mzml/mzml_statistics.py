@@ -1,7 +1,7 @@
 import re
 import sqlite3
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, Set
 
 import click
 import numpy as np
@@ -198,7 +198,7 @@ class BatchWritingConsumer:
             self.id_parquet_writer.close()
 
 
-def column_exists(conn, table_name: str) -> List[str]:
+def column_exists(conn, table_name: str) -> Set[str]:
     """
     Fetch the existing columns in the specified SQLite table.
     """
