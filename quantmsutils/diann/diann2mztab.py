@@ -1104,7 +1104,7 @@ def mztab_psh(report, folder, database):
         target = target[target[MS_LEVEL] == 2]
         target.reset_index(inplace=True, drop=True)
         target["DIANN-intraID"] = target.index
-        group.sort_values(by=RETENTION_TIME, inplace=True)
+        group.sort_values(by="RT", inplace=True)
         target = target[[RETENTION_TIME, SCAN, "DIANN-intraID", EXPERIMENTAL_MASS_TO_CHARGE]]
 
         target.columns = [
