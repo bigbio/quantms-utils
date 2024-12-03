@@ -111,7 +111,24 @@ def test_convert_psm_help():
 
     assert result.exit_code == 0
 
+def test_batch_convert_parquet():
+    files = ["RD139_Narrow_UPS1_0_1fmol_inj1.mzML",
+             "RD139_Narrow_UPS1_0_1fmol_inj2.mzML",
+             "RD139_Narrow_UPS1_0_25fmol_inj1.mzML",
+             "RD139_Narrow_UPS1_0_25fmol_inj2.mzML"
+            ]
+    for f in files:
+        runner = CliRunner()
+        result = runner.invoke(
+            cli,
+            [
+                "mzmlstats",
+                "--ms_path",
+                f"tests/test_data/diann2mztab/{f}",
+            ],
+        )
 
+        assert result.exit_code == 0
 # test for the check_samplesheet command in cli
 def test_check_samplesheet_help():
     runner = CliRunner()
