@@ -7,6 +7,8 @@ import numpy as np
 import pandas as pd
 import pyopenms as oms
 
+from quantmsutils.utils.constants import SCAN, MZ_ARRAY, INTENSITY_ARRAY
+
 _parquet_field = [
     "sequence",
     "protein_accessions",
@@ -45,16 +47,12 @@ def mods_position(peptide):
     for k, mod in enumerate(original_mods):
         original_mods[k] = str(position[k]) + "-" + mod
 
-    original_mods = (
-        [str(i) for i in original_mods] if len(original_mods) > 0 else np.nan
-    )
+    original_mods = [str(i) for i in original_mods] if len(original_mods) > 0 else np.nan
 
     return original_mods
 
 
-@click.command(
-    "psmconvert", short_help="Convert idXML to parquet file with PSMs information."
-)
+@click.command("psmconvert", short_help="Convert idXML to parquet file with PSMs information.")
 @click.option("--idxml", type=click.Path(exists=True))
 @click.option(
     "--spectra_file",
@@ -111,15 +109,15 @@ def convert_psm(
         retention_time = peptide_id.getRT()
         exp_mass_to_charge = peptide_id.getMZ()
         scan_number = int(
-            re.findall(
-                r"(spectrum|scan)=(\d+)", peptide_id.getMetaValue("spectrum_reference")
-            )[0][1]
+            re.findall(r"(spectrum|scan)=(\d+)", peptide_id.getMetaValue("spectrum_reference"))[0][
+                1
+            ]
         )
 
         if isinstance(spectra_df, pd.DataFrame):
-            spectra = spectra_df[spectra_df["scan"] == scan_number]
-            mz_array = spectra["mz"].values
-            intensity_array = spectra["intensity"].values
+            spectra = spectra_df[spectra_df[SCAN] == scan_number]
+            mz_array = spectra[MZ_ARRAY].values
+            intensity_array = spectra[INTENSITY_ARRAY].values
             num_peaks = len(mz_array)
 
         for hit in peptide_id.getHits():
@@ -148,15 +146,9 @@ def convert_psm(
             peptidoform = hit.getSequence().toString()
             modifications = mods_position(peptidoform)
             sequence = hit.getSequence().toUnmodifiedString()
-            protein_accessions = [
-                ev.getProteinAccession() for ev in hit.getPeptideEvidences()
-            ]
-            posterior_error_probability = hit.getMetaValue(
-                "Posterior Error Probability_score"
-            )
-            protein_start_positions = [
-                ev.getStart() for ev in hit.getPeptideEvidences()
-            ]
+            protein_accessions = [ev.getProteinAccession() for ev in hit.getPeptideEvidences()]
+            posterior_error_probability = hit.getMetaValue("Posterior Error Probability_score")
+            protein_start_positions = [ev.getStart() for ev in hit.getPeptideEvidences()]
             protein_end_positions = [ev.getEnd() for ev in hit.getPeptideEvidences()]
             hit_rank = hit.getRank()
 

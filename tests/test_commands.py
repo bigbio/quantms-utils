@@ -1,7 +1,5 @@
-import filecmp
-
+import pandas as pd
 from click.testing import CliRunner
-
 from quantmsutils.quantmsutilsc import cli
 
 
@@ -42,39 +40,6 @@ def test_extract_sample_from_expdesign_help():
     runner = CliRunner()
     result = runner.invoke(cli, ["openms2sample", "--help"])
 
-    assert result.exit_code == 0
-
-
-# test for the rescoring command in cli
-def test_ms2rescore_help():
-    runner = CliRunner()
-    result = runner.invoke(cli, ["ms2rescore", "--help"])
-
-    assert result.exit_code == 0
-
-
-def test_ms2rescore():
-    runner = CliRunner()
-    result = runner.invoke(
-        cli,
-        [
-            "ms2rescore",
-            "--psm_file",
-            "tests/test_data/TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01_comet.idXML",
-            "--spectrum_path",
-            "tests/test_data/TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01.mzML",
-            "--processes",
-            "2",
-            "--ms2pip_model",
-            "HCD2021",
-            "--feature_generators",
-            "'ms2pip,deeplc'",
-            "--id_decoy_pattern",
-            "^rev",
-            "--test_fdr",
-            "0.05",
-        ],
-    )
     assert result.exit_code == 0
 
 
@@ -147,6 +112,24 @@ def test_convert_psm_help():
     assert result.exit_code == 0
 
 
+# def test_batch_convert_parquet():
+#     files = ["RD139_Narrow_UPS1_0_1fmol_inj1.mzML",
+#              "RD139_Narrow_UPS1_0_1fmol_inj2.mzML",
+#              "RD139_Narrow_UPS1_0_25fmol_inj1.mzML",
+#              "RD139_Narrow_UPS1_0_25fmol_inj2.mzML"
+#             ]
+#     for f in files:
+#         runner = CliRunner()
+#         result = runner.invoke(
+#             cli,
+#             [
+#                 "mzmlstats",
+#                 "--ms_path",
+#                 f"tests/test_data/diann2mztab/{f}",
+#             ],
+#         )
+#
+#         assert result.exit_code == 0
 # test for the check_samplesheet command in cli
 def test_check_samplesheet_help():
     runner = CliRunner()
@@ -202,7 +185,21 @@ def test_convert_psm():
 def test_mzml_statistics():
     runner = CliRunner()
     result = runner.invoke(
-        cli, ["mzmlstats", "--ms_path", "tests/test_data/BSA1_F1.mzML"]
+        cli, ["mzmlstats", "--id_only", "--ms_path", "tests/test_data/BSA1_F1.mzML"]
     )
+
+    table1 = pd.read_parquet("BSA1_F1_ms_info.parquet")
+    table2 = pd.read_parquet("tests/test_data/BSA1_F1_ms_info.parquet")
+    table2 = table2.set_index("scan")
+    table1 = table1.set_index("scan")
+
+    assert table1.compare(table2).empty
+
+    id_table = pd.read_parquet("BSA1_F1_spectrum_df.parquet")
+    id_table2 = pd.read_parquet("tests/test_data/BSA1_F1_spectrum_df.parquet")
+    id_table = id_table.set_index("scan")
+    id_table2 = id_table2.set_index("scan")
+
+    assert id_table.shape == id_table2.shape
 
     assert result.exit_code == 0

@@ -1,7 +1,7 @@
 import re
 import sqlite3
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, Set
 
 import click
 import numpy as np
@@ -9,6 +9,22 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 from pyopenms import MzMLFile
+
+from quantmsutils.utils.constants import (
+    CHARGE,
+    SCAN,
+    MS_LEVEL,
+    NUM_PEAKS,
+    BASE_PEAK_INTENSITY,
+    SUMMED_PEAK_INTENSITY,
+    RETENTION_TIME,
+    EXPERIMENTAL_MASS_TO_CHARGE,
+    ACQUISITION_DATETIME,
+    MZ_ARRAY,
+    INTENSITY_ARRAY,
+    MONOISOTOPIC_MZ,
+    MAX_INTENSITY,
+)
 
 
 class BatchWritingConsumer:
@@ -24,10 +40,12 @@ class BatchWritingConsumer:
         output_path,
         batch_size=10000,
         id_only=False,
+        id_output_path=None,
     ):
         self.parquet_schema = parquet_schema
         self.id_parquet_schema = id_parquet_schema
         self.output_path = output_path
+        self.id_output_path = id_output_path
         self.batch_size = batch_size
         self.id_only = id_only
         self.batch_data = []
@@ -69,46 +87,44 @@ class BatchWritingConsumer:
             if self.id_only:
                 scan_id = self.scan_pattern.findall(spectrum.getNativeID())[0]
                 self.psm_parts.append(
-                    [
-                        {
-                            "scan": scan_id,
-                            "ms_level": ms_level,
-                            "mz": mz_array,
-                            "intensity": intensity_array,
-                        }
-                    ]
+                    {
+                        SCAN: scan_id,
+                        MS_LEVEL: int(ms_level),
+                        MZ_ARRAY: mz_array.tolist(),
+                        INTENSITY_ARRAY: intensity_array.tolist(),
+                    }
                 )
 
             row_data = {
-                "SpectrumID": spectrum.getNativeID(),
-                "MSLevel": float(ms_level),
-                "Charge": float(charge_state) if charge_state is not None else None,
-                "MS_peaks": float(peak_per_ms),
-                "Base_Peak_Intensity": (
+                SCAN: spectrum.getNativeID(),
+                MS_LEVEL: int(ms_level),
+                CHARGE: int(charge_state) if charge_state is not None else None,
+                NUM_PEAKS: int(peak_per_ms),
+                BASE_PEAK_INTENSITY: (
                     float(base_peak_intensity) if base_peak_intensity is not None else None
                 ),
-                "Summed_Peak_Intensities": (
+                SUMMED_PEAK_INTENSITY: (
                     float(total_intensity) if total_intensity is not None else None
                 ),
-                "Retention_Time": float(rt),
-                "Exp_Mass_To_Charge": float(exp_mz) if exp_mz is not None else None,
-                "AcquisitionDateTime": str(self.acquisition_datetime),
+                RETENTION_TIME: float(rt),
+                EXPERIMENTAL_MASS_TO_CHARGE: float(exp_mz) if exp_mz is not None else None,
+                ACQUISITION_DATETIME: str(self.acquisition_datetime),
             }
         elif ms_level == 1:
             row_data = {
-                "SpectrumID": spectrum.getNativeID(),
-                "MSLevel": float(ms_level),
-                "Charge": None,
-                "MS_peaks": float(peak_per_ms),
-                "Base_Peak_Intensity": (
+                SCAN: spectrum.getNativeID(),
+                MS_LEVEL: int(ms_level),
+                CHARGE: None,
+                NUM_PEAKS: int(peak_per_ms),
+                BASE_PEAK_INTENSITY: (
                     float(base_peak_intensity) if base_peak_intensity is not None else None
                 ),
-                "Summed_Peak_Intensities": (
+                SUMMED_PEAK_INTENSITY: (
                     float(total_intensity) if total_intensity is not None else None
                 ),
-                "Retention_Time": float(rt),
-                "Exp_Mass_To_Charge": None,
-                "AcquisitionDateTime": str(self.acquisition_datetime),
+                RETENTION_TIME: float(rt),
+                EXPERIMENTAL_MASS_TO_CHARGE: None,
+                ACQUISITION_DATETIME: str(self.acquisition_datetime),
             }
         else:
             return
@@ -129,39 +145,38 @@ class BatchWritingConsumer:
         - More efficient batch processing
         """
         try:
-            # If no data, return early
-            if not self.batch_data:
-                return
 
-            # Initialize writers lazily if not already created
-            if self.parquet_writer is None:
-                self.parquet_writer = pq.ParquetWriter(
-                    where=self.output_path, schema=self.parquet_schema, compression="gzip"
-                )
+            if self.batch_data:
 
-            # Create a RecordBatch directly from the current batch
-            batch = pa.RecordBatch.from_pylist(self.batch_data, schema=self.parquet_schema)
+                # Initialize writers lazily if not already created
+                if self.parquet_writer is None:
+                    self.parquet_writer = pq.ParquetWriter(
+                        where=self.output_path, schema=self.parquet_schema, compression="gzip"
+                    )
 
-            # Write the batch directly
-            self.parquet_writer.write_batch(batch)
+                # Create a Table directly from the current batch
+                batch = pa.RecordBatch.from_pylist(self.batch_data, schema=self.parquet_schema)
 
-            # Clear the batch data
-            self.batch_data = []
+                # Write the batch directly
+                self.parquet_writer.write_batch(batch)
 
-            # Handle ID-only data if applicable
+                # Clear the batch data
+                self.batch_data = []
+
             if self.id_only and self.psm_parts:
-                # Similar approach for spectrum ID data
+
+                # Initialize writers lazily if not already created
                 if self.id_parquet_writer is None:
                     self.id_parquet_writer = pq.ParquetWriter(
-                        where=f"{Path(self.output_path).stem}_spectrum_df.parquet",
+                        where=self.id_output_path,
                         schema=self.id_parquet_schema,
                         compression="gzip",
                     )
 
-                id_batch = pa.RecordBatch.from_pylist(
-                    self.psm_parts, schema=self.id_parquet_schema
-                )
-                self.id_parquet_writer.write_batch(id_batch)
+                # Create a Table directly from the current batch
+                batch = pa.RecordBatch.from_pylist(self.psm_parts, schema=self.id_parquet_schema)
+                # Write the batch directly
+                self.id_parquet_writer.write_batch(batch)
                 self.psm_parts = []
 
         except Exception as e:
@@ -173,11 +188,7 @@ class BatchWritingConsumer:
         Finalize the writing process.
         :return:
         """
-        if self.batch_data:
-            self._write_batch()
-
-        # Write spectrum data if id_only
-        if self.id_only and self.psm_parts:
+        if self.batch_data or self.psm_parts:
             self._write_batch()
 
         if self.parquet_writer:
@@ -187,7 +198,7 @@ class BatchWritingConsumer:
             self.id_parquet_writer.close()
 
 
-def column_exists(conn, table_name: str) -> List[str]:
+def column_exists(conn, table_name: str) -> Set[str]:
     """
     Fetch the existing columns in the specified SQLite table.
     """
@@ -221,24 +232,24 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False, batch_size: int = 
     """
     schema = pa.schema(
         [
-            pa.field("SpectrumID", pa.string(), nullable=True),
-            pa.field("MSLevel", pa.float64(), nullable=True),
-            pa.field("Charge", pa.float64(), nullable=True),
-            pa.field("MS_peaks", pa.float64(), nullable=True),
-            pa.field("Base_Peak_Intensity", pa.float64(), nullable=True),
-            pa.field("Summed_Peak_Intensities", pa.float64(), nullable=True),
-            pa.field("Retention_Time", pa.float64(), nullable=True),
-            pa.field("Exp_Mass_To_Charge", pa.float64(), nullable=True),
-            pa.field("AcquisitionDateTime", pa.string(), nullable=True),
+            pa.field(SCAN, pa.string(), nullable=True),
+            pa.field(MS_LEVEL, pa.int32(), nullable=True),
+            pa.field(CHARGE, pa.int32(), nullable=True),
+            pa.field(NUM_PEAKS, pa.int32(), nullable=True),
+            pa.field(BASE_PEAK_INTENSITY, pa.float64(), nullable=True),
+            pa.field(SUMMED_PEAK_INTENSITY, pa.float64(), nullable=True),
+            pa.field(RETENTION_TIME, pa.float64(), nullable=True),
+            pa.field(EXPERIMENTAL_MASS_TO_CHARGE, pa.float64(), nullable=True),
+            pa.field(ACQUISITION_DATETIME, pa.string(), nullable=True),
         ]
     )
 
     id_schema = pa.schema(
         [
-            ("scan", pa.string()),
-            ("ms_level", pa.int32()),
-            ("mz", pa.list_(pa.float64())),
-            ("intensity", pa.list_(pa.float64())),
+            (SCAN, pa.string()),
+            (MS_LEVEL, pa.int32()),
+            (MZ_ARRAY, pa.list_(pa.float64())),
+            (INTENSITY_ARRAY, pa.list_(pa.float64())),
         ]
     )
 
@@ -248,6 +259,7 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False, batch_size: int = 
         output_path: str,
         id_parquet_schema: pa.Schema,
         id_only: bool = False,
+        id_output_path: str = None,
         batch_size: int = 10000,
     ) -> Optional[str]:
         """
@@ -258,6 +270,7 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False, batch_size: int = 
             output_path=output_path,
             batch_size=batch_size,
             id_only=id_only,
+            id_output_path=id_output_path,
             id_parquet_schema=id_parquet_schema,
         )
         try:
@@ -308,15 +321,15 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False, batch_size: int = 
 
             schema = pa.schema(
                 [
-                    pa.field("Id", pa.int32(), nullable=False),
-                    pa.field("MsMsType", pa.int32(), nullable=True),
-                    pa.field("NumPeaks", pa.int32(), nullable=True),
-                    pa.field("MaxIntensity", pa.float64(), nullable=True),
-                    pa.field("SummedIntensities", pa.float64(), nullable=True),
-                    pa.field("Time", pa.float64(), nullable=True),
-                    pa.field("Charge", pa.int32(), nullable=True),
-                    pa.field("MonoisotopicMz", pa.float64(), nullable=True),
-                    pa.field("AcquisitionDateTime", pa.string(), nullable=True),
+                    pa.field(SCAN, pa.int32(), nullable=False),
+                    pa.field(MS_LEVEL, pa.int32(), nullable=True),
+                    pa.field(NUM_PEAKS, pa.int32(), nullable=True),
+                    pa.field(MAX_INTENSITY, pa.float64(), nullable=True),
+                    pa.field(SUMMED_PEAK_INTENSITY, pa.float64(), nullable=True),
+                    pa.field(RETENTION_TIME, pa.float64(), nullable=True),
+                    pa.field(CHARGE, pa.int32(), nullable=True),
+                    pa.field(MONOISOTOPIC_MZ, pa.float64(), nullable=True),
+                    pa.field(ACQUISITION_DATETIME, pa.string(), nullable=True),
                 ]
             )
 
@@ -341,6 +354,7 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False, batch_size: int = 
     # Resolve file path
     ms_path = _resolve_ms_path(ms_path)
     output_path = f"{Path(ms_path).stem}_ms_info.parquet"
+    id_output_path = f"{Path(ms_path).stem}_spectrum_df.parquet"
 
     # Choose processing method based on file type
     if Path(ms_path).suffix == ".d":
@@ -352,6 +366,7 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False, batch_size: int = 
             id_parquet_schema=id_schema,
             output_path=output_path,
             id_only=id_only,
+            id_output_path=id_output_path,
             batch_size=batch_size,
         )
     else:

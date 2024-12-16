@@ -55,11 +55,7 @@ def convert_mod(unimod_database, fix_mod: str, var_mod: str) -> Tuple[List, List
             diann_mod = None
             for modification in unimod_database.modifications:
                 if modification.get_name() == mod.split(" ")[0]:
-                    diann_mod = (
-                        modification.get_name()
-                        + ","
-                        + str(modification._delta_mono_mass)
-                    )
+                    diann_mod = modification.get_name() + "," + str(modification._delta_mono_mass)
                     tag = 1
                     break
             if tag == 0:
@@ -95,11 +91,7 @@ def convert_mod(unimod_database, fix_mod: str, var_mod: str) -> Tuple[List, List
             diann_mod = None
             for modification in unimod_database.modifications:
                 if modification.get_name() == mod.split(" ")[0]:
-                    diann_mod = (
-                        modification.get_name()
-                        + ","
-                        + str(modification._delta_mono_mass)
-                    )
+                    diann_mod = modification.get_name() + "," + str(modification._delta_mono_mass)
                     tag = 1
                     break
             if tag == 0:
