@@ -45,6 +45,7 @@ logger = logging.getLogger(__name__)
 @click.option("--charge", "-c")
 @click.option("--missed_cleavages", "-m")
 @click.option("--qvalue_threshold", "-q", type=float)
+@click.option("--enable_diann2mztab", "-e", is_flag=True)
 @click.pass_context
 def diann2mztab(
     ctx,
@@ -55,6 +56,7 @@ def diann2mztab(
     charge,
     missed_cleavages,
     qvalue_threshold,
+    enable_diann2mztab
 ):
     """
     Convert DIA-NN output to MSstats, Triqler or mzTab.
@@ -177,16 +179,17 @@ def diann2mztab(
     logger.info(f"Triqler input file is saved as {exp_out_prefix}_triqler_in.tsv")
     del out_triqler
 
-    mztab_out = f"{Path(exp_design).stem}_out.mzTab"
-    # Convert to mzTab
-    diann_directory.convert_to_mztab(
-        report=report,
-        f_table=f_table,
-        charge=charge,
-        missed_cleavages=missed_cleavages,
-        dia_params=dia_params,
-        out=mztab_out,
-    )
+    if enable_diann2mztab:
+        mztab_out = f"{Path(exp_design).stem}_out.mzTab"
+        # Convert to mzTab
+        diann_directory.convert_to_mztab(
+            report=report,
+            f_table=f_table,
+            charge=charge,
+            missed_cleavages=missed_cleavages,
+            dia_params=dia_params,
+            out=mztab_out,
+        )
 
 
 def _true_stem(x):
