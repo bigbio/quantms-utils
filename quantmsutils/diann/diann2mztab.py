@@ -320,7 +320,7 @@ class DiannDirectory:
         # DIA-NN 1.8.1 return tsv format, but DIA-NN 2.0 only return parquet
         try:
             return self.find_first_file_with_suffix("report.tsv")
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             return self.find_first_file_with_suffix("report.parquet")
 
     @property
