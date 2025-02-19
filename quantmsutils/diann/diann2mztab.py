@@ -414,7 +414,7 @@ class DiannDirectory:
             sep="\t",
             header=0,
         )
-        prh = mztab_prh(report, pg, index_ref, database, fasta_df)
+        prh = mztab_prh(report, pg, index_ref, database, fasta_df, self.diann_version)
         del pg
         pr = pd.read_csv(
             self.pr_matrix,
@@ -443,10 +443,8 @@ class DiannDirectory:
             "Protein.Group",
             "Protein.Names",
             "Protein.Ids",
-            "First.Protein.Description",
             "PG.MaxLFQ",
             "RT",
-            "MS2.Scan",
             "Global.Q.Value",
             "Lib.Q.Value",
             "PEP",
@@ -457,20 +455,13 @@ class DiannDirectory:
             "Stripped.Sequence",
             "Precursor.Charge",
             "Precursor.Quantity",
-            "Global.PG.Q.Value",
-            "MS2.Scan",
+            "Global.PG.Q.Value"
         ]
-        if ".tsv" in self.report.suffix:
-            report = pd.read_csv(self.report, sep="\t", header=0, usecols=remain_cols)
+        if "2.0" not in self.diann_version:
+            report = pd.read_csv(self.report, sep="\t", header=0,
+                                 usecols=remain_cols + ["MS2.Scan"])
         else:
-            report = pd.read_parquet(self.report)
-        # filter decoy
-        if "Decoy" in report.columns:
-            logger.debug(
-                f"Filtering decoy from report: {len(report)} rows"
-            )
-            report = report[report["Decoy"] == 0]
-            logger.debug(f"Report filtered, {len(report)} rows remaining")
+            report = pd.read_parquet(self.report, columns=remain_cols + ["Decoy"])
 
         # filter based on qvalue parameter for downstream analysiss
         logger.debug(
@@ -680,7 +671,7 @@ def mztab_mtd(index_ref, dia_params, fasta, charge, missed_cleavages, diann_vers
     return out_mztab_mtd_t, database
 
 
-def mztab_prh(report, pg, index_ref, database, fasta_df):
+def mztab_prh(report, pg, index_ref, database, fasta_df, diann_version):
     """
     Construct PRH sub-table.
 
@@ -694,6 +685,8 @@ def mztab_prh(report, pg, index_ref, database, fasta_df):
     :type database: str
     :param fasta_df: A dataframe contains protein IDs, sequences and lengths
     :type fasta_df: pandas.core.frame.DataFrame
+    :param diann_version: DIA-NN version
+    :type diann_version: str
     :return: PRH sub-table
     :rtype: pandas.core.frame.DataFrame
     """
@@ -704,7 +697,11 @@ def mztab_prh(report, pg, index_ref, database, fasta_df):
         f" input index_ref shape: {index_ref.shape},"
         f" input fasta_df shape: {fasta_df.shape}"
     )
-    file = list(pg.columns[5:])
+    #  DIA-NN 2.0 PG file doesn't have Protein IDs column
+    if "2.0" not in diann_version:
+        file = list(pg.columns[5:])
+    else:
+        file = list(pg.columns[4:])
     col = {}
     for i in file:
         col[i] = (
@@ -966,6 +963,7 @@ def mztab_peh(
     }
     name_mapper = name_mapper_builder(subname_mapper)
     tmp.rename(columns=name_mapper, inplace=True)
+    print(tmp.columns)
     out_mztab_peh = out_mztab_peh.merge(
         tmp.rename(columns={"precursor.Index": "pr_id"}),
         on="pr_id",
@@ -1159,40 +1157,62 @@ def mztab_psh(report, folder, database):
     del report
 
     # Score at PSM level: Q.Value
-    out_mztab_psh = out_mztab_psh[
-        [
-            "Stripped.Sequence",
-            "Protein.Group",
-            "Q.Value",
-            "RT",
-            "Precursor.Charge",
-            "Calculate.Precursor.Mz",
-            "exp_mass_to_charge",
-            "Modified.Sequence",
-            "PEP",
-            "Global.Q.Value",
-            "Global.Q.Value",
-            "opt_global_spectrum_reference",
-            "ms_run",
-        ]
-    ]
-    out_mztab_psh.columns = [
-        "sequence",
-        "accession",
-        "search_engine_score[1]",
-        "retention_time",
-        "charge",
-        "calc_mass_to_charge",
+    psm_columns = [
+        "Stripped.Sequence",
+        "Protein.Group",
+        "Q.Value",
+        "RT",
+        "Precursor.Charge",
+        "Calculate.Precursor.Mz",
         "exp_mass_to_charge",
-        "opt_global_cv_MS:1000889_peptidoform_sequence",
-        "opt_global_SpecEValue_score",
-        "opt_global_q-value",
-        "opt_global_q-value_score",
+        "Modified.Sequence",
+        "PEP",
+        "Global.Q.Value",
+        "Global.Q.Value",
         "opt_global_spectrum_reference",
         "ms_run",
     ]
 
-    out_mztab_psh.loc[:, "opt_global_cv_MS:1002217_decoy_peptide"] = "0"
+    if "Decoy" in out_mztab_psh.columns:
+        out_mztab_psh = out_mztab_psh[
+            psm_columns + ["Decoy"]
+        ]
+        out_mztab_psh.columns = [
+            "sequence",
+            "accession",
+            "search_engine_score[1]",
+            "retention_time",
+            "charge",
+            "calc_mass_to_charge",
+            "exp_mass_to_charge",
+            "opt_global_cv_MS:1000889_peptidoform_sequence",
+            "opt_global_SpecEValue_score",
+            "opt_global_q-value",
+            "opt_global_q-value_score",
+            "opt_global_spectrum_reference",
+            "ms_run",
+            "opt_global_cv_MS:1002217_decoy_peptide"
+        ]
+    else:
+        out_mztab_psh = out_mztab_psh[
+            psm_columns
+        ]
+        out_mztab_psh.columns = [
+            "sequence",
+            "accession",
+            "search_engine_score[1]",
+            "retention_time",
+            "charge",
+            "calc_mass_to_charge",
+            "exp_mass_to_charge",
+            "opt_global_cv_MS:1000889_peptidoform_sequence",
+            "opt_global_SpecEValue_score",
+            "opt_global_q-value",
+            "opt_global_q-value_score",
+            "opt_global_spectrum_reference",
+            "ms_run"
+        ]
+        out_mztab_psh.loc[:, "opt_global_cv_MS:1002217_decoy_peptide"] = 0
     out_mztab_psh.loc[:, "PSM_ID"] = out_mztab_psh.index
     out_mztab_psh.loc[:, "unique"] = out_mztab_psh.apply(
         lambda x: "0" if ";" in str(x["accession"]) else "1",
