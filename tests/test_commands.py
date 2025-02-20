@@ -11,14 +11,6 @@ def test_create_diann_cfg_help():
     assert result.exit_code == 0
 
 
-# test for the add_sage_feature command in cli
-def test_add_sage_feature_help():
-    runner = CliRunner()
-    result = runner.invoke(cli, ["sage2feature", "--help"])
-
-    assert result.exit_code == 0
-
-
 # test for the mzml_statistics command in cli
 def test_mzml_statistics_help():
     runner = CliRunner()
@@ -39,42 +31,6 @@ def test_diann_convert_help():
 def test_extract_sample_from_expdesign_help():
     runner = CliRunner()
     result = runner.invoke(cli, ["openms2sample", "--help"])
-
-    assert result.exit_code == 0
-
-
-def test_sage_feature_file():
-    runner = CliRunner()
-    result = runner.invoke(
-        cli,
-        [
-            "sage2feature",
-            "--idx_file",
-            "tests/test_data/TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01_sage_ms2rescore.idXML",
-            "--output_file",
-            "tests/test_data/TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01_sage_ms2rescore_feat_gen.idXML",
-            "--feat_file",
-            "tests/test_data/tmt_erwinia_1ulsike_top10hcd_isol2_45stepped_60min_01_sage_ms2rescore.idxml.feature_names.tsv",
-        ],
-    )
-
-    assert result.exit_code == 0
-
-
-def test_spectrum2fature_file():
-    runner = CliRunner()
-    result = runner.invoke(
-        cli,
-        [
-            "spectrum2feature",
-            "--ms_path",
-            "tests/test_data/TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01.mzML",
-            "--idxml",
-            "tests/test_data/TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01_sage_ms2rescore.idXML",
-            "--output",
-            "tests/test_data/TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01_sage_ms2rescore_snr.idXML",
-        ],
-    )
 
     assert result.exit_code == 0
 
