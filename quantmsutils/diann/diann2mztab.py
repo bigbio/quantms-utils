@@ -77,6 +77,7 @@ def diann2mztab(
     :type missed_cleavages: int
     :param qvalue_threshold: Threshold for filtering q value
     :type qvalue_threshold: float
+    :param enable_diann2mztab: Enable conversion to mzTab
     """
     logger.debug(f"Revision {REVISION}")
     logger.debug("Reading input files...")
@@ -714,11 +715,6 @@ def mztab_prh(report, pg, index_ref, database, fasta_df, diann_version):
         f" input index_ref shape: {index_ref.shape},"
         f" input fasta_df shape: {fasta_df.shape}"
     )
-    #  DIA-NN 2.0 PG file doesn't have Protein IDs column
-    if "2.0" not in diann_version:
-        file = list(pg.columns[5:])
-    else:
-        file = list(pg.columns[4:])
 
     logger.debug("Classifying results type ...")
     pg["opt_global_result_type"] = "single_protein"
