@@ -902,7 +902,6 @@ def mztab_peh(
         f" len(precursor_list): {len(precursor_list)},"
         f" index_ref.shape: {index_ref.shape}"
     )
-    out_mztab_peh = pd.DataFrame()
     out_mztab_peh = pr.iloc[:, 0:10]
     out_mztab_peh.drop(
         ["Protein.Ids", "Protein.Names", "First.Protein.Description", "Proteotypic"],
