@@ -2,6 +2,7 @@
 # This script is based on the example at: https://raw.githubusercontent.com/nf-core/test-datasets/viralrecon/samplesheet/samplesheet_test_illumina_amplicon.csv
 
 import errno
+import logging
 import os
 import sys
 
@@ -9,6 +10,9 @@ import click
 import pandas as pd
 from sdrf_pipelines.sdrf.sdrf import SdrfDataFrame
 from sdrf_pipelines.sdrf.sdrf_schema import DEFAULT_TEMPLATE, MASS_SPECTROMETRY
+
+logging.basicConfig(format="%(asctime)s [%(funcName)s] - %(message)s", level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 def make_dir(path):

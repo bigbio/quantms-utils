@@ -1,7 +1,11 @@
+import logging
 from pathlib import Path
 
 import click
 import pandas as pd
+
+logging.basicConfig(format="%(asctime)s [%(funcName)s] - %(message)s", level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 @click.command(

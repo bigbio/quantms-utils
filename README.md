@@ -32,6 +32,21 @@ The following functionalities are available in the package:
 - `psmconvert` - The convert_psm function converts peptide spectrum matches (PSMs) from an idXML file to a CSV file, optionally filtering out decoy matches. It extracts and processes data from both the idXML and an associated spectra file, handling multiple search engines and scoring systems.
 - `mzmlstats` - The `mzmlstats` processes mass spectrometry data files in either `.mzML` or `Bruker .d` formats to extract and compile statistics about the spectra. It supports generating detailed or ID-only CSV files based on the spectra data.
 
+#### mzml statistics 
+
+quantms-utils have multiple scripts to generate mzML stats. These files are used by multiple tools and packages within quantms ecosystem for quality control, mzTab generation, etc. Here are some details about the formats, the fields they contain and gow they are computed.
+
+<details>
+<summary>MS info and details</summary>
+
+`mzmlstats` allows the user to produce a file containing all features for every signal in the MS/MS experiment. The produced file is a parquet file, with the original name of the file plus the following postfix `{file_name}_ms_info.parquet`. Here, the definition of each column and how they are estimated and used: 
+
+- `scan`: The scan accession for each MS and MS/MS signal in the mzML, depending on the manufacturer, the scan will have different formats. Example, for thermo (e.g `controllerType=0 controllerNumber=1 scan=43920`). We tried to find the definition of [quantms.io](https://github.com/bigbio/quantms.io/blob/main/docs/README.adoc#scan). 
+- `ms_level`: The MS level of the signal, 1 for MS and 2 for MS/MS.
+- `num_peaks`: The number of peaks in the MS. Compute with pyopenms with `spectrum.get_peaks()`.
+
+</details>
+
 ## Contributions and issues
 
 Contributions and issues are welcome. Please, open an issue in the [GitHub repository](https://github.com/bigbio/quantms) or PR in the [GitHub repository](https://github.com/bigbio/quantms-utils).
