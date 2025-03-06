@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 from pathlib import Path
@@ -33,6 +34,8 @@ _parquet_field = [
     "hit_rank",
 ]
 
+logging.basicConfig(format="%(asctime)s [%(funcName)s] - %(message)s", level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 def mods_position(peptide):
     if peptide.startswith("."):

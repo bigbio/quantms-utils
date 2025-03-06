@@ -1,3 +1,4 @@
+import logging
 import re
 import sqlite3
 from pathlib import Path
@@ -9,6 +10,7 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 from pyopenms import MzMLFile
+import pyopenms as oms
 
 from quantmsutils.utils.constants import (
     CHARGE,
@@ -24,8 +26,11 @@ from quantmsutils.utils.constants import (
     INTENSITY_ARRAY,
     MONOISOTOPIC_MZ,
     MAX_INTENSITY,
+    PRECURSORS, INTENSITY,
 )
 
+logging.basicConfig(format="%(asctime)s [%(funcName)s] - %(message)s", level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 class BatchWritingConsumer:
     """
@@ -66,23 +71,65 @@ class BatchWritingConsumer:
 
     def consumeSpectrum(self, spectrum):
         """
-        Consume spectrum data and write to parquet file.
-        :param spectrum: spectrum data.
-        :return: None
+        Process a given spectrum to extract relevant data and append it to the batch data.
+
+        This method extracts peak information, MS level, retention time, and other
+        relevant attributes from the spectrum. It organizes the data into a dictionary
+        and appends it to the batch data. If the MS level is 2 and `id_only` is True,
+        it also extracts precursor information and appends it to `psm_parts`.
+        When the batch data reaches the specified batch size, it triggers a batch write.
+
+        Parameters
+        ----------
+        spectrum : pyopenms.MSSpectrum
+            The spectrum object to process.
         """
 
-        peaks = spectrum.get_peaks()
-        mz_array, intensity_array = peaks[0], peaks[1]
-        peak_per_ms = len(mz_array)
-        base_peak_intensity = float(np.max(intensity_array)) if peak_per_ms > 0 else None
-        total_intensity = float(np.sum(intensity_array)) if peak_per_ms > 0 else None
-        ms_level = spectrum.getMSLevel()
-        rt = spectrum.getRT()
+        peaks = spectrum.get_peaks()  # Get the peaks for the spec spectrum
+        mz_array, intensity_array = (
+            peaks[0],
+            peaks[1],
+        )  # Split the peaks into mz and intensity arrays
+        peak_per_ms = len(mz_array)  # Get the number of peaks in the spectrum
+        base_peak_intensity = (
+            float(np.max(intensity_array)) if peak_per_ms > 0 else None
+        )  # Get the maximum intensity
+        total_intensity = (
+            float(np.sum(intensity_array)) if peak_per_ms > 0 else None
+        )  # Get the total intensity
+        ms_level = spectrum.getMSLevel()  # Get the MS level of the spectrum
+        rt = spectrum.getRT()  # Get the retention time of the spectrum
 
         if ms_level == 2:
-            precursor = spectrum.getPrecursors()[0]
-            charge_state = precursor.getCharge()
-            exp_mz = precursor.getMZ()
+            precursor = spectrum.getPrecursors()[0]  # Get the first precursor
+            charge_state = precursor.getCharge()  # Charge of first precursor
+            exp_mz = precursor.getMZ()  # Experimental mass to charge ratio of first precursor
+            intensity = precursor.getIntensity()  # Intensity of first precursor
+            precursors = []
+            # capture if more than one precursor
+            if len(spectrum.getPrecursors()) > 1:
+                logging.info(
+                    "More than one precursor found in spectrum %s", spectrum.getNativeID()
+                )
+                index = 0
+                for precursor in spectrum.getPrecursors():
+                    logging.info(
+                        "Precursor charge: %s, precursor mz: %s",
+                        precursor.getCharge(),
+                        precursor.getMZ(),
+                    )
+                    charge_state = precursor.getCharge()
+                    exp_mz = precursor.getMZ()
+                    intensity = precursor.getIntensity()
+                    precursors.append(
+                        {
+                            "charge": charge_state,
+                            "mz": exp_mz,
+                            "intensity": intensity,
+                            "index": index,
+                        }
+                    )
+                    index += 1
 
             if self.id_only:
                 scan_id = self.scan_pattern.findall(spectrum.getNativeID())[0]
@@ -109,6 +156,7 @@ class BatchWritingConsumer:
                 RETENTION_TIME: float(rt),
                 EXPERIMENTAL_MASS_TO_CHARGE: float(exp_mz) if exp_mz is not None else None,
                 ACQUISITION_DATETIME: str(self.acquisition_datetime),
+                PRECURSORS: precursors,
             }
         elif ms_level == 1:
             row_data = {
@@ -125,6 +173,7 @@ class BatchWritingConsumer:
                 RETENTION_TIME: float(rt),
                 EXPERIMENTAL_MASS_TO_CHARGE: None,
                 ACQUISITION_DATETIME: str(self.acquisition_datetime),
+                PRECURSORS: None,
             }
         else:
             return
@@ -180,7 +229,7 @@ class BatchWritingConsumer:
                 self.psm_parts = []
 
         except Exception as e:
-            print(f"Error during batch writing: {e}")
+            logger.error(f"Error during batch writing: {e}, file path: {self.output_path}")
             raise
 
     def finalize(self):
@@ -278,7 +327,7 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False, batch_size: int = 
             consumer.finalize()
             return output_path
         except Exception as e:
-            print(f"Error during streaming: {e}")
+            logger.error(f"Error during streaming: {e}, file path: {file_name}")
             return None
 
     def batch_write_bruker_d(file_name: str, output_path: str, batch_size: int = 10000) -> str:
@@ -328,7 +377,22 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False, batch_size: int = 
                     pa.field(SUMMED_PEAK_INTENSITY, pa.float64(), nullable=True),
                     pa.field(RETENTION_TIME, pa.float64(), nullable=True),
                     pa.field(CHARGE, pa.int32(), nullable=True),
+                    pa.field(INTENSITY, pa.float64(), nullable=True),
                     pa.field(MONOISOTOPIC_MZ, pa.float64(), nullable=True),
+                    pa.field(
+                        PRECURSORS,
+                        pa.list_(
+                            pa.struct(
+                                [
+                                    ("charge", pa.int32()),
+                                    ("mz", pa.float64()),
+                                    ("intensity", pa.float64()),
+                                    ("index", pa.int32()),
+                                ]
+                            )
+                        ),
+                        nullable=True,
+                    ),
                     pa.field(ACQUISITION_DATETIME, pa.string(), nullable=True),
                 ]
             )
@@ -353,8 +417,8 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False, batch_size: int = 
 
     # Resolve file path
     ms_path = _resolve_ms_path(ms_path)
-    output_path = f"{Path(ms_path).stem}_ms_info.parquet"
-    id_output_path = f"{Path(ms_path).stem}_spectrum_df.parquet"
+    output_path = str(Path(ms_path).with_name(f"{Path(ms_path).stem}_ms_info.parquet"))
+    id_output_path = str(Path(ms_path).with_name(f"{Path(ms_path).stem}_spectrum_df.parquet"))
 
     # Choose processing method based on file type
     if Path(ms_path).suffix == ".d":
@@ -371,6 +435,8 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False, batch_size: int = 
         )
     else:
         raise RuntimeError(f"Unsupported file type: {ms_path}")
+
+    logging.info("Successfully processed mass spectrometry file: %s", ms_path)
 
 
 def _resolve_ms_path(ms_path: str) -> str:

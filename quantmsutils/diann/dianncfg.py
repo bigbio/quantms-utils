@@ -3,12 +3,15 @@ This script converts SDRF parameters to DIA-NN parameters
 License: Apache 2.0
 Authors: Dai Chengxin, Yasset Perez-Riverol
 """
-
+import logging
 import re
 from typing import List, Tuple
 
 import click
 from sdrf_pipelines.openms.unimod import UnimodDatabase
+
+logging.basicConfig(format="%(asctime)s [%(funcName)s] - %(message)s", level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 @click.command("dianncfg", short_help="Create DIA-NN config file with enzyme and PTMs")
@@ -59,7 +62,7 @@ def convert_mod(unimod_database, fix_mod: str, var_mod: str) -> Tuple[List, List
                     tag = 1
                     break
             if tag == 0:
-                print(
+                logging.info(
                     "Warning: Currently only supported unimod modifications for DIA pipeline. Skipped: "
                     + mod
                 )
