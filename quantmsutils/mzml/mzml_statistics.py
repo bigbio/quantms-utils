@@ -2,14 +2,15 @@ import logging
 import re
 import sqlite3
 from pathlib import Path
-from typing import Optional, Set
+from typing import Optional, Set, Union
 
 import click
 import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
-from pyopenms import MzMLFile
+import pyopenms as oms
+from pyarrow import Schema
 
 from quantmsutils.utils.constants import (
     CHARGE,
@@ -31,6 +32,103 @@ from quantmsutils.utils.constants import (
 
 logging.basicConfig(format="%(asctime)s [%(funcName)s] - %(message)s", level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+
+def batch_write_bruker_d(
+    file_name: str, output_path: str, batch_size: int = 10000, schema: Schema = None
+) -> str:
+    """
+    Batch processing and writing of Bruker .d files.
+    """
+    sql_filepath = f"{file_name}/analysis.tdf"
+
+    with sqlite3.connect(sql_filepath) as conn:
+        # Retrieve acquisition datetime
+        acquisition_date_time = conn.execute(
+            "SELECT Value FROM GlobalMetadata WHERE key='AcquisitionDateTime'"
+        ).fetchone()[0]
+
+        # Check which optional columns exist
+        columns = column_exists(conn, "frames")
+
+        # Get allowed columns from the schema
+        allowed_columns = {
+            "Id": "Id",
+            "MsMsType": "CASE WHEN MsMsType IN (8, 9) THEN 2 WHEN MsMsType = 0 THEN 1 ELSE NULL END",
+            "NumPeaks": "NumPeaks",
+            "MaxIntensity": "MaxIntensity",
+            "SummedIntensities": "SummedIntensities",
+            "Time": "Time",
+            "Charge": "Charge",
+            "MonoisotopicMz": "MonoisotopicMz",
+        }
+
+        # Construct safe column list
+        safe_columns = []
+        column_mapping = {}
+        for schema_col_name, sql_expr in allowed_columns.items():
+            if schema_col_name in columns or schema_col_name == "Id":
+                safe_columns.append(sql_expr)
+                column_mapping[schema_col_name] = sql_expr
+
+        # Construct the query using parameterized safe columns
+        query = f"""SELECT {', '.join(safe_columns)} FROM frames"""
+
+        schema = pa.schema(
+            [
+                pa.field(SCAN, pa.int32(), nullable=False),
+                pa.field(MS_LEVEL, pa.int32(), nullable=True),
+                pa.field(NUM_PEAKS, pa.int32(), nullable=True),
+                pa.field(MAX_INTENSITY, pa.float64(), nullable=True),
+                pa.field(SUMMED_PEAK_INTENSITY, pa.float64(), nullable=True),
+                pa.field(RETENTION_TIME, pa.float64(), nullable=True),
+                pa.field(CHARGE, pa.int32(), nullable=True),
+                pa.field(MONOISOTOPIC_MZ, pa.float64(), nullable=True),
+                pa.field(INTENSITY, pa.float64(), nullable=True),
+                pa.field(
+                    PRECURSORS,
+                    pa.list_(
+                        pa.struct(
+                            [
+                                ("charge", pa.int32()),
+                                ("mz", pa.float64()),
+                                ("intensity", pa.float64()),
+                                ("rt", pa.float64()),
+                                ("index", pa.int32()),
+                            ]
+                        )
+                    ),
+                    nullable=True,
+                ),
+                pa.field(ACQUISITION_DATETIME, pa.string(), nullable=True),
+            ]
+        )
+
+        # Set up parquet writer
+        parquet_writer = pq.ParquetWriter(output_path, schema=schema, compression="gzip")
+
+        try:
+            # Stream data in batches
+            for chunk in pd.read_sql_query(query, conn, chunksize=batch_size):
+                chunk["AcquisitionDateTime"] = acquisition_date_time
+                for col in schema.names:
+                    if col not in chunk.columns:
+                        chunk[col] = None
+                batch_table = pa.Table.from_pandas(chunk, schema=schema)
+                parquet_writer.write_table(batch_table)
+
+        finally:
+            parquet_writer.close()
+
+    return output_path
+
+
+def column_exists(conn, table_name: str) -> Set[str]:
+    """
+    Fetch the existing columns in the specified SQLite table.
+    """
+    table_info = pd.read_sql_query(f"PRAGMA table_info({table_name});", conn)
+    return set(table_info["name"].tolist())
 
 
 class BatchWritingConsumer:
@@ -61,16 +159,13 @@ class BatchWritingConsumer:
         self.acquisition_datetime = None
         self.scan_pattern = re.compile(r"[scan|spectrum]=(\d+)")
 
-    def setExperimentalSettings(self, settings):
-        self.acquisition_datetime = settings.getDateTime().get()
-
-    def setExpectedSize(self, a, b):
-        pass
-
-    def consumeChromatogram(self, chromatogram):
-        pass
-
-    def consumeSpectrum(self, spectrum):
+    def transform_mzml_spectrum(
+        self,
+        i: int,
+        spectrum: oms.MSSpectrum,
+        mzml_exp: oms.MSExperiment,
+        mzml_handler: oms.MzMLFile,
+    ):
         """
         Process a given spectrum to extract relevant data and append it to the batch data.
 
@@ -86,7 +181,9 @@ class BatchWritingConsumer:
             The spectrum object to process.
         """
 
-        mz_array, intensity_array = spectrum.get_peaks()  # Split the peaks into mz and intensity arrays
+        mz_array, intensity_array = (
+            spectrum.get_peaks()
+        )  # Split the peaks into mz and intensity arrays
         peak_per_ms = len(mz_array)  # Get the number of peaks in the spectrum
         base_peak_intensity = (
             float(np.max(intensity_array)) if peak_per_ms > 0 else None
@@ -106,22 +203,37 @@ class BatchWritingConsumer:
             # capture if more than one precursor
             index = 0
             for precursor in spectrum.getPrecursors():
+
                 logging.info(
                     "Precursor charge: %s, precursor mz: %s",
                     precursor.getCharge(),
                     precursor.getMZ(),
                 )
-                charge_state = precursor.getCharge() # TODO: Review by @timo and @julianus
-                exp_mz = precursor.getMZ() # TODO: Review by @timo and @julianus
-                intensity = precursor.getIntensity() # TODO: Review by @timo and @julianus
-                rt = spectrum.getRT() # TODO: Review by @timo and @julianus
+                charge_state = precursor.getCharge()  # TODO: Review by @timo and @julianus
+                exp_mz = precursor.getMZ()  # TODO: Review by @timo and @julianus
+                intensity = precursor.getIntensity()  # TODO: Review by @timo and @julianus
+                precursor_spectrum_index = mzml_exp.getPrecursorSpectrum(i)
+                precursor_rt = None
+                total_intensity = None
+                precursor_intensity = None
+                precursor_intensity_in_isolation_window = None
+                if precursor_spectrum_index >= 0:
+                    precursor_spectrum = mzml_exp.getSpectrum(precursor_spectrum_index)
+                    precursor_rt = precursor_spectrum.getRT()
+                    purity = oms.PrecursorPurity().computePrecursorPurity(
+                        precursor_spectrum, precursor, 20.0, True
+                    )
+                    precursor_intensity = purity.target_intensity
+                    precursor_intensity_in_isolation_window = purity.total_intensity
                 precursors.append(
                     {
+                        "index": index,
                         "charge": charge_state,
                         "mz": exp_mz,
-                        "intensity": intensity,
-                        "rt": rt,
-                        "index": index,
+                        "rt": precursor_rt,
+                        "intensity": precursor_intensity,
+                        "total_intensity": total_intensity,
+                        "intensity_isolation_window": precursor_intensity_in_isolation_window,
                     }
                 )
                 index += 1
@@ -172,7 +284,10 @@ class BatchWritingConsumer:
                 PRECURSORS: None,
             }
         else:
-            logger.info("Skipping spectrum with MS level %s, MS not supported, or precursors not ", ms_level)
+            logger.info(
+                "Skipping spectrum with MS level %s, MS not supported, or precursors not ",
+                ms_level,
+            )
             return
 
         self.batch_data.append(row_data)
@@ -244,12 +359,36 @@ class BatchWritingConsumer:
             self.id_parquet_writer.close()
 
 
-def column_exists(conn, table_name: str) -> Set[str]:
-    """
-    Fetch the existing columns in the specified SQLite table.
-    """
-    table_info = pd.read_sql_query(f"PRAGMA table_info({table_name});", conn)
-    return set(table_info["name"].tolist())
+def batch_write_mzml_streaming(
+    file_name: str,
+    parquet_schema: Schema,
+    id_parquet_schema: Schema,
+    output_path: str,
+    id_only: bool,
+    id_output_path: str,
+    batch_size: int = 10000,
+) -> Union[str, None]:
+
+    try:
+        mzml_handler = oms.MzMLFile()
+        mzml_exp = oms.MSExperiment()
+        mzml_handler.load(file_name, mzml_exp)
+        batch_writer = BatchWritingConsumer(
+            parquet_schema=parquet_schema,
+            id_parquet_schema=id_parquet_schema,
+            output_path=output_path,
+            id_only=id_only,
+            id_output_path=id_output_path,
+            batch_size=batch_size,
+        )
+
+        for i, spec in enumerate(mzml_exp):
+            batch_writer.transform_mzml_spectrum(i, spec, mzml_exp, mzml_handler)
+
+        return output_path
+    except Exception as e:
+        logger.error(f"Error during streaming: {e}, file path: {file_name}")
+        return None
 
 
 @click.command("mzmlstats")
@@ -296,6 +435,8 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False, batch_size: int = 
                             ("mz", pa.float64()),
                             ("intensity", pa.float64()),
                             ("rt", pa.float64()),
+                            ("total_intensity", pa.float64()),
+                            ("intensity_isolation_window", pa.float64()),
                             ("index", pa.int32()),
                         ]
                     )
@@ -315,126 +456,10 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False, batch_size: int = 
         ]
     )
 
-    def batch_write_mzml_streaming(
-        file_name: str,
-        parquet_schema: pa.Schema,
-        output_path: str,
-        id_parquet_schema: pa.Schema,
-        id_only: bool = False,
-        id_output_path: str = None,
-        batch_size: int = 10000,
-    ) -> Optional[str]:
-        """
-        Parse mzML file in a streaming manner and write to Parquet.
-        """
-        consumer = BatchWritingConsumer(
-            parquet_schema=parquet_schema,
-            output_path=output_path,
-            batch_size=batch_size,
-            id_only=id_only,
-            id_output_path=id_output_path,
-            id_parquet_schema=id_parquet_schema,
-        )
-        try:
-            MzMLFile().transform(file_name.encode(), consumer)
-            consumer.finalize()
-            return output_path
-        except Exception as e:
-            logger.error(f"Error during streaming: {e}, file path: {file_name}")
-            return None
-
-    def batch_write_bruker_d(file_name: str, output_path: str, batch_size: int = 10000) -> str:
-        """
-        Batch processing and writing of Bruker .d files.
-        """
-        sql_filepath = f"{file_name}/analysis.tdf"
-
-        with sqlite3.connect(sql_filepath) as conn:
-            # Retrieve acquisition datetime
-            acquisition_date_time = conn.execute(
-                "SELECT Value FROM GlobalMetadata WHERE key='AcquisitionDateTime'"
-            ).fetchone()[0]
-
-            # Check which optional columns exist
-            columns = column_exists(conn, "frames")
-
-            # Get allowed columns from the schema
-            allowed_columns = {
-                "Id": "Id",
-                "MsMsType": "CASE WHEN MsMsType IN (8, 9) THEN 2 WHEN MsMsType = 0 THEN 1 ELSE NULL END",
-                "NumPeaks": "NumPeaks",
-                "MaxIntensity": "MaxIntensity",
-                "SummedIntensities": "SummedIntensities",
-                "Time": "Time",
-                "Charge": "Charge",
-                "MonoisotopicMz": "MonoisotopicMz",
-            }
-
-            # Construct safe column list
-            safe_columns = []
-            column_mapping = {}
-            for schema_col_name, sql_expr in allowed_columns.items():
-                if schema_col_name in columns or schema_col_name == "Id":
-                    safe_columns.append(sql_expr)
-                    column_mapping[schema_col_name] = sql_expr
-
-            # Construct the query using parameterized safe columns
-            query = f"""SELECT {', '.join(safe_columns)} FROM frames"""
-
-            schema = pa.schema(
-                [
-                    pa.field(SCAN, pa.int32(), nullable=False),
-                    pa.field(MS_LEVEL, pa.int32(), nullable=True),
-                    pa.field(NUM_PEAKS, pa.int32(), nullable=True),
-                    pa.field(MAX_INTENSITY, pa.float64(), nullable=True),
-                    pa.field(SUMMED_PEAK_INTENSITY, pa.float64(), nullable=True),
-                    pa.field(RETENTION_TIME, pa.float64(), nullable=True),
-                    pa.field(CHARGE, pa.int32(), nullable=True),
-                    pa.field(MONOISOTOPIC_MZ, pa.float64(), nullable=True),
-                    pa.field(INTENSITY, pa.float64(), nullable=True),
-                    pa.field(
-                        PRECURSORS,
-                        pa.list_(
-                            pa.struct(
-                                [
-                                    ("charge", pa.int32()),
-                                    ("mz", pa.float64()),
-                                    ("intensity", pa.float64()),
-                                    ("rt", pa.float64()),
-                                    ("index", pa.int32()),
-                                ]
-                            )
-                        ),
-                        nullable=True,
-                    ),
-                    pa.field(ACQUISITION_DATETIME, pa.string(), nullable=True),
-                ]
-            )
-
-            # Set up parquet writer
-            parquet_writer = pq.ParquetWriter(output_path, schema=schema, compression="gzip")
-
-            try:
-                # Stream data in batches
-                for chunk in pd.read_sql_query(query, conn, chunksize=batch_size):
-                    chunk["AcquisitionDateTime"] = acquisition_date_time
-                    for col in schema.names:
-                        if col not in chunk.columns:
-                            chunk[col] = None
-                    batch_table = pa.Table.from_pandas(chunk, schema=schema)
-                    parquet_writer.write_table(batch_table)
-
-            finally:
-                parquet_writer.close()
-
-        return output_path
-
-    # Resolve file path
     ms_path = _resolve_ms_path(ms_path)
     output_path = str(Path(ms_path).with_name(f"{Path(ms_path).stem}_ms_info.parquet"))
     id_output_path = str(Path(ms_path).with_name(f"{Path(ms_path).stem}_spectrum_df.parquet"))
 
-    # Choose processing method based on file type
     if Path(ms_path).suffix == ".d":
         batch_write_bruker_d(file_name=ms_path, output_path=output_path, batch_size=batch_size)
     elif Path(ms_path).suffix.lower() in [".mzml"]:

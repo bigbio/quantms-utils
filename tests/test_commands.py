@@ -156,7 +156,6 @@ def test_mzml_statistics():
 
     assert len(table2) == len(table1)
 
-
     id_table = pd.read_parquet("BSA1_F1_spectrum_df.parquet")
     id_table2 = pd.read_parquet("tests/test_data/BSA1_F1_spectrum_df.parquet")
     id_table = id_table.set_index("scan")
