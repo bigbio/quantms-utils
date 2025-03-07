@@ -146,10 +146,15 @@ def test_mzml_statistics():
     runner = CliRunner()
 
     mzml_path = TESTS_DIR / "test_data" / "BSA1_F1.mzML"
-    result = runner.invoke(cli, ["mzmlstats", "--id_only", "--ms_path", mzml_path])
 
+    # check if the file exist, delete it
     ms_info_path = TESTS_DIR / "test_data" / "BSA1_F1_ms_info.parquet"
+    if ms_info_path.exists():
+        ms_info_path.unlink()
+
+    result = runner.invoke(cli, ["mzmlstats", "--id_only", "--ms_path", mzml_path])
     table2 = pd.read_parquet(ms_info_path)
+
     table1 = pd.read_parquet(TESTS_DIR / "test_data" / "BSA1_F1_test_ms_info.parquet")
     table2 = table2.set_index("scan")
     table1 = table1.set_index("scan")
