@@ -86,11 +86,7 @@ class BatchWritingConsumer:
             The spectrum object to process.
         """
 
-        peaks = spectrum.get_peaks()  # Get the peaks for the spec spectrum
-        mz_array, intensity_array = (
-            peaks[0],
-            peaks[1],
-        )  # Split the peaks into mz and intensity arrays
+        mz_array, intensity_array = spectrum.get_peaks()  # Split the peaks into mz and intensity arrays
         peak_per_ms = len(mz_array)  # Get the number of peaks in the spectrum
         base_peak_intensity = (
             float(np.max(intensity_array)) if peak_per_ms > 0 else None
