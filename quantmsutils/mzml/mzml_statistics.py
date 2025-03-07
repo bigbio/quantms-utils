@@ -10,7 +10,6 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 from pyopenms import MzMLFile
-import pyopenms as oms
 
 from quantmsutils.utils.constants import (
     CHARGE,
@@ -26,11 +25,13 @@ from quantmsutils.utils.constants import (
     INTENSITY_ARRAY,
     MONOISOTOPIC_MZ,
     MAX_INTENSITY,
-    PRECURSORS, INTENSITY,
+    PRECURSORS,
+    INTENSITY,
 )
 
 logging.basicConfig(format="%(asctime)s [%(funcName)s] - %(message)s", level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
 
 class BatchWritingConsumer:
     """
@@ -96,7 +97,7 @@ class BatchWritingConsumer:
         )  # Get the maximum intensity
         total_intensity = (
             float(np.sum(intensity_array)) if peak_per_ms > 0 else None
-        )  # Get the total intensity
+        )  # Get the total intensity # TODO: Review by @timo and @julianus
         ms_level = spectrum.getMSLevel()  # Get the MS level of the spectrum
         rt = spectrum.getRT()  # Get the retention time of the spectrum
 
@@ -107,29 +108,27 @@ class BatchWritingConsumer:
             intensity = precursor.getIntensity()  # Intensity of first precursor
             precursors = []
             # capture if more than one precursor
-            if len(spectrum.getPrecursors()) > 1:
+            index = 0
+            for precursor in spectrum.getPrecursors():
                 logging.info(
-                    "More than one precursor found in spectrum %s", spectrum.getNativeID()
+                    "Precursor charge: %s, precursor mz: %s",
+                    precursor.getCharge(),
+                    precursor.getMZ(),
                 )
-                index = 0
-                for precursor in spectrum.getPrecursors():
-                    logging.info(
-                        "Precursor charge: %s, precursor mz: %s",
-                        precursor.getCharge(),
-                        precursor.getMZ(),
-                    )
-                    charge_state = precursor.getCharge()
-                    exp_mz = precursor.getMZ()
-                    intensity = precursor.getIntensity()
-                    precursors.append(
-                        {
-                            "charge": charge_state,
-                            "mz": exp_mz,
-                            "intensity": intensity,
-                            "index": index,
-                        }
-                    )
-                    index += 1
+                charge_state = precursor.getCharge() # TODO: Review by @timo and @julianus
+                exp_mz = precursor.getMZ() # TODO: Review by @timo and @julianus
+                intensity = precursor.getIntensity() # TODO: Review by @timo and @julianus
+                rt = spectrum.getRT() # TODO: Review by @timo and @julianus
+                precursors.append(
+                    {
+                        "charge": charge_state,
+                        "mz": exp_mz,
+                        "intensity": intensity,
+                        "rt": rt,
+                        "index": index,
+                    }
+                )
+                index += 1
 
             if self.id_only:
                 scan_id = self.scan_pattern.findall(spectrum.getNativeID())[0]
@@ -155,6 +154,7 @@ class BatchWritingConsumer:
                 ),
                 RETENTION_TIME: float(rt),
                 EXPERIMENTAL_MASS_TO_CHARGE: float(exp_mz) if exp_mz is not None else None,
+                INTENSITY: float(intensity) if intensity is not None else None,
                 ACQUISITION_DATETIME: str(self.acquisition_datetime),
                 PRECURSORS: precursors,
             }
@@ -289,6 +289,22 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False, batch_size: int = 
             pa.field(SUMMED_PEAK_INTENSITY, pa.float64(), nullable=True),
             pa.field(RETENTION_TIME, pa.float64(), nullable=True),
             pa.field(EXPERIMENTAL_MASS_TO_CHARGE, pa.float64(), nullable=True),
+            pa.field(INTENSITY, pa.float64(), nullable=True),
+            pa.field(
+                PRECURSORS,
+                pa.list_(
+                    pa.struct(
+                        [
+                            ("charge", pa.int32()),
+                            ("mz", pa.float64()),
+                            ("intensity", pa.float64()),
+                            ("rt", pa.float64()),
+                            ("index", pa.int32()),
+                        ]
+                    )
+                ),
+                nullable=True,
+            ),
             pa.field(ACQUISITION_DATETIME, pa.string(), nullable=True),
         ]
     )
@@ -377,8 +393,8 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False, batch_size: int = 
                     pa.field(SUMMED_PEAK_INTENSITY, pa.float64(), nullable=True),
                     pa.field(RETENTION_TIME, pa.float64(), nullable=True),
                     pa.field(CHARGE, pa.int32(), nullable=True),
-                    pa.field(INTENSITY, pa.float64(), nullable=True),
                     pa.field(MONOISOTOPIC_MZ, pa.float64(), nullable=True),
+                    pa.field(INTENSITY, pa.float64(), nullable=True),
                     pa.field(
                         PRECURSORS,
                         pa.list_(
@@ -387,6 +403,7 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False, batch_size: int = 
                                     ("charge", pa.int32()),
                                     ("mz", pa.float64()),
                                     ("intensity", pa.float64()),
+                                    ("rt", pa.float64()),
                                     ("index", pa.int32()),
                                 ]
                             )

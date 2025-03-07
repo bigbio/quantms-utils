@@ -37,6 +37,7 @@ _parquet_field = [
 logging.basicConfig(format="%(asctime)s [%(funcName)s] - %(message)s", level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+
 def mods_position(peptide):
     if peptide.startswith("."):
         peptide = peptide[1:]

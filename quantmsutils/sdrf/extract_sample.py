@@ -7,6 +7,7 @@ import pandas as pd
 logging.basicConfig(format="%(asctime)s [%(funcName)s] - %(message)s", level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+
 @click.command(
     "openms2sample",
     short_help="Extract sample information from an experiment design file",
