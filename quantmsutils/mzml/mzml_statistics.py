@@ -97,7 +97,7 @@ class BatchWritingConsumer:
         ms_level = spectrum.getMSLevel()  # Get the MS level of the spectrum
         rt = spectrum.getRT()  # Get the retention time of the spectrum
 
-        if ms_level == 2:
+        if ms_level == 2 and spectrum.getPrecursors():
             precursor = spectrum.getPrecursors()[0]  # Get the first precursor
             charge_state = precursor.getCharge()  # Charge of first precursor
             exp_mz = precursor.getMZ()  # Experimental mass to charge ratio of first precursor
@@ -172,6 +172,7 @@ class BatchWritingConsumer:
                 PRECURSORS: None,
             }
         else:
+            logger.info("Skipping spectrum with MS level %s, MS not supported, or precursors not ", ms_level)
             return
 
         self.batch_data.append(row_data)
