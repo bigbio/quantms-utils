@@ -2,7 +2,7 @@ import logging
 import re
 import sqlite3
 from pathlib import Path
-from typing import Dict, List, Optional, Set
+from typing import Dict, Optional, Set
 
 import click
 import numpy as np
@@ -344,8 +344,8 @@ class BatchWritingConsumer:
 
         Returns
         -------
-        List[Dict]
-            List of precursor dictionaries
+        Dict
+            First precursor data
         """
         first_precursor = {}
 
