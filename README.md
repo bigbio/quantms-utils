@@ -47,8 +47,6 @@ quantms-utils have multiple scripts to generate mzML stats. These files are used
 
 </details>
 
-
-
 ## Contributions and issues
 
 Contributions and issues are welcome. Please, open an issue in the [GitHub repository](https://github.com/bigbio/quantms) or PR in the [GitHub repository](https://github.com/bigbio/quantms-utils).

@@ -2,7 +2,7 @@ import logging
 import re
 import sqlite3
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple, Union
+from typing import Dict, List, Optional, Set
 
 import click
 import numpy as np
@@ -24,7 +24,9 @@ from quantmsutils.utils.constants import (
     RETENTION_TIME,
     SCAN,
     SUMMED_PEAK_INTENSITY,
-    MAX_INTENSITY, PRECURSOR_RT, PRECURSOR_TOTAL_INTENSITY, PRECURSOR_INTENSITY_WINDOW,
+    PRECURSOR_RT,
+    PRECURSOR_TOTAL_INTENSITY,
+    PRECURSOR_INTENSITY_WINDOW,
 )
 
 logging.basicConfig(format="%(asctime)s [%(funcName)s] - %(message)s", level=logging.INFO)
@@ -63,9 +65,7 @@ def create_id_schema() -> pa.Schema:
     )
 
 
-def batch_write_bruker_d(
-        file_name: str, output_path: str, batch_size: int = 10000
-) -> str:
+def batch_write_bruker_d(file_name: str, output_path: str, batch_size: int = 10000) -> str:
     """
     Batch processing and writing of Bruker .d files.
 
@@ -120,7 +120,9 @@ def batch_write_bruker_d(
             query = f"""SELECT {', '.join(safe_columns)} FROM frames"""
 
             # Set up parquet writer with appropriate schema
-            with pq.ParquetWriter(output_path, schema=schema, compression="gzip") as parquet_writer:
+            with pq.ParquetWriter(
+                output_path, schema=schema, compression="gzip"
+            ) as parquet_writer:
                 # Stream data in batches
                 for chunk in pd.read_sql_query(query, conn, chunksize=batch_size):
                     chunk["AcquisitionDateTime"] = acquisition_date_time
@@ -165,13 +167,13 @@ class BatchWritingConsumer:
     """
 
     def __init__(
-            self,
-            parquet_schema: pa.Schema,
-            id_parquet_schema: pa.Schema,
-            output_path: str,
-            batch_size: int = 10000,
-            id_only: bool = False,
-            id_output_path: Optional[str] = None,
+        self,
+        parquet_schema: pa.Schema,
+        id_parquet_schema: pa.Schema,
+        output_path: str,
+        batch_size: int = 10000,
+        id_only: bool = False,
+        id_output_path: Optional[str] = None,
     ):
         """
         Initialize the BatchWritingConsumer.
@@ -205,10 +207,10 @@ class BatchWritingConsumer:
         self.scan_pattern = re.compile(r"[scan|spectrum]=(\d+)")
 
     def transform_mzml_spectrum(
-            self,
-            i: int,
-            spectrum: oms.MSSpectrum,
-            mzml_exp: oms.MSExperiment,
+        self,
+        i: int,
+        spectrum: oms.MSSpectrum,
+        mzml_exp: oms.MSExperiment,
     ) -> None:
         """
         Process a spectrum and add it to the batch data.
@@ -251,12 +253,14 @@ class BatchWritingConsumer:
             # Extract spectrum ID for ID-only mode
             if self.id_only:
                 scan_id = self._extract_scan_id(spectrum)
-                self.psm_parts.append({
-                    SCAN: scan_id,
-                    MS_LEVEL: ms_level,
-                    MZ_ARRAY: mz_array.tolist(),
-                    INTENSITY_ARRAY: intensity_array.tolist(),
-                })
+                self.psm_parts.append(
+                    {
+                        SCAN: scan_id,
+                        MS_LEVEL: ms_level,
+                        MZ_ARRAY: mz_array.tolist(),
+                        INTENSITY_ARRAY: intensity_array.tolist(),
+                    }
+                )
 
             # Working only with the first precursor
             first_precursor = spectrum.getPrecursors()[0]
@@ -277,11 +281,18 @@ class BatchWritingConsumer:
                 RETENTION_TIME: float(rt),
                 CHARGE: int(charge_state) if charge_state else None,
                 EXPERIMENTAL_MASS_TO_CHARGE: float(exp_mz) if exp_mz else None,
-                PRECURSOR_RT: first_precursor_calculated["rt"] if first_precursor_calculated else None,
+                PRECURSOR_RT: (
+                    first_precursor_calculated["rt"] if first_precursor_calculated else None
+                ),
                 INTENSITY: float(intensity) if intensity else None,
-                PRECURSOR_TOTAL_INTENSITY: first_precursor_calculated[
-                    "total_intensity"] if first_precursor_calculated else None,
-                ACQUISITION_DATETIME: str(self.acquisition_datetime) if self.acquisition_datetime else None,
+                PRECURSOR_TOTAL_INTENSITY: (
+                    first_precursor_calculated["total_intensity"]
+                    if first_precursor_calculated
+                    else None
+                ),
+                ACQUISITION_DATETIME: (
+                    str(self.acquisition_datetime) if self.acquisition_datetime else None
+                ),
             }
         else:
             # Process MS1
@@ -298,7 +309,9 @@ class BatchWritingConsumer:
                 PRECURSOR_RT: None,
                 PRECURSOR_TOTAL_INTENSITY: None,
                 PRECURSOR_INTENSITY_WINDOW: None,
-                ACQUISITION_DATETIME: str(self.acquisition_datetime) if self.acquisition_datetime else None,
+                ACQUISITION_DATETIME: (
+                    str(self.acquisition_datetime) if self.acquisition_datetime else None
+                ),
             }
 
         self.batch_data.append(row_data)
@@ -315,7 +328,7 @@ class BatchWritingConsumer:
         return spectrum.getNativeID()
 
     def _extract_first_precursor_data(
-            self, spectrum: oms.MSSpectrum, i: int, mzml_exp: oms.MSExperiment
+        self, spectrum: oms.MSSpectrum, i: int, mzml_exp: oms.MSExperiment
     ) -> Dict:
         """
         Extract precursor information from the first precursor when it is not annotated in the MS2.
@@ -381,16 +394,11 @@ class BatchWritingConsumer:
                 # Initialize writer lazily if not already created
                 if self.parquet_writer is None:
                     self.parquet_writer = pq.ParquetWriter(
-                        where=self.output_path,
-                        schema=self.parquet_schema,
-                        compression="gzip"
+                        where=self.output_path, schema=self.parquet_schema, compression="gzip"
                     )
 
                 # Create a RecordBatch directly from the current batch
-                batch = pa.RecordBatch.from_pylist(
-                    self.batch_data,
-                    schema=self.parquet_schema
-                )
+                batch = pa.RecordBatch.from_pylist(self.batch_data, schema=self.parquet_schema)
 
                 # Write the batch directly
                 self.parquet_writer.write_batch(batch)
@@ -407,10 +415,7 @@ class BatchWritingConsumer:
                     )
 
                 # Create and write batch
-                batch = pa.RecordBatch.from_pylist(
-                    self.psm_parts,
-                    schema=self.id_parquet_schema
-                )
+                batch = pa.RecordBatch.from_pylist(self.psm_parts, schema=self.id_parquet_schema)
                 self.id_parquet_writer.write_batch(batch)
                 self.psm_parts = []
 
@@ -437,11 +442,11 @@ class BatchWritingConsumer:
 
 
 def batch_write_mzml_streaming(
-        file_name: str,
-        output_path: str,
-        id_only: bool = False,
-        id_output_path: Optional[str] = None,
-        batch_size: int = 10000,
+    file_name: str,
+    output_path: str,
+    id_only: bool = False,
+    id_output_path: Optional[str] = None,
+    batch_size: int = 10000,
 ) -> Optional[str]:
     """
     Process an mzML file using streaming and write to parquet.
@@ -535,9 +540,7 @@ def resolve_ms_path(ms_path: str) -> str:
     candidates = list(path_obj.parent.glob(f"{path_obj.stem}*"))
     valid_extensions = {".d", ".mzml", ".mzML"}
     valid_candidates = [
-        str(c.resolve())
-        for c in candidates
-        if c.suffix.lower() in valid_extensions
+        str(c.resolve()) for c in candidates if c.suffix.lower() in valid_extensions
     ]
 
     if len(valid_candidates) == 1:
@@ -550,16 +553,20 @@ def resolve_ms_path(ms_path: str) -> str:
 
 
 @click.command("mzmlstats")
-@click.option("--ms_path", type=click.Path(exists=True), required=True,
-              help="Path to mass spectrometry file (.mzML or .d)")
-@click.option("--id_only", is_flag=True,
-              help="Generate a parquet with the spectrum id and the peaks")
-@click.option("--batch_size", type=int, default=10000,
-              help="Number of rows to write in each batch")
+@click.option(
+    "--ms_path",
+    type=click.Path(exists=True),
+    required=True,
+    help="Path to mass spectrometry file (.mzML or .d)",
+)
+@click.option(
+    "--id_only", is_flag=True, help="Generate a parquet with the spectrum id and the peaks"
+)
+@click.option(
+    "--batch_size", type=int, default=10000, help="Number of rows to write in each batch"
+)
 @click.pass_context
-def mzml_statistics(
-        ctx, ms_path: str, id_only: bool = False, batch_size: int = 10000
-) -> None:
+def mzml_statistics(ctx, ms_path: str, id_only: bool = False, batch_size: int = 10000) -> None:
     """
     Parse mass spectrometry data files (.mzML or Bruker .d formats) to extract
     and compile statistics about the spectra.
@@ -578,11 +585,7 @@ def mzml_statistics(
 
         # Process based on file type
         if path_obj.suffix.lower() == ".d":
-            batch_write_bruker_d(
-                file_name=ms_path,
-                output_path=output_path,
-                batch_size=batch_size
-            )
+            batch_write_bruker_d(file_name=ms_path, output_path=output_path, batch_size=batch_size)
         elif path_obj.suffix.lower() in [".mzml"]:
             batch_write_mzml_streaming(
                 file_name=ms_path,

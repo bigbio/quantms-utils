@@ -71,6 +71,7 @@ def test_convert_psm_help():
 
     assert result.exit_code == 0
 
+
 def test_check_samplesheet_help():
     runner = CliRunner()
     result = runner.invoke(cli, ["checksamplesheet", "--help"])
@@ -139,6 +140,5 @@ def test_mzml_statistics():
     table2 = table2.set_index("scan")
     table1 = table1.set_index("scan")
     assert len(table2) == len(table1)
-
 
     assert result.exit_code == 0
