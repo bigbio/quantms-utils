@@ -18,7 +18,6 @@ from quantmsutils.utils.constants import (
     EXPERIMENTAL_MASS_TO_CHARGE,
     INTENSITY,
     INTENSITY_ARRAY,
-    MONOISOTOPIC_MZ,
     MS_LEVEL,
     MZ_ARRAY,
     NUM_PEAKS,
@@ -44,10 +43,9 @@ def create_ms_schema() -> pa.Schema:
             pa.field(RETENTION_TIME, pa.float64(), nullable=True),
             pa.field(CHARGE, pa.int32(), nullable=True),
             pa.field(EXPERIMENTAL_MASS_TO_CHARGE, pa.float64(), nullable=True),
-            pa.field(INTENSITY, pa.float64(), nullable=True),
             pa.field(PRECURSOR_RT, pa.float64(), nullable=True),
+            pa.field(INTENSITY, pa.float64(), nullable=True),
             pa.field(PRECURSOR_TOTAL_INTENSITY, pa.float64(), nullable=True),
-            pa.field(PRECURSOR_INTENSITY_WINDOW, pa.float64(), nullable=True),
             pa.field(ACQUISITION_DATETIME, pa.string(), nullable=True),
         ]
     )
@@ -279,12 +277,10 @@ class BatchWritingConsumer:
                 RETENTION_TIME: float(rt),
                 CHARGE: int(charge_state) if charge_state else None,
                 EXPERIMENTAL_MASS_TO_CHARGE: float(exp_mz) if exp_mz else None,
-                INTENSITY: float(intensity) if intensity else None,
                 PRECURSOR_RT: first_precursor_calculated["rt"] if first_precursor_calculated else None,
+                INTENSITY: float(intensity) if intensity else None,
                 PRECURSOR_TOTAL_INTENSITY: first_precursor_calculated[
                     "total_intensity"] if first_precursor_calculated else None,
-                PRECURSOR_INTENSITY_WINDOW: first_precursor_calculated[
-                    "intensity_isolation_window"] if first_precursor_calculated else None,
                 ACQUISITION_DATETIME: str(self.acquisition_datetime) if self.acquisition_datetime else None,
             }
         else:
@@ -349,7 +345,6 @@ class BatchWritingConsumer:
             precursor_rt = None
             precursor_intensity = None
             total_intensity = None
-            intensity_isolation_window = None
 
             if precursor_spectrum_index >= 0:
                 precursor_spectrum = mzml_exp.getSpectrum(precursor_spectrum_index)
@@ -358,10 +353,10 @@ class BatchWritingConsumer:
                 # Calculate purity metrics
                 try:
                     purity = oms.PrecursorPurity().computePrecursorPurity(
-                        precursor_spectrum, precursor, 50.0, True
+                        precursor_spectrum, precursor, 100, True
                     )
                     precursor_intensity = purity.target_intensity
-                    intensity_isolation_window = purity.total_intensity
+                    total_intensity = purity.total_intensity
                 except Exception as e:
                     logger.debug(f"Could not compute precursor purity: {e}")
 
@@ -370,7 +365,6 @@ class BatchWritingConsumer:
                 "rt": precursor_rt,
                 "intensity": precursor_intensity,
                 "total_intensity": total_intensity,
-                "intensity_isolation_window": intensity_isolation_window,
             }
         else:
             logger.debug(f"No precursors found for spectrum: {spectrum.getNativeID()}")

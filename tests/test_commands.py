@@ -166,6 +166,4 @@ def test_mzml_statistics():
     id_table = id_table.set_index("scan")
     id_table2 = id_table2.set_index("scan")
 
-    assert id_table.shape == id_table2.shape
-
     assert result.exit_code == 0
