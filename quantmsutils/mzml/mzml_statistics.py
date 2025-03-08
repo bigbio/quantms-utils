@@ -10,7 +10,6 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 import pyopenms as oms
-from pyarrow import Schema
 
 from quantmsutils.utils.constants import (
     ACQUISITION_DATETIME,
@@ -23,11 +22,10 @@ from quantmsutils.utils.constants import (
     MS_LEVEL,
     MZ_ARRAY,
     NUM_PEAKS,
-    PRECURSORS,
     RETENTION_TIME,
     SCAN,
     SUMMED_PEAK_INTENSITY,
-    MAX_INTENSITY,
+    MAX_INTENSITY, PRECURSOR_RT, PRECURSOR_TOTAL_INTENSITY, PRECURSOR_INTENSITY_WINDOW,
 )
 
 logging.basicConfig(format="%(asctime)s [%(funcName)s] - %(message)s", level=logging.INFO)
@@ -40,30 +38,16 @@ def create_ms_schema() -> pa.Schema:
         [
             pa.field(SCAN, pa.string(), nullable=True),
             pa.field(MS_LEVEL, pa.int32(), nullable=True),
-            pa.field(CHARGE, pa.int32(), nullable=True),
             pa.field(NUM_PEAKS, pa.int32(), nullable=True),
             pa.field(BASE_PEAK_INTENSITY, pa.float64(), nullable=True),
             pa.field(SUMMED_PEAK_INTENSITY, pa.float64(), nullable=True),
             pa.field(RETENTION_TIME, pa.float64(), nullable=True),
+            pa.field(CHARGE, pa.int32(), nullable=True),
             pa.field(EXPERIMENTAL_MASS_TO_CHARGE, pa.float64(), nullable=True),
             pa.field(INTENSITY, pa.float64(), nullable=True),
-            pa.field(
-                PRECURSORS,
-                pa.list_(
-                    pa.struct(
-                        [
-                            ("index", pa.int32()),
-                            ("charge", pa.int32()),
-                            ("mz", pa.float64()),
-                            ("rt", pa.float64()),
-                            ("intensity", pa.float64()),
-                            ("total_intensity", pa.float64()),
-                            ("intensity_isolation_window", pa.float64()),
-                        ]
-                    )
-                ),
-                nullable=True,
-            ),
+            pa.field(PRECURSOR_RT, pa.float64(), nullable=True),
+            pa.field(PRECURSOR_TOTAL_INTENSITY, pa.float64(), nullable=True),
+            pa.field(PRECURSOR_INTENSITY_WINDOW, pa.float64(), nullable=True),
             pa.field(ACQUISITION_DATETIME, pa.string(), nullable=True),
         ]
     )
@@ -264,7 +248,7 @@ class BatchWritingConsumer:
         # Build row data based on MS level
         if ms_level == 2 and spectrum.getPrecursors():
             # Process MS2 with precursors
-            precursors = self._extract_precursors(spectrum, i, mzml_exp)
+            first_precursor_calculated = self._extract_first_precursor_data(spectrum, i, mzml_exp)
 
             # Extract spectrum ID for ID-only mode
             if self.id_only:
@@ -276,24 +260,32 @@ class BatchWritingConsumer:
                     INTENSITY_ARRAY: intensity_array.tolist(),
                 })
 
-            # First precursor details for main record
+            # Working only with the first precursor
             first_precursor = spectrum.getPrecursors()[0]
             charge_state = first_precursor.getCharge()
             exp_mz = first_precursor.getMZ()
             intensity = first_precursor.getIntensity()
 
+            if intensity is None or intensity == 0.0 and first_precursor_calculated:
+                # Use calculated precursor intensity if available
+                intensity = first_precursor_calculated["intensity"]
+
             row_data = {
                 SCAN: spectrum.getNativeID(),
                 MS_LEVEL: ms_level,
-                CHARGE: int(charge_state) if charge_state else None,
                 NUM_PEAKS: peak_count,
                 BASE_PEAK_INTENSITY: base_peak_intensity,
                 SUMMED_PEAK_INTENSITY: total_intensity,
                 RETENTION_TIME: float(rt),
+                CHARGE: int(charge_state) if charge_state else None,
                 EXPERIMENTAL_MASS_TO_CHARGE: float(exp_mz) if exp_mz else None,
                 INTENSITY: float(intensity) if intensity else None,
+                PRECURSOR_RT: first_precursor_calculated["rt"] if first_precursor_calculated else None,
+                PRECURSOR_TOTAL_INTENSITY: first_precursor_calculated[
+                    "total_intensity"] if first_precursor_calculated else None,
+                PRECURSOR_INTENSITY_WINDOW: first_precursor_calculated[
+                    "intensity_isolation_window"] if first_precursor_calculated else None,
                 ACQUISITION_DATETIME: str(self.acquisition_datetime) if self.acquisition_datetime else None,
-                PRECURSORS: precursors,
             }
         else:
             # Process MS1
@@ -306,8 +298,11 @@ class BatchWritingConsumer:
                 SUMMED_PEAK_INTENSITY: total_intensity,
                 RETENTION_TIME: float(rt),
                 EXPERIMENTAL_MASS_TO_CHARGE: None,
+                INTENSITY: None,
+                PRECURSOR_RT: None,
+                PRECURSOR_TOTAL_INTENSITY: None,
+                PRECURSOR_INTENSITY_WINDOW: None,
                 ACQUISITION_DATETIME: str(self.acquisition_datetime) if self.acquisition_datetime else None,
-                PRECURSORS: None,
             }
 
         self.batch_data.append(row_data)
@@ -323,11 +318,11 @@ class BatchWritingConsumer:
             return match[0]
         return spectrum.getNativeID()
 
-    def _extract_precursors(
+    def _extract_first_precursor_data(
             self, spectrum: oms.MSSpectrum, i: int, mzml_exp: oms.MSExperiment
-    ) -> List[Dict]:
+    ) -> Dict:
         """
-        Extract precursor information from a spectrum.
+        Extract precursor information from the first precursor when it is not annotated in the MS2.
 
         Parameters
         ----------
@@ -343,12 +338,11 @@ class BatchWritingConsumer:
         List[Dict]
             List of precursor dictionaries
         """
-        precursors = []
+        first_precursor = {}
 
-        for index, precursor in enumerate(spectrum.getPrecursors()):
-            charge_state = precursor.getCharge()
-            exp_mz = precursor.getMZ()
-            intensity = precursor.getIntensity()
+        if spectrum.getPrecursors():
+            index = 0
+            precursor = spectrum.getPrecursors()[index]
 
             # Get precursor spectrum details if available
             precursor_spectrum_index = mzml_exp.getPrecursorSpectrum(i)
@@ -364,24 +358,24 @@ class BatchWritingConsumer:
                 # Calculate purity metrics
                 try:
                     purity = oms.PrecursorPurity().computePrecursorPurity(
-                        precursor_spectrum, precursor, 20.0, True
+                        precursor_spectrum, precursor, 50.0, True
                     )
                     precursor_intensity = purity.target_intensity
                     intensity_isolation_window = purity.total_intensity
                 except Exception as e:
                     logger.debug(f"Could not compute precursor purity: {e}")
 
-            precursors.append({
+            first_precursor = {
                 "index": index,
-                "charge": charge_state,
-                "mz": exp_mz,
                 "rt": precursor_rt,
                 "intensity": precursor_intensity,
                 "total_intensity": total_intensity,
                 "intensity_isolation_window": intensity_isolation_window,
-            })
+            }
+        else:
+            logger.debug(f"No precursors found for spectrum: {spectrum.getNativeID()}")
 
-        return precursors
+        return first_precursor
 
     def _write_batch(self) -> None:
         """
@@ -501,6 +495,10 @@ def batch_write_mzml_streaming(
         # Get acquisition datetime if available
         if mzml_exp.getMetaValue("acquisition_date_time"):
             batch_writer.acquisition_datetime = mzml_exp.getMetaValue("acquisition_date_time")
+        else:
+            acquisition = mzml_exp.getDateTime().get()
+            if acquisition:
+                batch_writer.acquisition_datetime = acquisition
 
         # Process each spectrum
         for i, spec in enumerate(mzml_exp):
