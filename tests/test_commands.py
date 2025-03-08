@@ -71,26 +71,6 @@ def test_convert_psm_help():
 
     assert result.exit_code == 0
 
-
-# def test_batch_convert_parquet():
-#     files = ["RD139_Narrow_UPS1_0_1fmol_inj1.mzML",
-#              "RD139_Narrow_UPS1_0_1fmol_inj2.mzML",
-#              "RD139_Narrow_UPS1_0_25fmol_inj1.mzML",
-#              "RD139_Narrow_UPS1_0_25fmol_inj2.mzML"
-#             ]
-#     for f in files:
-#         runner = CliRunner()
-#         result = runner.invoke(
-#             cli,
-#             [
-#                 "mzmlstats",
-#                 "--ms_path",
-#                 f"tests/test_data/diann2mztab/{f}",
-#             ],
-#         )
-#
-#         assert result.exit_code == 0
-# test for the check_samplesheet command in cli
 def test_check_samplesheet_help():
     runner = CliRunner()
     result = runner.invoke(cli, ["checksamplesheet", "--help"])
@@ -158,12 +138,7 @@ def test_mzml_statistics():
     table1 = pd.read_parquet(TESTS_DIR / "test_data" / "BSA1_F1_test_ms_info.parquet")
     table2 = table2.set_index("scan")
     table1 = table1.set_index("scan")
-
     assert len(table2) == len(table1)
 
-    id_table = pd.read_parquet("BSA1_F1_spectrum_df.parquet")
-    id_table2 = pd.read_parquet("tests/test_data/BSA1_F1_spectrum_df.parquet")
-    id_table = id_table.set_index("scan")
-    id_table2 = id_table2.set_index("scan")
 
     assert result.exit_code == 0
