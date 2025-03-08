@@ -227,6 +227,7 @@ class BatchWritingConsumer:
         # Extract peaks data
         mz_array, intensity_array = spectrum.get_peaks()
         peak_count = len(mz_array)
+        scan_id = self._extract_scan_id(spectrum)
 
         # Basic spectrum properties
         ms_level = spectrum.getMSLevel()
@@ -252,7 +253,6 @@ class BatchWritingConsumer:
 
             # Extract spectrum ID for ID-only mode
             if self.id_only:
-                scan_id = self._extract_scan_id(spectrum)
                 self.psm_parts.append(
                     {
                         SCAN: scan_id,
@@ -273,7 +273,7 @@ class BatchWritingConsumer:
                 intensity = first_precursor_calculated["intensity"]
 
             row_data = {
-                SCAN: spectrum.getNativeID(),
+                SCAN: scan_id,
                 MS_LEVEL: ms_level,
                 NUM_PEAKS: peak_count,
                 BASE_PEAK_INTENSITY: base_peak_intensity,
@@ -297,7 +297,7 @@ class BatchWritingConsumer:
         else:
             # Process MS1
             row_data = {
-                SCAN: spectrum.getNativeID(),
+                SCAN: scan_id,
                 MS_LEVEL: ms_level,
                 CHARGE: None,
                 NUM_PEAKS: peak_count,
