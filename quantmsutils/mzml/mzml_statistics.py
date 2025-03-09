@@ -204,7 +204,7 @@ class BatchWritingConsumer:
         self.parquet_writer = None
         self.id_parquet_writer = None
         self.acquisition_datetime = None
-        self.scan_pattern = re.compile(r"[scan|spectrum]=(\d+)")
+        self.scan_pattern = re.compile(r'(?:spectrum|scan)=(\d+)')
 
     def transform_mzml_spectrum(
         self,
@@ -320,10 +320,22 @@ class BatchWritingConsumer:
             self._write_batch()
 
     def _extract_scan_id(self, spectrum: oms.MSSpectrum) -> str:
-        """Extract scan ID from native ID using regex pattern"""
-        match = self.scan_pattern.findall(spectrum.getNativeID())
+        """
+        Extracts the scan ID from a given spectrum's native ID.
+
+        Parameters
+        ----------
+        spectrum : oms.MSSpectrum
+          The spectrum from which to extract the scan ID.
+
+        Returns
+        -------
+        str
+           The extracted scan ID if found, otherwise the original native ID.
+        """
+        match = re.search(r'(?:spectrum|scan)=(\d+)', spectrum.getNativeID())
         if match:
-            return match[0]
+            return match.group(1)
         return spectrum.getNativeID()
 
     def _extract_first_precursor_data(

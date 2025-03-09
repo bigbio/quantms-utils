@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pandas as pd
+import pytest
 from click.testing import CliRunner
 from quantmsutils.quantmsutilsc import cli
 
@@ -141,4 +142,20 @@ def test_mzml_statistics():
     table1 = table1.set_index("scan")
     assert len(table2) == len(table1)
 
+    assert result.exit_code == 0
+
+def test_mzml_statistics_local():
+    runner = CliRunner()
+
+    mzml_path = TESTS_DIR / "test_data" / "TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01.mzML"
+
+    # check if the file exist, delete it
+    ms_info_path = TESTS_DIR / "test_data" / "TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01_ms_info.parquet"
+    if ms_info_path.exists():
+        ms_info_path.unlink()
+
+    result = runner.invoke(cli, ["mzmlstats", "--id_only", "--ms_path", mzml_path])
+    table = pd.read_parquet(ms_info_path)
+
+    assert len(table) > 0
     assert result.exit_code == 0
