@@ -44,6 +44,39 @@ quantms-utils have multiple scripts to generate mzML stats. These files are used
 - `scan`: The scan accession for each MS and MS/MS signal in the mzML, depending on the manufacturer, the scan will have different formats. Example, for thermo (e.g `controllerType=0 controllerNumber=1 scan=43920`). We tried to find the definition of [quantms.io](https://github.com/bigbio/quantms.io/blob/main/docs/README.adoc#scan). 
 - `ms_level`: The MS level of the signal, 1 for MS and 2 for MS/MS.
 - `num_peaks`: The number of peaks in the MS. Compute with pyopenms with `spectrum.get_peaks()`.
+- `base_peak_intensity`: The max intensity in the spectrum (MS or MS/MS).
+- `summed_peak_intensities`: The sum of all intensities in the spectrum (MS or MS/MS).
+- `rt`: The retention time of the spectrum, capture with pyopenms with `spectrum.getRT()`.
+
+For MS/MS signals, we have the following additional columns:
+
+- `precursor_charge`: The charge of the precursor ion, if the signal is MS/MS. Capture with pyopenms with `spectrum.getPrecursors()[0].getCharge()`.
+- `precursor_mz`: The m/z of the precursor ion, if the signal is MS/MS. Capture with pyopenms with `spectrum.getPrecursors()[0].getMZ()`.
+- `precursor_intensity`: The intensity of the precursor ion, if the signal is MS/MS. Capture with pyopenms with `spectrum.getPrecursors()[0].getIntensity()`. If the precursor is not annotated (present), we use the purity object to get the information; see note below. 
+- `precursor_rt`: The retention time of the precursor ion, if the signal is MS/MS. See note below.
+- `precursor_total_intensity`: The total intensity of the precursor ion, if the signal is MS/MS. See note below.
+
+> [!NOTE]
+> For all the precursor-related information, we are using the first precursor in the spectrum. The following columns `intensity` (if not annotated), `precursor_rt`, and `precursor_total_intensity` we use the following pyopnems code: 
+> ```python
+> precursor_spectrum = mzml_exp.getSpectrum(precursor_spectrum_index)
+> precursor_rt = precursor_spectrum.getRT()
+> purity = oms.PrecursorPurity().computePrecursorPurity(precursor_spectrum, precursor, 100, True)
+> precursor_intensity = purity.target_intensity
+> total_intensity = purity.total_intensity
+> ```
+
+</details>
+
+<details>
+<summary>MS2 info and details</summary>
+
+`mzmlstats` allows the user to produce a file containing all the MS2 spectra including the intesities and masses of every peak. The produced file is a parquet file, with the original name of the file plus the following postfix `{file_name}_ms2_info.parquet`. Here, the definition of each column and how they are estimated and used:
+
+- `scan`: The scan accession for each MS and MS/MS signal in the mzML, depending on the manufacturer, the scan will have different formats. Example, for thermo (e.g `controllerType=0 controllerNumber=1 scan=43920`). We tried to find the definition of [quantms.io](https://github.com/bigbio/quantms.io/blob/main/docs/README.adoc#scan).
+- `ms_level`: The MS level of the signal, all of them will be 2.
+- `mz_array`: The m/z array of the peaks in the MS/MS signal. Capture with pyopenms with `mz_array, intensity_array = spectrum.get_peaks()`.
+- `intensity_array`: The intensity array of the peaks in the MS/MS signal. Capture with pyopenms with `mz_array, intensity_array = spectrum.get_peaks()`.
 
 </details>
 

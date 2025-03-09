@@ -8,7 +8,6 @@ MS_LEVEL = "ms_level"
 NUM_PEAKS = "num_peaks"  # number of peaks in the spectrum (MS1 or MS2)
 BASE_PEAK_INTENSITY = "base_peak_intensity"
 SUMMED_PEAK_INTENSITY = "summed_peak_intensities"
-MAX_INTENSITY = "max_intensity"
 RETENTION_TIME = "rt"
 CHARGE = "precursor_charge"  # charge of the precursor ion
 INTENSITY = "precursor_intensity"

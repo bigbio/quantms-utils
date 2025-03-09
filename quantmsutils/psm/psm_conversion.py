@@ -59,7 +59,7 @@ def mods_position(peptide):
 @click.command("psmconvert", short_help="Convert idXML to parquet file with PSMs information.")
 @click.option("--idxml", type=click.Path(exists=True))
 @click.option(
-    "--spectra_file",
+    "--ms2_file",
     type=click.Path(exists=True),
     help="Parquet file from mzml_statistics",
 )
@@ -69,7 +69,7 @@ def mods_position(peptide):
 def convert_psm(
     ctx,
     idxml: str,
-    spectra_file: str,
+    ms2_file: str,
     export_decoy_psm: bool = False,
     output_file: str = None,
 ):
@@ -77,7 +77,7 @@ def convert_psm(
     Convert idXML to csv file with PSMs information.
     :param ctx: click context
     :param idxml: Input idXML file
-    :param spectra_file: Spectra file
+    :param ms2_file: Spectra file
     :param export_decoy_psm: Export decoy PSM
     :param output_file: Output file name in parquet format, if not it will be constructed from idXML file name
     :return: None
@@ -107,7 +107,7 @@ def convert_psm(
     reference_file_name = os.path.splitext(
         prot_ids[0].getMetaValue("spectra_data")[0].decode("UTF-8")
     )[0]
-    spectra_df = pd.read_parquet(spectra_file) if spectra_file else None
+    spectra_df = pd.read_parquet(ms2_file) if ms2_file else None
 
     for peptide_id in pep_ids:
         retention_time = peptide_id.getRT()
