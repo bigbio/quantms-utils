@@ -146,3 +146,15 @@ class TestMzMLStatistics:
         expected_columns = ["scan", "rt", "ms_level", "precursor_charge"]
         for col in expected_columns:
             assert col in output_table.columns, f"Expected column {col} missing from output"
+
+    @pytest.mark.skip("Test to be run locally, with big files")
+    def test_mzml_statistics_local(self):
+
+        args = ["--id_only", "--ms_path", str(TEST_DATA_DIR / "RD139_Narrow_UPS1_0_1fmol_inj1.mzML")]
+        result = run_cli_command("mzmlstats", args)
+
+        assert result.exit_code == 0
+        assert os.path.exists(TEST_DATA_DIR / "RD139_Narrow_UPS1_0_1fmol_inj1_ms_info.parquet")
+
+        output_table = pd.read_parquet(TEST_DATA_DIR / "RD139_Narrow_UPS1_0_1fmol_inj1_ms_info.parquet")
+        assert len(output_table) > 0, "Output table is empty"
