@@ -172,7 +172,7 @@ class BatchWritingConsumer:
         id_parquet_schema: pa.Schema,
         output_path: str,
         batch_size: int = 10000,
-        id_only: bool = False,
+        ms2_file: bool = False,
         id_output_path: Optional[str] = None,
     ):
         """
@@ -188,8 +188,8 @@ class BatchWritingConsumer:
             Path for the main parquet output
         batch_size : int
             Number of rows to write in each batch
-        id_only : bool
-            Whether to generate ID-only output
+        ms2_file : bool
+            Whether to generate ms2_file with the corresponding spectra
         id_output_path : Optional[str]
             Path for the ID-only parquet output
         """
@@ -198,7 +198,7 @@ class BatchWritingConsumer:
         self.output_path = output_path
         self.id_output_path = id_output_path
         self.batch_size = batch_size
-        self.id_only = id_only
+        self.ms2_file = ms2_file
         self.batch_data = []
         self.psm_parts = []
         self.parquet_writer = None
@@ -252,7 +252,7 @@ class BatchWritingConsumer:
             first_precursor_calculated = self._extract_first_precursor_data(spectrum, i, mzml_exp)
 
             # Extract spectrum ID for ID-only mode
-            if self.id_only:
+            if self.ms2_file:
                 self.psm_parts.append(
                     {
                         SCAN: scan_id,
@@ -416,7 +416,7 @@ class BatchWritingConsumer:
                 self.batch_data = []
 
             # Write ID-only data if enabled and data exists
-            if self.id_only and self.psm_parts:
+            if self.ms2_file and self.psm_parts:
                 # Initialize writer lazily
                 if self.id_parquet_writer is None:
                     self.id_parquet_writer = pq.ParquetWriter(
@@ -455,7 +455,7 @@ class BatchWritingConsumer:
 def batch_write_mzml_streaming(
     file_name: str,
     output_path: str,
-    id_only: bool = False,
+    ms2_file: bool = False,
     id_output_path: Optional[str] = None,
     batch_size: int = 10000,
 ) -> Optional[str]:
@@ -468,7 +468,7 @@ def batch_write_mzml_streaming(
         Path to the mzML file
     output_path : str
         Path for the main output
-    id_only : bool
+    ms2_file : bool
         Whether to generate ID-only output
     id_output_path : Optional[str]
         Path for the ID-only output
@@ -497,7 +497,7 @@ def batch_write_mzml_streaming(
             parquet_schema=parquet_schema,
             id_parquet_schema=id_parquet_schema,
             output_path=output_path,
-            id_only=id_only,
+            ms2_file=ms2_file,
             id_output_path=id_output_path,
             batch_size=batch_size,
         )
@@ -571,19 +571,19 @@ def resolve_ms_path(ms_path: str) -> str:
     help="Path to mass spectrometry file (.mzML or .d)",
 )
 @click.option(
-    "--id_only", is_flag=True, help="Generate a parquet with the spectrum id and the peaks"
+    "--ms2_file", is_flag=True, help="Generate a parquet with the spectrum id and the peaks"
 )
 @click.option(
     "--batch_size", type=int, default=10000, help="Number of rows to write in each batch"
 )
 @click.pass_context
-def mzml_statistics(ctx, ms_path: str, id_only: bool = False, batch_size: int = 10000) -> None:
+def mzml_statistics(ctx, ms_path: str, ms2_file: bool = False, batch_size: int = 10000) -> None:
     """
     Parse mass spectrometry data files (.mzML or Bruker .d formats) to extract
     and compile statistics about the spectra.
 
     Example usage:
-    quantmsutilsc mzmlstats --ms_path "path/to/file.mzML" --id_only --batch_size 5000
+    quantmsutilsc mzmlstats --ms_path "path/to/file.mzML" --ms2_file --batch_size 5000
     """
     try:
         # Resolve the file path
@@ -601,7 +601,7 @@ def mzml_statistics(ctx, ms_path: str, id_only: bool = False, batch_size: int = 
             batch_write_mzml_streaming(
                 file_name=ms_path,
                 output_path=output_path,
-                id_only=id_only,
+                ms2_file=ms2_file,
                 id_output_path=id_output_path,
                 batch_size=batch_size,
             )
