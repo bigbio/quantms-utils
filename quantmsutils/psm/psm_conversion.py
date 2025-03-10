@@ -109,6 +109,8 @@ def convert_psm(
     )[0]
     spectra_df = pd.read_parquet(ms2_file) if ms2_file else None
 
+    spectra_df[SCAN] = spectra_df[SCAN].astype(str) # convert to string for comparison
+
     for peptide_id in pep_ids:
         retention_time = peptide_id.getRT()
         exp_mass_to_charge = peptide_id.getMZ()
@@ -119,7 +121,7 @@ def convert_psm(
         )
 
         if isinstance(spectra_df, pd.DataFrame):
-            spectra = spectra_df[spectra_df[SCAN] == scan_number]
+            spectra = spectra_df[spectra_df[SCAN] == str(scan_number)]
             mz_array = spectra[MZ_ARRAY].values
             intensity_array = spectra[INTENSITY_ARRAY].values
             num_peaks = len(mz_array)
