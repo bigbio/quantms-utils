@@ -117,7 +117,7 @@ class TestMzMLStatistics:
         yield
         # Teardown - can add cleanup code here if needed
 
-    def test_mzml_statistics_bsa(self):
+    def test_mzml_statistics(self):
         """Test mzML statistics on BSA sample"""
         args = ["--ms2_file", "--ms_path", str(TMT_MZML_FILE)]
         result = run_cli_command("mzmlstats", args)
@@ -126,7 +126,7 @@ class TestMzMLStatistics:
         assert TMT_MS_INFO_FILE.exists(), "Output file was not created"
 
         # Compare with reference data
-        output_table = pd.read_parquet(TMT_MS_INFO_FILE).set_index("scan")
+        output_table = pd.read_parquet(TMT_MS_INFO_FILE)
 
         assert len(output_table) > 0
 
