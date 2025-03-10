@@ -57,6 +57,7 @@ For MS/MS signals, we have the following additional columns:
 - `precursor_total_intensity`: The total intensity of the precursor ion, if the signal is MS/MS. See note below.
 
 > [!NOTE]
+> 
 > For all the precursor-related information, we are using the first precursor in the spectrum. The following columns `intensity` (if not annotated), `precursor_rt`, and `precursor_total_intensity` we use the following pyopnems code: 
 > ```python
 > precursor_spectrum = mzml_exp.getSpectrum(precursor_spectrum_index)
