@@ -68,6 +68,18 @@ For MS/MS signals, we have the following additional columns:
 
 </details>
 
+<details>
+<summary>MS2 info and details</summary>
+
+`mzmlstats` allows the user to produce a file containing all features for every signal in the MS2 experiment. The produced file is a parquet file, with the original name of the file plus the following postfix `{file_name}_ms2_info.parquet`. Here, the definition of each column and how they are estimated and used:
+
+- `scan`: The scan accession for each MS and MS/MS signal in the mzML, depending on the manufacturer, the scan will have different formats. Example, for thermo (e.g `controllerType=0 controllerNumber=1 scan=43920`). We tried to find the definition of [quantms.io](https://github.com/bigbio/quantms.io/blob/main/docs/README.adoc#scan).
+- `ms_level`: The MS level of the signal, all of them will be 2.
+- `mz_array`: The m/z array of the peaks in the MS/MS signal. Capture with pyopenms with `mz_array, intensity_array = spectrum.get_peaks()`.
+- `intensity_array`: The intensity array of the peaks in the MS/MS signal. Capture with pyopenms with `mz_array, intensity_array = spectrum.get_peaks()`.
+
+</details>
+
 ## Contributions and issues
 
 Contributions and issues are welcome. Please, open an issue in the [GitHub repository](https://github.com/bigbio/quantms) or PR in the [GitHub repository](https://github.com/bigbio/quantms-utils).
