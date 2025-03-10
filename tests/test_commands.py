@@ -146,3 +146,15 @@ class TestMzMLStatistics:
 
         output_table = pd.read_parquet(TEST_DATA_DIR / "RD139_Narrow_UPS1_0_1fmol_inj1_ms_info.parquet")
         assert len(output_table) > 0, "Output table is empty"
+
+    @pytest.mark.skip("Test to be run locally, with bruker file")
+    def test_mzml_statistics_bruker(self):
+        """Test mzML statistics on Bruker sample"""
+        args = ["--ms2_file", "--ms_path", str(TEST_DATA_DIR / "hMICAL1_coiPAnP-N2-200_3Murea-1Mthiourea-200mMtcep_14733.d")]
+        result = run_cli_command("mzmlstats", args)
+
+        assert result.exit_code == 0
+        assert os.path.exists(TEST_DATA_DIR / "hMICAL1_coiPAnP-N2-200_3Murea-1Mthiourea-200mMtcep_14733_ms_info.parquet")
+
+        output_table = pd.read_parquet(TEST_DATA_DIR / "hMICAL1_coiPAnP-N2-200_3Murea-1Mthiourea-200mMtcep_14733_ms_info.parquet")
+        assert len(output_table) > 0, "Output table is empty"
