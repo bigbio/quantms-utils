@@ -100,21 +100,21 @@ def batch_write_bruker_d(file_name: str, output_path: str, batch_size: int = 100
 
             # Get allowed columns from the schema
             allowed_columns = {
-                "Id": "Id",
-                "MsMsType": "CASE WHEN MsMsType IN (8, 9) THEN 2 WHEN MsMsType = 0 THEN 1 ELSE NULL END",
-                "NumPeaks": "NumPeaks",
-                "MaxIntensity": "MaxIntensity",
-                "SummedIntensities": "SummedIntensities",
-                "Time": "Time",
-                "Charge": "Charge",
-                "MonoisotopicMz": "MonoisotopicMz",
+                "Id": ("Id", SCAN),
+                "MsMsType": ("CASE WHEN MsMsType IN (8, 9) THEN 2 WHEN MsMsType = 0 THEN 1 ELSE NULL END",MS_LEVEL),
+                "NumPeaks": ("NumPeaks",NUM_PEAKS),
+                "MaxIntensity": ("MaxIntensity",BASE_PEAK_INTENSITY),
+                "SummedIntensities": ("SummedIntensities",SUMMED_PEAK_INTENSITY),
+                "Time": ("Time", RETENTION_TIME),
+                "Charge": ("Charge", CHARGE),
+                "MonoisotopicMz": ("MonoisotopicMz", EXPERIMENTAL_MASS_TO_CHARGE),
             }
 
             # Construct safe column list
             safe_columns = []
             for schema_col_name, sql_expr in allowed_columns.items():
                 if schema_col_name in columns or schema_col_name == "Id":
-                    safe_columns.append(sql_expr)
+                    safe_columns.append(sql_expr[0])
 
             # Construct the query using safe columns
             query = f"""SELECT {', '.join(safe_columns)} FROM frames"""
@@ -125,7 +125,10 @@ def batch_write_bruker_d(file_name: str, output_path: str, batch_size: int = 100
             ) as parquet_writer:
                 # Stream data in batches
                 for chunk in pd.read_sql_query(query, conn, chunksize=batch_size):
-                    chunk["AcquisitionDateTime"] = acquisition_date_time
+                    chunk[ACQUISITION_DATETIME] = acquisition_date_time
+                    # Change column names to match the schema using allowed columns mapping
+                    chunk.rename(columns={v[0]: v[1] for v in allowed_columns.values()}, inplace=True)
+                    chunk[SCAN] = chunk[SCAN].astype(str)
                     for col in schema.names:
                         if col not in chunk.columns:
                             chunk[col] = None
