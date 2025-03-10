@@ -71,7 +71,7 @@ For MS/MS signals, we have the following additional columns:
 <details>
 <summary>MS2 info and details</summary>
 
-`mzmlstats` allows the user to produce a file containing all features for every signal in the MS2 experiment. The produced file is a parquet file, with the original name of the file plus the following postfix `{file_name}_ms2_info.parquet`. Here, the definition of each column and how they are estimated and used:
+`mzmlstats` allows the user to produce a file containing all the MS2 spectra including the intesities and masses of every peak. The produced file is a parquet file, with the original name of the file plus the following postfix `{file_name}_ms2_info.parquet`. Here, the definition of each column and how they are estimated and used:
 
 - `scan`: The scan accession for each MS and MS/MS signal in the mzML, depending on the manufacturer, the scan will have different formats. Example, for thermo (e.g `controllerType=0 controllerNumber=1 scan=43920`). We tried to find the definition of [quantms.io](https://github.com/bigbio/quantms.io/blob/main/docs/README.adoc#scan).
 - `ms_level`: The MS level of the signal, all of them will be 2.
