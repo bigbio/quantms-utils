@@ -109,7 +109,7 @@ def convert_psm(
     )[0]
     spectra_df = pd.read_parquet(ms2_file) if ms2_file else None
 
-    spectra_df[SCAN] = spectra_df[SCAN].astype(str) # convert to string for comparison
+    spectra_df[SCAN] = spectra_df[SCAN].astype(str)  # convert to string for comparison
 
     for peptide_id in pep_ids:
         retention_time = peptide_id.getRT()

@@ -11,6 +11,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pyopenms as oms
 
+from quantmsutils.mzml.ms1_feature_finder import MS1FeatureDetector
 from quantmsutils.utils.constants import (
     ACQUISITION_DATETIME,
     BASE_PEAK_INTENSITY,
@@ -100,21 +101,24 @@ def batch_write_bruker_d(file_name: str, output_path: str, batch_size: int = 100
 
             # Get allowed columns from the schema
             allowed_columns = {
-                "Id": "Id",
-                "MsMsType": "CASE WHEN MsMsType IN (8, 9) THEN 2 WHEN MsMsType = 0 THEN 1 ELSE NULL END",
-                "NumPeaks": "NumPeaks",
-                "MaxIntensity": "MaxIntensity",
-                "SummedIntensities": "SummedIntensities",
-                "Time": "Time",
-                "Charge": "Charge",
-                "MonoisotopicMz": "MonoisotopicMz",
+                "Id": ("Id", SCAN),
+                "MsMsType": (
+                    "CASE WHEN MsMsType IN (8, 9) THEN 2 WHEN MsMsType = 0 THEN 1 ELSE NULL END",
+                    MS_LEVEL,
+                ),
+                "NumPeaks": ("NumPeaks", NUM_PEAKS),
+                "MaxIntensity": ("MaxIntensity", BASE_PEAK_INTENSITY),
+                "SummedIntensities": ("SummedIntensities", SUMMED_PEAK_INTENSITY),
+                "Time": ("Time", RETENTION_TIME),
+                "Charge": ("Charge", CHARGE),
+                "MonoisotopicMz": ("MonoisotopicMz", EXPERIMENTAL_MASS_TO_CHARGE),
             }
 
             # Construct safe column list
             safe_columns = []
             for schema_col_name, sql_expr in allowed_columns.items():
                 if schema_col_name in columns or schema_col_name == "Id":
-                    safe_columns.append(sql_expr)
+                    safe_columns.append(sql_expr[0])
 
             # Construct the query using safe columns
             query = f"""SELECT {', '.join(safe_columns)} FROM frames"""
@@ -125,7 +129,12 @@ def batch_write_bruker_d(file_name: str, output_path: str, batch_size: int = 100
             ) as parquet_writer:
                 # Stream data in batches
                 for chunk in pd.read_sql_query(query, conn, chunksize=batch_size):
-                    chunk["AcquisitionDateTime"] = acquisition_date_time
+                    chunk[ACQUISITION_DATETIME] = acquisition_date_time
+                    # Change column names to match the schema using allowed columns mapping
+                    chunk.rename(
+                        columns={v[0]: v[1] for v in allowed_columns.values()}, inplace=True
+                    )
+                    chunk[SCAN] = chunk[SCAN].astype(str)
                     for col in schema.names:
                         if col not in chunk.columns:
                             chunk[col] = None
@@ -204,7 +213,7 @@ class BatchWritingConsumer:
         self.parquet_writer = None
         self.id_parquet_writer = None
         self.acquisition_datetime = None
-        self.scan_pattern = re.compile(r'(?:spectrum|scan)=(\d+)')
+        self.scan_pattern = re.compile(r"(?:spectrum|scan)=(\d+)")
 
     def transform_mzml_spectrum(
         self,
@@ -333,7 +342,7 @@ class BatchWritingConsumer:
         str
            The extracted scan ID if found, otherwise the original native ID.
         """
-        match = re.search(r'(?:spectrum|scan)=(\d+)', spectrum.getNativeID())
+        match = re.search(r"(?:spectrum|scan)=(\d+)", spectrum.getNativeID())
         if match:
             return match.group(1)
         return spectrum.getNativeID()
@@ -574,10 +583,21 @@ def resolve_ms_path(ms_path: str) -> str:
     "--ms2_file", is_flag=True, help="Generate a parquet with the spectrum id and the peaks"
 )
 @click.option(
+    "--feature_detection",
+    is_flag=True,
+    help="Run feature detection on MS1 and get the features file",
+)
+@click.option(
     "--batch_size", type=int, default=10000, help="Number of rows to write in each batch"
 )
 @click.pass_context
-def mzml_statistics(ctx, ms_path: str, ms2_file: bool = False, batch_size: int = 10000) -> None:
+def mzml_statistics(
+    ctx,
+    ms_path: str,
+    ms2_file: bool = False,
+    feature_detection: bool = False,
+    batch_size: int = 10000,
+) -> None:
     """
     Parse mass spectrometry data files (.mzML or Bruker .d formats) to extract
     and compile statistics about the spectra.
@@ -593,11 +613,12 @@ def mzml_statistics(ctx, ms_path: str, ms2_file: bool = False, batch_size: int =
         # Prepare output paths
         output_path = str(path_obj.with_name(f"{path_obj.stem}_ms_info.parquet"))
         id_output_path = str(path_obj.with_name(f"{path_obj.stem}_ms2_info.parquet"))
+        feature_output_path = str(path_obj.with_name(f"{path_obj.stem}_ms1_feature_info.parquet"))
 
         # Process based on file type
         if path_obj.suffix.lower() == ".d":
             batch_write_bruker_d(file_name=ms_path, output_path=output_path, batch_size=batch_size)
-        elif path_obj.suffix.lower() in [".mzml"]:
+        if path_obj.suffix.lower() in [".mzml"]:
             batch_write_mzml_streaming(
                 file_name=ms_path,
                 output_path=output_path,
@@ -605,6 +626,10 @@ def mzml_statistics(ctx, ms_path: str, ms2_file: bool = False, batch_size: int =
                 id_output_path=id_output_path,
                 batch_size=batch_size,
             )
+            if feature_detection:
+                feature_detector = MS1FeatureDetector(min_ptic=0.05, max_ptic=0.95)
+                feature_detector.process_file(input_file=ms_path, output_file=feature_output_path)
+            logger.info("The file {} has been processed".format(ms_path))
         else:
             raise ValueError(f"Unsupported file type: {path_obj.suffix}")
 
