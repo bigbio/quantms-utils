@@ -592,7 +592,7 @@ def mzml_statistics(ctx, ms_path: str, ms2_file: bool = False, batch_size: int =
 
         # Prepare output paths
         output_path = str(path_obj.with_name(f"{path_obj.stem}_ms_info.parquet"))
-        id_output_path = str(path_obj.with_name(f"{path_obj.stem}_spectrum_df.parquet"))
+        id_output_path = str(path_obj.with_name(f"{path_obj.stem}_ms2_info.parquet"))
 
         # Process based on file type
         if path_obj.suffix.lower() == ".d":
