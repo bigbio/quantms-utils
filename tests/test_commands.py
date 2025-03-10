@@ -12,8 +12,9 @@ TEST_DATA_DIR = TESTS_DIR / "test_data"
 DIANN_TEST_DIR = TEST_DATA_DIR / "diann2mztab"
 
 TMT_MZML_FILE = TEST_DATA_DIR / "TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01.mzML"
-TMT_IDXML_FILE = TEST_DATA_DIR / "TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01.idXML"
+TMT_IDXML_FILE = TEST_DATA_DIR / "TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01_comet.idXML"
 TMT_MS_INFO_FILE = TEST_DATA_DIR / "TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01_ms_info.parquet"
+TMT_STATIC_MS2_INFO_FILE = TEST_DATA_DIR / "STATIC_TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01_ms2_info.parquet"
 TMT_MS2_FILE = TEST_DATA_DIR / "TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01_ms2_info.parquet"
 
 
@@ -96,7 +97,7 @@ class TestPSMConversion:
         """Test converting PSM data"""
         args = [
             "--idxml", str(TMT_IDXML_FILE),
-            "--ms2_file", str(TMT_MS2_FILE),
+            "--ms2_file", str(TMT_STATIC_MS2_INFO_FILE),
         ]
         result = run_cli_command("psmconvert", args)
         assert result.exit_code == 0
