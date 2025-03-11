@@ -68,7 +68,7 @@ class MS1FeatureDetector:
             )
         )
 
-    def _get_ptic_data(self, experiment: MSExperiment) -> Tuple[List[float], List[float]]:
+    def _get_ptic_data(self, experiment: MSExperiment):
         """
         Convert TIC to pTIC (percentile TIC) for all MS scans. The pTIC is the cumulative sum of TIC
         up to a given retention time, divided by the total TIC.
@@ -90,6 +90,7 @@ class MS1FeatureDetector:
 
         rt_list = []
         ptic_list = []
+        scans = []
         sum_tic = 0.0
 
         logger.info("Converting TIC to pTIC")
@@ -99,8 +100,9 @@ class MS1FeatureDetector:
                 rt_list.append(scan.getRT())
                 ptic_list.append(sum_tic / total_tic)
                 sum_tic += sum(intensities)
+                scans.append(scan.getNativeID())
 
-        return rt_list, ptic_list
+        return rt_list, ptic_list, scans
 
     @staticmethod
     def _find_ptic_for_rt(rt: float, rt_list: List[float], ptic_list: List[float]) -> float:
@@ -115,6 +117,8 @@ class MS1FeatureDetector:
             List of retention times.
         ptic_list : List[float]
             List of pTIC values corresponding to rt_list.
+        scans:
+            List of scan ids.
 
         Returns
         -------
@@ -143,7 +147,7 @@ class MS1FeatureDetector:
         return ptic_left + rt_frac * (ptic_right - ptic_left)
 
     def _extract_features(
-        self, features: FeatureMap, rt_list: List[float], ptic_list: List[float]
+        self, features: FeatureMap, rt_list: List[float], ptic_list: List[float], scans: List[str]
     ) -> List[Dict[str, Any]]:
         """
         Extract feature information and filter by pTIC.
@@ -177,6 +181,15 @@ class MS1FeatureDetector:
             # Interpolate pTIC for this retention time
             ptic = round(self._find_ptic_for_rt(rt, rt_list, ptic_list), 4)
 
+            convexhull = feature.getConvexHull().getBoundingBox()
+
+            minRT, minMZ = convexhull.minPosition()
+            maxRT, maxMZ = convexhull.maxPosition()
+            select_scans = self._get_selected_scans(scans, rt_list, minRT, maxRT)
+            num_scans = len(select_scans)
+
+
+
             # Filter by pTIC
             if self.min_ptic <= ptic <= self.max_ptic:
                 feature_list.append(
@@ -188,6 +201,13 @@ class MS1FeatureDetector:
                         "charge": charge,
                         "quality": quality,
                         "id": feature.getUniqueId(),
+                        "min_rt": minRT,
+                        "min_mz": minMZ,
+                        "max_rt": maxRT,
+                        "max_mz": maxMZ,
+                        "num_scans": num_scans,
+                        "scans": select_scans
+
                     }
                 )
             else:
@@ -245,7 +265,7 @@ class MS1FeatureDetector:
                 return None
 
             # Get pTIC data
-            rt_list, ptic_list = self._get_ptic_data(input_map)
+            rt_list, ptic_list, scans = self._get_ptic_data(input_map)
 
             # Prepare for feature finding
             input_map.updateRanges()
@@ -264,7 +284,7 @@ class MS1FeatureDetector:
             logger.info(f"Found {features.size()} features")
 
             # Extract features
-            feature_list = self._extract_features(features, rt_list, ptic_list)
+            feature_list = self._extract_features(features, rt_list, ptic_list, scans)
 
             # Create DataFrame
             df = pd.DataFrame(feature_list)
@@ -282,6 +302,25 @@ class MS1FeatureDetector:
         except Exception as e:
             logger.exception(f"Error processing {input_file}: {str(e)}")
             return None
+
+    @staticmethod
+    def _get_selected_scans(scans: List[str], rt_list: List[float], min_rt: float, max_rt: float):
+        """
+        This function returns the scans that are within the RT range of the feature.
+        The scans and rt_list are two lists that have the same length and the same order.
+        :param scans: List of scans ids
+        :param rt_list: List of retention times
+        :param min_rt: Minimum retention time for the feature
+        :param max_rt: Maximum retention time for the feature
+        :return:
+        """
+        selected_scans = []
+        for i, rt in enumerate(rt_list):
+            if min_rt <= rt <= max_rt:
+                selected_scans.append(scans[i])
+        return selected_scans
+
+
 
 
 # Example usage
