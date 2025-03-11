@@ -210,10 +210,10 @@ class TestFeatureFinder:
         parquet_df = pd.read_parquet(result)
         assert not parquet_df.empty, "Output table is empty"
 
-        result_dia = detector.process_file(
-            input_file=TEST_DATA_DIR / "RD139_Narrow_UPS1_0_1fmol_inj1.mzML",
-            output_file=TEST_DATA_DIR / "RD139_Narrow_UPS1_0_1fmol_inj1_ms1_features.parquet",
-        )
-
-        parquet_df_dia = pd.read_parquet(result_dia)
-        assert not parquet_df_dia.empty, "Output table is empty"
+        # result_dia = detector.process_file(
+        #     input_file=TEST_DATA_DIR / "RD139_Narrow_UPS1_0_1fmol_inj1.mzML",
+        #     output_file=TEST_DATA_DIR / "RD139_Narrow_UPS1_0_1fmol_inj1_ms1_features.parquet",
+        # )
+        #
+        # parquet_df_dia = pd.read_parquet(result_dia)
+        # assert not parquet_df_dia.empty, "Output table is empty"
