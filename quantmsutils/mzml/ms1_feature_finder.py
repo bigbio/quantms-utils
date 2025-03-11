@@ -12,7 +12,7 @@ import logging
 from pathlib import Path
 from typing import List, Tuple, Optional, Dict, Any, Union
 import pandas as pd
-from pyopenms import MzMLFile, MSExperiment, FeatureMap, LogType, PeakFileOptions
+from pyopenms import MzMLFile, MSExperiment, FeatureMap, PeakFileOptions
 import pyopenms as oms
 
 logging.basicConfig(format="%(asctime)s [%(funcName)s] - %(message)s", level=logging.INFO)
