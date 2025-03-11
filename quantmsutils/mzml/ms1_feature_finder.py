@@ -102,7 +102,8 @@ class MS1FeatureDetector:
 
         return rt_list, ptic_list
 
-    def _find_ptic_for_rt(self, rt: float, rt_list: List[float], ptic_list: List[float]) -> float:
+    @staticmethod
+    def _find_ptic_for_rt(rt: float, rt_list: List[float], ptic_list: List[float]) -> float:
         """
         Find the pTIC value for a given retention time by interpolation.
 
@@ -209,9 +210,7 @@ class MS1FeatureDetector:
         input_file : str
             Path to mzML file to process.
         output_file : str
-            Path to output parquet file.
-        top_n : int, optional
-            Top N most intense features to save, by default 1000
+            Path to an output parquet file.
         sort_by : str, optional
             Column to sort by, by default "intensity"
         ascending : bool, optional
