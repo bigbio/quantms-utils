@@ -1,3 +1,12 @@
+"""
+ MS1 Feature Detection, this algorithm is based on the OpenMS library and is used to detect MS1 features from mzML files.
+ In addition, it adds some normalization and filtering steps from the
+ previous algorithm by Andy Lim https://github.com/bmx8177/MS1Connect
+ published in https://doi.org/10.1093/bioinformatics/btad058.
+
+ This algorithm is used to detect MS1 features from mzML files and save them to parquet format.
+"""
+
 import bisect
 import logging
 from pathlib import Path
@@ -40,7 +49,7 @@ class MS1FeatureDetector:
 
     def _calc_tic(self, experiment: MSExperiment) -> float:
         """
-        Calculate Total Ion Current (TIC) from MS scans.
+        Calculate all the TIC in the MS experiment, summing all intensities from all scans.
 
         Parameters
         ----------
@@ -61,7 +70,8 @@ class MS1FeatureDetector:
 
     def _get_ptic_data(self, experiment: MSExperiment) -> Tuple[List[float], List[float]]:
         """
-        Convert TIC to pTIC (percentile TIC) for all MS scans.
+        Convert TIC to pTIC (percentile TIC) for all MS scans. The pTIC is the cumulative sum of TIC
+        up to a given retention time, divided by the total TIC.
 
         Parameters
         ----------

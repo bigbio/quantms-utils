@@ -583,13 +583,21 @@ def resolve_ms_path(ms_path: str) -> str:
     "--ms2_file", is_flag=True, help="Generate a parquet with the spectrum id and the peaks"
 )
 @click.option(
-    "--feature_detection", is_flag=True, help="Run feature detection on MS1 and get the features file"
+    "--feature_detection",
+    is_flag=True,
+    help="Run feature detection on MS1 and get the features file",
 )
 @click.option(
     "--batch_size", type=int, default=10000, help="Number of rows to write in each batch"
 )
 @click.pass_context
-def mzml_statistics(ctx, ms_path: str, ms2_file: bool = False, feature_detection: bool = False, batch_size: int = 10000) -> None:
+def mzml_statistics(
+    ctx,
+    ms_path: str,
+    ms2_file: bool = False,
+    feature_detection: bool = False,
+    batch_size: int = 10000,
+) -> None:
     """
     Parse mass spectrometry data files (.mzML or Bruker .d formats) to extract
     and compile statistics about the spectra.
@@ -620,9 +628,7 @@ def mzml_statistics(ctx, ms_path: str, ms2_file: bool = False, feature_detection
             )
             if feature_detection:
                 feature_detector = MS1FeatureDetector(min_ptic=0.05, max_ptic=0.95)
-                feature_detector.process_file(
-                    input_file=ms_path, output_file=feature_output_path
-                )
+                feature_detector.process_file(input_file=ms_path, output_file=feature_output_path)
             logger.info("The file {} has been processed".format(ms_path))
         else:
             raise ValueError(f"Unsupported file type: {path_obj.suffix}")
