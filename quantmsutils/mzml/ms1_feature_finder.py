@@ -12,7 +12,6 @@ import logging
 from pathlib import Path
 from typing import List, Optional, Dict, Any, Union
 import pandas as pd
-from pyopenms import MzMLFile, MSExperiment, FeatureMap, PeakFileOptions
 import pyopenms as oms
 
 logging.basicConfig(format="%(asctime)s [%(funcName)s] - %(message)s", level=logging.INFO)
@@ -44,10 +43,10 @@ class MS1FeatureDetector:
         self.ms_level = ms_level
 
         # Initialize options for file loading
-        self.options = PeakFileOptions()
+        self.options = oms.PeakFileOptions()
         self.options.setMSLevels([self.ms_level])
 
-    def _calc_tic(self, experiment: MSExperiment) -> float:
+    def _calc_tic(self, experiment: oms.MSExperiment) -> float:
         """
         Calculate all the TIC in the MS experiment, summing all intensities from all scans.
 
@@ -68,7 +67,7 @@ class MS1FeatureDetector:
             )
         )
 
-    def _get_ptic_data(self, experiment: MSExperiment):
+    def _get_ptic_data(self, experiment: oms.MSExperiment):
         """
         Convert TIC to pTIC (percentile TIC) for all MS scans. The pTIC is the cumulative sum of TIC
         up to a given retention time, divided by the total TIC.
@@ -140,7 +139,7 @@ class MS1FeatureDetector:
         return ptic_left + rt_frac * (ptic_right - ptic_left)
 
     def _extract_features(
-        self, features: FeatureMap, rt_list: List[float], ptic_list: List[float], scans: List[str]
+        self, features: oms.FeatureMap, rt_list: List[float], ptic_list: List[float], scans: List[str]
     ) -> List[Dict[str, Any]]:
         """
         Extract feature information and filter by pTIC.
@@ -246,31 +245,39 @@ class MS1FeatureDetector:
 
             # Load MS data
             logger.info(f"Loading data from {input_file}")
-            file_handler = MzMLFile()
+            file_handler = oms.MzMLFile()
+            experiment = oms.MSExperiment()
+            picker = oms.PeakPickerHiRes()
+
+            filtered_experiment = oms.MSExperiment()
+
             file_handler.setOptions(self.options)
+            file_handler.load(str(input_path), experiment)
+            picker.pickExperiment(experiment, filtered_experiment, False)
+            experiment = filtered_experiment
 
-            input_map = MSExperiment()
-            file_handler.load(str(input_path), input_map)
+            filtered_experiment = oms.MSExperiment()
+            for spec in experiment:
+                if spec.getMSLevel() == self.ms_level:
+                    filtered_experiment.addSpectrum(spec)
+            experiment = filtered_experiment
 
-            if input_map.size() == 0:
+            if experiment.size() == 0:
                 logger.error("No spectra found in input file")
                 return None
 
             # Get pTIC data
-            rt_list, ptic_list, scans = self._get_ptic_data(input_map)
-
-            # Prepare for feature finding
-            input_map.updateRanges()
+            rt_list, ptic_list, scans = self._get_ptic_data(experiment)
 
             # Run feature finder
             logger.info("Running feature detection")
-            feature_finder = oms.FeatureFinderAlgorithmPicked()
-            features = oms.FeatureMap()
-            seeds = oms.FeatureMap()
-            params = (
-                feature_finder.getParameters()
-            )  # In the original implementation it was feature_finder.getParameters("centroided")
-            feature_finder.run(input_map, features, params, seeds)
+            feature_finder = oms.FeatureFinderMultiplexAlgorithm()
+            params = feature_finder.getParameters()  # In the original implementation it was feature_finder.getParameters("centroided")
+            params.setValue("algorithm:labels", "[]")
+            feature_finder.setParameters(params)
+
+            feature_finder.run(exp=experiment, progress=True)
+            features = feature_finder.getFeatureMap()
             features.setUniqueIds()
 
             logger.info(f"Found {features.size()} features")
