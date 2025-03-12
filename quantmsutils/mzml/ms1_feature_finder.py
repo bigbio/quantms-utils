@@ -94,7 +94,7 @@ class MS1FeatureDetector:
                 rt_list.append(scan.getRT())
                 ptic_list.append(sum_tic / total_tic)
                 sum_tic += sum(intensities)
-                scans.append(extract_scan_id(scan.getNativeID()))
+                scans.append(extract_scan_id(scan))
 
         return rt_list, ptic_list, scans
 

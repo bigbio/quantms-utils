@@ -1,7 +1,7 @@
 import re
 import pyopenms as oms
 
-SCAN_PATTERN = re.compile(r"(?:spectrum|scan)=(\d+)")
+SCAN_PATTERN = r"(?:spectrum|scan)=(\d+)"
 
 
 def extract_scan_id(spectrum: oms.MSSpectrum) -> str:
