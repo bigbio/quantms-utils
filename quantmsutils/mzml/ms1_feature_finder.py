@@ -4,6 +4,9 @@
  previous algorithm by Andy Lim https://github.com/bmx8177/MS1Connect
  published in https://doi.org/10.1093/bioinformatics/btad058.
 
+ We improved the original algorithm by using FeatureFinderMultiplexAlgorithm instead of FeatureFinder as originally
+ implemented by Andy Lim. Also, we annotated additional features such as min and max retention time and mz values.
+
  This algorithm is used to detect MS1 features from mzML files and save them to parquet format.
 """
 
@@ -274,7 +277,7 @@ class MS1FeatureDetector:
             # Run feature finder
             logger.info("Running feature detection")
             feature_finder = oms.FeatureFinderMultiplexAlgorithm()
-            params = feature_finder.getParameters()  # In the original implementation it was feature_finder.getParameters("centroided")
+            params = feature_finder.getParameters()
             params.setValue("algorithm:labels", "[]")
             feature_finder.setParameters(params)
 
