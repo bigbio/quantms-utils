@@ -77,20 +77,13 @@ class MS1FeatureDetector:
         ----------
         experiment : MSExperiment
             The MS experiment containing spectra.
-
-        Returns
-        -------
-        Tuple[List[float], List[float]]
-            Lists of retention times and corresponding pTIC values.
         """
         total_tic = self._calc_tic(experiment)
         if total_tic == 0:
             logger.warning("Total TIC is zero, check input data")
             return [], []
 
-        rt_list = []
-        ptic_list = []
-        scans = []
+        rt_list, ptic_list, scans = [], [], []
         sum_tic = 0.0
 
         logger.info("Converting TIC to pTIC")
@@ -320,27 +313,3 @@ class MS1FeatureDetector:
                 selected_scans.append(scans[i])
         return selected_scans
 
-
-
-
-# Example usage
-if __name__ == "__main__":
-    import argparse
-
-    # Setup argument parser
-    parser = argparse.ArgumentParser(description="MS1 Feature Detection")
-    parser.add_argument("--input", "-i", required=True, help="Input mzML file or directory")
-    parser.add_argument("--output", "-o", required=True, help="Output parquet file or directory")
-    parser.add_argument("--top", "-t", type=int, default=1000, help="Top N features")
-    parser.add_argument("--min-ptic", type=float, default=0.05, help="Minimum pTIC")
-    parser.add_argument("--max-ptic", type=float, default=0.95, help="Maximum pTIC")
-
-    args = parser.parse_args()
-    # Create detector
-    detector = MS1FeatureDetector(min_ptic=args.min_ptic, max_ptic=args.max_ptic)
-
-    result = detector.process_file(args.input, args.output, args.top)
-    if result:
-        print(f"Successfully processed {args.input} to {result}")
-    else:
-        print(f"Failed to process {args.input}")
