@@ -162,7 +162,6 @@ class MS1FeatureDetector:
         feature_list = []
 
         for feature in features:
-            help(feature)
             mz = round(feature.getMZ(), 4)
             intensity = feature.getIntensity()
             rt = round(feature.getRT(), 4)
