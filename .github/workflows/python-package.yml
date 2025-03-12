@@ -44,15 +44,15 @@ jobs:
     - name: Test commandline tool
       run: |
         quantmsutilsc --help
-    - name: Download test files. 
+    - name: Download test files.
       run: |
         wget https://ftp.pride.ebi.ac.uk/pub/databases/pride/resources/proteomes/quantms-ci-github/quantms-utils/TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01.mzML
         wget https://ftp.pride.ebi.ac.uk/pub/databases/pride/resources/proteomes/quantms-ci-github/quantms-utils/RD139_Narrow_UPS1_0_1fmol_inj1.mzML
     - name: Test package online TMT
       run: |
-        quantmsutils mzmlstats --ms_path TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01.mzML --ms2_file --feature_detection
+        quantmsutilsc mzmlstats --ms_path TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01.mzML --ms2_file --feature_detection
     - name: Text package online DIA
       run: |
-        quantmsutils mzmlstats --ms_path RD139_Narrow_UPS1_0_1fmol_inj1.mzML --ms2_file --feature_detection
+        quantmsutilsc mzmlstats --ms_path RD139_Narrow_UPS1_0_1fmol_inj1.mzML --ms2_file --feature_detection
         
         
