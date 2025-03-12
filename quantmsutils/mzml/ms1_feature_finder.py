@@ -10,7 +10,7 @@
 import bisect
 import logging
 from pathlib import Path
-from typing import List, Tuple, Optional, Dict, Any, Union
+from typing import List, Optional, Dict, Any, Union
 import pandas as pd
 from pyopenms import MzMLFile, MSExperiment, FeatureMap, PeakFileOptions
 import pyopenms as oms
