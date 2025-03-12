@@ -88,7 +88,7 @@ class MS1FeatureDetector:
         logger.info("Converting TIC to pTIC")
         for scan in experiment:
             if scan.getMSLevel() == self.ms_level:
-                mz, intensities = scan.get_peaks()
+                intensities = scan.get_peaks()[1]
                 rt_list.append(scan.getRT())
                 ptic_list.append(sum_tic / total_tic)
                 sum_tic += sum(intensities)
