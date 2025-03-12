@@ -4,10 +4,13 @@
  previous algorithm by Andy Lim https://github.com/bmx8177/MS1Connect
  published in https://doi.org/10.1093/bioinformatics/btad058.
 
- We improved the original algorithm by using FeatureFinderMultiplexAlgorithm instead of FeatureFinder as originally
- implemented by Andy Lim. Also, we annotated additional features such as min and max retention time and mz values.
-
- This algorithm is used to detect MS1 features from mzML files and save them to parquet format.
+ We improved the original algorithm with the following ideas:
+  - Using FeatureFinderMultiplexAlgorithm instead of FeatureFinder as originally implemented by Andy Lim. This will provide
+    a more robust way to perform FeatureFinding.
+  - Remove the filtering of percentile TIC for features, we leave this step to future consuming tools of the data to perform
+    extra curation of the features based on percentile_tic, or quality of the feature, etc.
+  - We annotated additional features such as min and max retention time and mz values.
+  - This algorithm is used to detect MS1 features from mzML files and save them to parquet format.
 """
 
 import bisect
