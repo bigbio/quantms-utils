@@ -114,8 +114,6 @@ class MS1FeatureDetector:
             List of retention times.
         ptic_list : List[float]
             List of pTIC values corresponding to rt_list.
-        scans:
-            List of scan ids.
 
         Returns
         -------
