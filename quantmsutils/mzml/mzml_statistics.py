@@ -27,7 +27,7 @@ from quantmsutils.utils.constants import (
     SCAN,
     SUMMED_PEAK_INTENSITY,
     PRECURSOR_RT,
-    PRECURSOR_TOTAL_INTENSITY
+    PRECURSOR_TOTAL_INTENSITY,
 )
 
 logging.basicConfig(format="%(asctime)s [%(funcName)s] - %(message)s", level=logging.INFO)

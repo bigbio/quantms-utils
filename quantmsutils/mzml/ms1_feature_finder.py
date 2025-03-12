@@ -28,7 +28,7 @@ class MS1FeatureDetector:
     Class for detecting MS1 features from mzML files and saving to parquet format.
     """
 
-    def __init__(self, min_ptic: float = 0.05, max_ptic: float = 0.95, ms_level: int = 1):
+    def __init__(self, ms_level: int = 1):
         """
         Initialize the MS1 feature detector.
 
@@ -43,10 +43,7 @@ class MS1FeatureDetector:
         """
         # Configure logging
 
-        self.min_ptic = min_ptic
-        self.max_ptic = max_ptic
         self.ms_level = ms_level
-
         # Initialize options for file loading
         self.options = oms.PeakFileOptions()
         self.options.setMSLevels([self.ms_level])
@@ -142,7 +139,11 @@ class MS1FeatureDetector:
         return ptic_left + rt_frac * (ptic_right - ptic_left)
 
     def _extract_features(
-        self, features: oms.FeatureMap, rt_list: List[float], ptic_list: List[float], scans: List[str]
+        self,
+        features: oms.FeatureMap,
+        rt_list: List[float],
+        ptic_list: List[float],
+        scans: List[str],
     ) -> List[Dict[str, Any]]:
         """
         Extract feature information and filter by pTIC.
@@ -182,30 +183,23 @@ class MS1FeatureDetector:
             select_scans = self._get_selected_scans(scans, rt_list, minRT, maxRT)
             num_scans = len(select_scans)
 
-
-
-            # Filter by pTIC
-            if self.min_ptic <= ptic <= self.max_ptic:
-                feature_list.append(
-                    {
-                        "feature_mz": mz,
-                        "feature_intensity": intensity,
-                        "feature_rt": rt,
-                        "feature_charge": charge,
-                        "feature_percentile_tic": ptic,
-                        "feature_quality": quality,
-                        "feature_id": feature.getUniqueId(),
-                        "feature_min_rt": minRT,
-                        "feature_min_mz": minMZ,
-                        "feature_max_rt": maxRT,
-                        "feature_max_mz": maxMZ,
-                        "feature_num_scans": num_scans,
-                        "feature_scans": select_scans
-
-                    }
-                )
-            else:
-                logger.debug(f"Skipping feature at RT {rt} due to pTIC {ptic}")
+            feature_list.append(
+                {
+                    "feature_mz": mz,
+                    "feature_intensity": intensity,
+                    "feature_rt": rt,
+                    "feature_charge": charge,
+                    "feature_percentile_tic": ptic,
+                    "feature_quality": quality,
+                    "feature_id": feature.getUniqueId(),
+                    "feature_min_rt": minRT,
+                    "feature_min_mz": minMZ,
+                    "feature_max_rt": maxRT,
+                    "feature_max_mz": maxMZ,
+                    "feature_num_scans": num_scans,
+                    "feature_scans": select_scans,
+                }
+            )
 
         return feature_list
 
@@ -321,4 +315,3 @@ class MS1FeatureDetector:
             if min_rt <= rt <= max_rt:
                 selected_scans.append(scans[i])
         return selected_scans
-
