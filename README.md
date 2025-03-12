@@ -101,6 +101,8 @@ to extract the features from the MS1 spectra. We use an algorithm based on the o
 - `feature_num_scans`: The number of scans that the feature is present in the feature map.
 - `feature_scans`: The scans where the feature is present in the feature map.
 
+The tool will generate a gzip compressed parquet file with the extension `{file_name}_ms1_feature_info.parquet`.
+
 ## Contributions and issues
 
 Contributions and issues are welcome. Please, open an issue in the [GitHub repository](https://github.com/bigbio/quantms) or PR in the [GitHub repository](https://github.com/bigbio/quantms-utils).
