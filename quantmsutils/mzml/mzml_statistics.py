@@ -27,7 +27,7 @@ from quantmsutils.utils.constants import (
     SCAN,
     SUMMED_PEAK_INTENSITY,
     PRECURSOR_RT,
-    PRECURSOR_TOTAL_INTENSITY
+    PRECURSOR_TOTAL_INTENSITY,
 )
 
 logging.basicConfig(format="%(asctime)s [%(funcName)s] - %(message)s", level=logging.INFO)
@@ -607,7 +607,7 @@ def mzml_statistics(
                 batch_size=batch_size,
             )
             if feature_detection:
-                feature_detector = MS1FeatureDetector(min_ptic=0.05, max_ptic=0.95)
+                feature_detector = MS1FeatureDetector()
                 feature_detector.process_file(input_file=ms_path, output_file=feature_output_path)
             logger.info("The file {} has been processed".format(ms_path))
         else:

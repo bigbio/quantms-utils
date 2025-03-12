@@ -204,7 +204,7 @@ class TestFeatureFinder:
     def test_feature_finder(self):
         """Test feature finder on TMT data"""
 
-        detector = MS1FeatureDetector(min_ptic=0.05, max_ptic=0.95)
+        detector = MS1FeatureDetector()
         result = detector.process_file(input_file=TMT_MZML_FILE, output_file=TMT_MS1_FEAURES)
 
         parquet_df = pd.read_parquet(result)
