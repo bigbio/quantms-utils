@@ -84,7 +84,7 @@ For MS/MS signals, we have the following additional columns:
 <details>
 <summary>MS1 Feature Maps</summary>
 
-We use the `FeatureFinderAlgorithmPicked` from [OpenMS](https://pyopenms.readthedocs.io/en/latest/apidocs/_autosummary/pyopenms/pyopenms.FeatureFinderAlgorithmPicked.html) 
+We use the `FeatureFinderMultiplexAlgorithm` from [OpenMS](https://pyopenms.readthedocs.io/en/latest/apidocs/_autosummary/pyopenms/pyopenms.FeatureFinderMultiplexAlgorithm.html) 
 to extract the features from the MS1 spectra. We use an algorithm based on the original implementation by [Andy Lin](https://doi.org/10.1093/bioinformatics/btad058). The output of this algorithm is a feature map, which contains the following information:
 
 - `feature_mz`: The m/z of the feature.
