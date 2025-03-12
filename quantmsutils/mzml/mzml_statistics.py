@@ -12,6 +12,7 @@ import pyarrow.parquet as pq
 import pyopenms as oms
 
 from quantmsutils.mzml.ms1_feature_finder import MS1FeatureDetector
+from quantmsutils.openms import extract_scan_id
 from quantmsutils.utils.constants import (
     ACQUISITION_DATETIME,
     BASE_PEAK_INTENSITY,
@@ -26,8 +27,7 @@ from quantmsutils.utils.constants import (
     SCAN,
     SUMMED_PEAK_INTENSITY,
     PRECURSOR_RT,
-    PRECURSOR_TOTAL_INTENSITY,
-    PRECURSOR_INTENSITY_WINDOW,
+    PRECURSOR_TOTAL_INTENSITY
 )
 
 logging.basicConfig(format="%(asctime)s [%(funcName)s] - %(message)s", level=logging.INFO)
@@ -213,7 +213,6 @@ class BatchWritingConsumer:
         self.parquet_writer = None
         self.id_parquet_writer = None
         self.acquisition_datetime = None
-        self.scan_pattern = re.compile(r"(?:spectrum|scan)=(\d+)")
 
     def transform_mzml_spectrum(
         self,
@@ -236,7 +235,7 @@ class BatchWritingConsumer:
         # Extract peaks data
         mz_array, intensity_array = spectrum.get_peaks()
         peak_count = len(mz_array)
-        scan_id = self._extract_scan_id(spectrum)
+        scan_id = extract_scan_id(spectrum)
 
         # Basic spectrum properties
         ms_level = spectrum.getMSLevel()
@@ -327,25 +326,6 @@ class BatchWritingConsumer:
         # Write batch when it reaches specified size
         if len(self.batch_data) >= self.batch_size:
             self._write_batch()
-
-    def _extract_scan_id(self, spectrum: oms.MSSpectrum) -> str:
-        """
-        Extracts the scan ID from a given spectrum's native ID.
-
-        Parameters
-        ----------
-        spectrum : oms.MSSpectrum
-          The spectrum from which to extract the scan ID.
-
-        Returns
-        -------
-        str
-           The extracted scan ID if found, otherwise the original native ID.
-        """
-        match = re.search(r"(?:spectrum|scan)=(\d+)", spectrum.getNativeID())
-        if match:
-            return match.group(1)
-        return spectrum.getNativeID()
 
     def _extract_first_precursor_data(
         self, spectrum: oms.MSSpectrum, i: int, mzml_exp: oms.MSExperiment

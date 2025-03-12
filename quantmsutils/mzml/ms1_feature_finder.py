@@ -14,6 +14,8 @@ from typing import List, Optional, Dict, Any, Union
 import pandas as pd
 import pyopenms as oms
 
+from quantmsutils.openms import extract_scan_id
+
 logging.basicConfig(format="%(asctime)s [%(funcName)s] - %(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -92,7 +94,7 @@ class MS1FeatureDetector:
                 rt_list.append(scan.getRT())
                 ptic_list.append(sum_tic / total_tic)
                 sum_tic += sum(intensities)
-                scans.append(scan.getNativeID())
+                scans.append(extract_scan_id(scan.getNativeID()))
 
         return rt_list, ptic_list, scans
 
