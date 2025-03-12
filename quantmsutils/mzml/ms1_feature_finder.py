@@ -187,19 +187,19 @@ class MS1FeatureDetector:
             if self.min_ptic <= ptic <= self.max_ptic:
                 feature_list.append(
                     {
-                        "mz": mz,
-                        "intensity": intensity,
-                        "rt": rt,
-                        "pTIC": ptic,
-                        "charge": charge,
-                        "quality": quality,
-                        "id": feature.getUniqueId(),
-                        "min_rt": minRT,
-                        "min_mz": minMZ,
-                        "max_rt": maxRT,
-                        "max_mz": maxMZ,
-                        "num_scans": num_scans,
-                        "scans": select_scans
+                        "feature_mz": mz,
+                        "feature_intensity": intensity,
+                        "feature_rt": rt,
+                        "feature_charge": charge,
+                        "feature_percentile_tic": ptic,
+                        "feature_quality": quality,
+                        "feature_id": feature.getUniqueId(),
+                        "feature_min_rt": minRT,
+                        "feature_min_mz": minMZ,
+                        "feature_max_rt": maxRT,
+                        "feature_max_mz": maxMZ,
+                        "feature_num_scans": num_scans,
+                        "feature_scans": select_scans
 
                     }
                 )
