@@ -373,7 +373,7 @@ class DiannDirectory:
         return diann_version_id
 
     def validate_diann_version(self) -> None:
-        supported_diann_versions = ["1.8.1", "2.0", "2.0.1", "2.0.2"]
+        supported_diann_versions = ["1.8.1", "2.0", "2.0.1", "2.0.2", "2.1.0"]
         if self.diann_version not in supported_diann_versions:
             raise ValueError(f"Unsupported DIANN version {self.diann_version}")
 
@@ -472,7 +472,7 @@ class DiannDirectory:
             "Precursor.Quantity",
             "Global.PG.Q.Value",
         ]
-        if "2.0" not in self.diann_version:
+        if self.diann_version.startswith("1."):
             report = pd.read_csv(
                 self.report, sep="\t", header=0, usecols=remain_cols + ["MS2.Scan"]
             )
