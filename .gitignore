@@ -166,3 +166,6 @@ cython_debug/
 /tests/test_data/diann2mztab/RD139_Narrow_UPS1_0_1fmol_inj2.mzML
 /tests/test_data/diann2mztab/RD139_Narrow_UPS1_0_25fmol_inj1.mzML
 /tests/test_data/diann2mztab/RD139_Narrow_UPS1_0_25fmol_inj2.mzML
+
+.qodo
+/tests/test_data/RD139_Narrow_UPS1_0_1fmol_inj1.mzML
