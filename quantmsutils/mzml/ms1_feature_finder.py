@@ -259,7 +259,9 @@ class MS1FeatureDetector:
             filtered_experiment = oms.MSExperiment()
             for spec in experiment:
                 if spec.getMSLevel() == self.ms_level:
-                    filtered_experiment.addSpectrum(spec)
+                    spec.updateRanges()
+                    if spec.getMinMZ() > 1.0: # some weird mzML files have spectra with m/z = 0 peaks
+                        filtered_experiment.addSpectrum(spec)
             experiment = filtered_experiment
 
             if experiment.size() == 0:
