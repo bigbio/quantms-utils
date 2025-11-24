@@ -6,7 +6,7 @@ channels:
   - nodefaults
 dependencies:
   - click
-  - sdrf-pipelines>=0.0.31
+  - sdrf-pipelines==0.0.33
   - pyopenms>=3.3.0
   - pandas
   - pyarrow>=16.1.0

@@ -1,5 +1,5 @@
 click
-sdrf-pipelines>=0.0.31
+sdrf-pipelines==0.0.33
 pyopenms>=3.2.0
 pandas
 pyarrow>=16.1.0

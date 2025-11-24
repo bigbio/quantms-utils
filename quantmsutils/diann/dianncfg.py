@@ -7,7 +7,7 @@ Authors: Dai Chengxin, Yasset Perez-Riverol
 import logging
 import re
 from typing import List, Tuple
-
+from collections import defaultdict
 import click
 from sdrf_pipelines.openms.unimod import UnimodDatabase
 
@@ -54,6 +54,7 @@ def convert_mod(unimod_database, fix_mod: str, var_mod: str) -> Tuple[List, List
     fix_ptm = []
 
     if fix_mod != "":
+        merged = defaultdict(list)
         for mod in fix_mod.split(","):
             tag = 0
             diann_mod = None
@@ -80,16 +81,22 @@ def convert_mod(unimod_database, fix_mod: str, var_mod: str) -> Tuple[List, List
                 or "iTRAQ" in diann_mod
                 or "mTRAQ" in diann_mod
             ):
-                fix_ptm.append(diann_mod + "," + site + "," + "label")
+                merged[diann_mod].extend(list(site + "," + "label"))
             elif diann_mod is not None:
-                fix_ptm.append(diann_mod + "," + site)
+                merged[diann_mod].extend(list(site))
             else:
                 print(
                     "Warning: Currently only supported unimod modifications for DIA pipeline. Skipped: "
                     + mod
                 )
 
+        # merge same modification for different sites
+        for name, site_list in merged.items():
+            site_str = "".join(sorted(set(site_list)))
+            fix_ptm.append(f"{name} ({site_str})")
+
     if var_mod != "":
+        merged = defaultdict(list)
         for mod in var_mod.split(","):
             tag = 0
             diann_mod = None
@@ -116,9 +123,14 @@ def convert_mod(unimod_database, fix_mod: str, var_mod: str) -> Tuple[List, List
                 or "iTRAQ" in diann_mod
                 or "mTRAQ" in diann_mod
             ):
-                var_ptm.append(diann_mod + "," + site + "," + "label")
+                merged[diann_mod].extend(list(site + "," + "label"))
             else:
-                var_ptm.append(diann_mod + "," + site)
+                merged[diann_mod].extend(list(site))
+
+        # merge same modification for different sites
+        for name, site_list in merged.items():
+            site_str = "".join(sorted(set(site_list)))
+            var_ptm.append(f"{name} ({site_str})")
 
     return fix_ptm, var_ptm
 
