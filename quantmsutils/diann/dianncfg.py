@@ -15,6 +15,7 @@ logging.basicConfig(format="%(asctime)s [%(funcName)s] - %(message)s", level=log
 logger = logging.getLogger(__name__)
 unimod_database = UnimodDatabase()
 
+
 @click.command("dianncfg", short_help="Create DIA-NN config file with enzyme and PTMs")
 @click.option("--enzyme", "-e", help="")
 @click.option("--fix_mod", "-f", help="")
@@ -39,9 +40,15 @@ def dianncfg(ctx, enzyme, fix_mod, var_mod):
     diann_fix_ptm = ""
     diann_var_ptm = ""
     for mod in fix_ptm:
-        diann_fix_ptm += fix_ptm_str + mod
+        if mod == "Met-loss,-131.040485 (*nM)":
+            diann_fix_ptm += " --met-excision "
+        else:
+            diann_fix_ptm += fix_ptm_str + mod
     for mod in var_ptm:
-        diann_var_ptm += var_ptm_str + mod
+        if mod == "Met-loss,-131.040485 (*nM)":
+            diann_var_ptm += " --met-excision "
+        else:
+            diann_var_ptm += var_ptm_str + mod
 
     with open("diann_config.cfg", "w") as file:
         file.write("--cut " + cut + diann_fix_ptm + diann_var_ptm)
@@ -56,17 +63,15 @@ def get_mod(mod):
             diann_mod = modification.get_name() + "," + str(modification._delta_mono_mass)
             tag = 1
             break
+
     if tag == 0:
         logging.error(
             "Currently only supported unimod modifications for DIA pipeline. Skipped: "
             + mod
         )
-    site = re.findall(pattern, " ".join(mod.split(" ")[1:]))[0]
-    if site == "Protein N-term":
-        site = "*n"
-    elif site == "N-term":
-        site = "n"
+        exit(1)
 
+    # TODO support DIA multiplex
     if (
             "TMT" in diann_mod
             or "Label:" in diann_mod
@@ -75,17 +80,31 @@ def get_mod(mod):
             or "Dimethyl:" in diann_mod
     ):
         logging.error(
-            "quantms DIA-NN workflow only support LFQ now!"
+            "quantms DIA-NN workflow only support LFQ now! Unsupported modifications: "
             + mod
         )
+        exit(1)
     elif diann_mod is not None:
+        site = re.findall(pattern, " ".join(mod.split(" ")[1:]))[0]
+        if site == "Protein N-term":
+            site = "*n"
+        elif site == "N-term":
+            site = "n"
+        elif len(site.split(" ")) >= 2:
+            pp = " ".join(site.split(" ")[:-1])
+            if pp == "Protein N-term":
+                pp = "*n"
+            elif pp == "N-term":
+                pp = "n"
+            aa = site.split(" ")[-1]
+            site = pp + aa
         return diann_mod, site
     else:
         logging.error(
             "Currently only supported unimod modifications for DIA pipeline. Skipped: "
             + mod
         )
-        return
+        exit(1)
 
 
 def convert_mod(fix_mod: str, var_mod: str) -> Tuple[List, List]:
