@@ -40,12 +40,12 @@ def dianncfg(ctx, enzyme, fix_mod, var_mod):
     diann_fix_ptm = ""
     diann_var_ptm = ""
     for mod in fix_ptm:
-        if mod == "Met-loss,-131.040485 (*nM)":
+        if mod == "UniMod:765,-131.040485,*nM":
             diann_fix_ptm += " --met-excision "
         else:
             diann_fix_ptm += fix_ptm_str + mod
     for mod in var_ptm:
-        if mod == "Met-loss,-131.040485 (*nM)":
+        if mod == "UniMod:765,-131.040485,*nM":
             diann_var_ptm += " --met-excision "
         else:
             diann_var_ptm += var_ptm_str + mod
