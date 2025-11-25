@@ -57,10 +57,12 @@ def dianncfg(ctx, enzyme, fix_mod, var_mod):
 def get_mod(mod):
     pattern = re.compile(r"\((.*?)\)")
     tag = 0
-    diann_mod = None
+    diann_mod_accession = None
+    diann_mod_name = None
     for modification in unimod_database.modifications:
         if modification.get_name() == mod.split(" ")[0]:
-            diann_mod = modification.get_name() + "," + str(modification._delta_mono_mass)
+            diann_mod_accession = modification.get_accession().replace("UNIMOD:", "UniMod:") + "," + str(modification._delta_mono_mass)
+            diann_mod_name = modification.get_name()
             tag = 1
             break
 
@@ -73,18 +75,18 @@ def get_mod(mod):
 
     # TODO support DIA multiplex
     if (
-            "TMT" in diann_mod
-            or "Label:" in diann_mod
-            or "iTRAQ" in diann_mod
-            or "mTRAQ" in diann_mod
-            or "Dimethyl:" in diann_mod
+            "TMT" in diann_mod_name
+            or "Label:" in diann_mod_name
+            or "iTRAQ" in diann_mod_name
+            or "mTRAQ" in diann_mod_name
+            or "Dimethyl:" in diann_mod_name
     ):
         logging.error(
             "quantms DIA-NN workflow only support LFQ now! Unsupported modifications: "
             + mod
         )
         exit(1)
-    elif diann_mod is not None:
+    elif diann_mod_accession is not None:
         site = re.findall(pattern, " ".join(mod.split(" ")[1:]))[0]
         if site == "Protein N-term":
             site = "*n"
@@ -98,7 +100,7 @@ def get_mod(mod):
                 pp = "n"
             aa = site.split(" ")[-1]
             site = pp + aa
-        return diann_mod, site
+        return diann_mod_accession, site
     else:
         logging.error(
             "Currently only supported unimod modifications for DIA pipeline. Skipped: "
@@ -119,7 +121,7 @@ def convert_mod(fix_mod: str, var_mod: str) -> Tuple[List, List]:
         # merge same modification for different sites
         for name, site_list in merged.items():
             site_str = "".join(sorted(set(site_list)))
-            fix_ptm.append(f"{name} ({site_str})")
+            fix_ptm.append(f"{name},{site_str}")
 
     if var_mod != "":
         merged = defaultdict(list)
@@ -129,7 +131,7 @@ def convert_mod(fix_mod: str, var_mod: str) -> Tuple[List, List]:
         # merge same modification for different sites
         for name, site_list in merged.items():
             site_str = "".join(sorted(set(site_list)))
-            var_ptm.append(f"{name} ({site_str})")
+            var_ptm.append(f"{name},{site_str}")
 
     return fix_ptm, var_ptm
 
