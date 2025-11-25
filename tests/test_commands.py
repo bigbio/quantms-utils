@@ -95,7 +95,7 @@ class TestDiannCommands:
             # "--diann_version",
             # str(DIANN_TEST_DIR / "versions.yml"),
             "--var_mod",
-            "Oxidation (M),Phospho (S),Phospho (T),Phospho (Y),Acetyl (Protein N-term),Acetyl (K),Acetyl (R)",
+            "Oxidation (M),Phospho (S),Phospho (T),Phospho (Y),Acetyl (Protein N-term),Acetyl (K),Acetyl (R),Met-loss (Protein N-term M)",
         ]
         result = run_cli_command("dianncfg", args)
 
