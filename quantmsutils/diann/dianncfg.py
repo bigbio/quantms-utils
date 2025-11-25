@@ -13,7 +13,7 @@ from sdrf_pipelines.openms.unimod import UnimodDatabase
 
 logging.basicConfig(format="%(asctime)s [%(funcName)s] - %(message)s", level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-
+unimod_database = UnimodDatabase()
 
 @click.command("dianncfg", short_help="Create DIA-NN config file with enzyme and PTMs")
 @click.option("--enzyme", "-e", help="")
@@ -32,8 +32,7 @@ def dianncfg(ctx, enzyme, fix_mod, var_mod):
     :param var_mod: A string of variable modifications, separated by commas.
     """
     cut = enzyme_cut(enzyme)
-    unimod_database = UnimodDatabase()
-    fix_ptm, var_ptm = convert_mod(unimod_database, fix_mod, var_mod)
+    fix_ptm, var_ptm = convert_mod(fix_mod, var_mod)
 
     var_ptm_str = " --var-mod "
     fix_ptm_str = " --fixed-mod "
@@ -48,47 +47,55 @@ def dianncfg(ctx, enzyme, fix_mod, var_mod):
         file.write("--cut " + cut + diann_fix_ptm + diann_var_ptm)
 
 
-def convert_mod(unimod_database, fix_mod: str, var_mod: str) -> Tuple[List, List]:
+def get_mod(mod):
     pattern = re.compile(r"\((.*?)\)")
+    tag = 0
+    diann_mod = None
+    for modification in unimod_database.modifications:
+        if modification.get_name() == mod.split(" ")[0]:
+            diann_mod = modification.get_name() + "," + str(modification._delta_mono_mass)
+            tag = 1
+            break
+    if tag == 0:
+        logging.error(
+            "Currently only supported unimod modifications for DIA pipeline. Skipped: "
+            + mod
+        )
+    site = re.findall(pattern, " ".join(mod.split(" ")[1:]))[0]
+    if site == "Protein N-term":
+        site = "*n"
+    elif site == "N-term":
+        site = "n"
+
+    if (
+            "TMT" in diann_mod
+            or "Label:" in diann_mod
+            or "iTRAQ" in diann_mod
+            or "mTRAQ" in diann_mod
+            or "Dimethyl:" in diann_mod
+    ):
+        logging.error(
+            "quantms DIA-NN workflow only support LFQ now!"
+            + mod
+        )
+    elif diann_mod is not None:
+        return diann_mod, site
+    else:
+        logging.error(
+            "Currently only supported unimod modifications for DIA pipeline. Skipped: "
+            + mod
+        )
+        return
+
+
+def convert_mod(fix_mod: str, var_mod: str) -> Tuple[List, List]:
     var_ptm = []
     fix_ptm = []
-
     if fix_mod != "":
         merged = defaultdict(list)
         for mod in fix_mod.split(","):
-            tag = 0
-            diann_mod = None
-            for modification in unimod_database.modifications:
-                if modification.get_name() == mod.split(" ")[0]:
-                    diann_mod = modification.get_name() + "," + str(modification._delta_mono_mass)
-                    tag = 1
-                    break
-            if tag == 0:
-                logging.info(
-                    "Warning: Currently only supported unimod modifications for DIA pipeline. Skipped: "
-                    + mod
-                )
-                continue
-            site = re.findall(pattern, " ".join(mod.split(" ")[1:]))[0]
-            if site == "Protein N-term":
-                site = "*n"
-            elif site == "N-term":
-                site = "n"
-
-            if (
-                "TMT" in diann_mod
-                or "Label" in diann_mod
-                or "iTRAQ" in diann_mod
-                or "mTRAQ" in diann_mod
-            ):
-                merged[diann_mod].extend(list(site + "," + "label"))
-            elif diann_mod is not None:
-                merged[diann_mod].extend(list(site))
-            else:
-                print(
-                    "Warning: Currently only supported unimod modifications for DIA pipeline. Skipped: "
-                    + mod
-                )
+            diann_mod, site = get_mod(mod)
+            merged[diann_mod].append(site)
 
         # merge same modification for different sites
         for name, site_list in merged.items():
@@ -98,35 +105,8 @@ def convert_mod(unimod_database, fix_mod: str, var_mod: str) -> Tuple[List, List
     if var_mod != "":
         merged = defaultdict(list)
         for mod in var_mod.split(","):
-            tag = 0
-            diann_mod = None
-            for modification in unimod_database.modifications:
-                if modification.get_name() == mod.split(" ")[0]:
-                    diann_mod = modification.get_name() + "," + str(modification._delta_mono_mass)
-                    tag = 1
-                    break
-            if tag == 0:
-                print(
-                    "Warning: Currently only supported unimod modifications for DIA pipeline. Skipped: "
-                    + mod
-                )
-                continue
-            site = re.findall(pattern, " ".join(mod.split(" ")[1:]))[0]
-            if site == "Protein N-term":
-                site = "*n"
-            elif site == "N-term":
-                site = "n"
-
-            if (
-                "TMT" in diann_mod
-                or "Label" in diann_mod
-                or "iTRAQ" in diann_mod
-                or "mTRAQ" in diann_mod
-            ):
-                merged[diann_mod].extend(list(site + "," + "label"))
-            else:
-                merged[diann_mod].extend(list(site))
-
+            diann_mod, site = get_mod(mod)
+            merged[diann_mod].append(site)
         # merge same modification for different sites
         for name, site_list in merged.items():
             site_str = "".join(sorted(set(site_list)))

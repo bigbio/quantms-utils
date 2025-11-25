@@ -84,7 +84,22 @@ class TestDiannCommands:
         ]
         result = run_cli_command("diann2mztab", args)
         assert result.exit_code == 0
-        # Additional assertions could check for expected output files
+
+    def test_dianncfg_example(self):
+        """Test generating the DIA-NN config with example data"""
+        args = [
+            "--enzyme",
+            "Trypsin",
+            "--fix_mod",
+            "Carbamidomethyl (C)",
+            # "--diann_version",
+            # str(DIANN_TEST_DIR / "versions.yml"),
+            "--var_mod",
+            "Oxidation (M),Phospho (S),Phospho (T),Phospho (Y),Acetyl (Protein N-term),Acetyl (K),Acetyl (R)",
+        ]
+        result = run_cli_command("dianncfg", args)
+
+        assert result.exit_code == 0
 
 
 class TestSamplesheetCommands:
