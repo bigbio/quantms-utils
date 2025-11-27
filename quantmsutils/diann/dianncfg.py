@@ -52,6 +52,15 @@ def dianncfg(ctx, enzyme, fix_mod, var_mod):
 
 
 def get_mod(mod, mod_type):
+    """
+    Retrieve and format a modification from the Unimod database for DIA-NN compatibility.
+
+    :param mod: The modification string, typically containing the modification name and site.
+    :param mod_type: The type of modification ('fixed_mod' or 'var_mod').
+    :return: A tuple (diann_mod_accession, site), where diann_mod_accession is a formatted string
+             for DIA-NN and site is the modification site.
+    :raises SystemExit: If the modification is not found in the Unimod database, logs an error and exits.
+    """
     pattern = re.compile(r"\((.*?)\)")
     tag = 0
     diann_mod_accession = None
