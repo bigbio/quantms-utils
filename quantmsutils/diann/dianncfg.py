@@ -128,7 +128,7 @@ def get_mod(mod, mod_type):
 def convert_mod(fix_mod: str, var_mod: str) -> Tuple[List, List]:
     var_ptm = []
     fix_ptm = []
-    if fix_mod != "":
+    if fix_mod:
         merged = defaultdict(list)
         for mod in fix_mod.split(","):
             diann_mod, site = get_mod(mod, "fixed_mod")
@@ -139,7 +139,7 @@ def convert_mod(fix_mod: str, var_mod: str) -> Tuple[List, List]:
             site_str = "".join(sorted(set(site_list)))
             fix_ptm.append(f"{name},{site_str}")
 
-    if var_mod != "":
+    if var_mod:
         merged = defaultdict(list)
         for mod in var_mod.split(","):
             diann_mod, site = get_mod(mod, "var_mod")
