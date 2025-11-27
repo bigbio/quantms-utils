@@ -35,6 +35,7 @@ def get_unimod_database():
         _unimod_database = UnimodDatabase()
     return _unimod_database
 
+
 # Met-loss modification constant (UniMod:765) with mass shift and site specification
 MET_LOSS_MODIFICATION = "UniMod:765,-131.040485,*nM"
 
