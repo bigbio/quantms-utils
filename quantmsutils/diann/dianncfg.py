@@ -16,6 +16,12 @@ logger = logging.getLogger(__name__)
 unimod_database = UnimodDatabase()
 
 
+class ModificationNotSupportedError(Exception):
+    """Exception raised when a modification is not supported for DIA-NN processing."""
+
+    pass
+
+
 @click.command("dianncfg", short_help="Create DIA-NN config file with enzyme and PTMs")
 @click.option("--enzyme", "-e", help="")
 @click.option("--fix_mod", "-f", help="")
@@ -64,11 +70,12 @@ def get_mod(mod, mod_type):
             break
 
     if tag == 0:
-        logging.error(
+        error_msg = (
             "Currently only supported unimod modifications for DIA pipeline. Skipped: "
             + mod
         )
-        exit(1)
+        logging.error(error_msg)
+        raise ModificationNotSupportedError(error_msg)
 
     # TODO support DIA multiplex
     if (
@@ -78,11 +85,12 @@ def get_mod(mod, mod_type):
             or "mTRAQ" in diann_mod_name
             or "Dimethyl:" in diann_mod_name
     ):
-        logging.error(
+        error_msg = (
             "quantms DIA-NN workflow only support LFQ now! Unsupported modifications: "
             + mod
         )
-        exit(1)
+        logging.error(error_msg)
+        raise ModificationNotSupportedError(error_msg)
     elif diann_mod_accession is not None:
         site = re.findall(pattern, " ".join(mod.split(" ")[1:]))[0]
         if site == "Protein N-term":
@@ -103,11 +111,12 @@ def get_mod(mod, mod_type):
                 logging.warning("Restricting to certain terminal AAs isn't directly supported. Please see https://github.com/vdemichev/DiaNN/issues/1791")
         return diann_mod_accession, site
     else:
-        logging.error(
+        error_msg = (
             "Currently only supported unimod modifications for DIA pipeline. Skipped: "
             + mod
         )
-        exit(1)
+        logging.error(error_msg)
+        raise ModificationNotSupportedError(error_msg)
 
 
 def convert_mod(fix_mod: str, var_mod: str) -> Tuple[List, List]:
