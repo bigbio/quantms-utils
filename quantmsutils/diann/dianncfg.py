@@ -62,17 +62,17 @@ def get_mod(mod, mod_type):
     :raises SystemExit: If the modification is not found in the Unimod database, logs an error and exits.
     """
     pattern = re.compile(r"\((.*?)\)")
-    tag = 0
+    modification_found = 0
     diann_mod_accession = None
     diann_mod_name = None
     for modification in unimod_database.modifications:
         if modification.get_name() == mod.split(" ")[0]:
             diann_mod_accession = modification.get_accession().replace("UNIMOD:", "UniMod:") + "," + str(modification._delta_mono_mass)
             diann_mod_name = modification.get_name()
-            tag = 1
+            modification_found = 1
             break
 
-    if tag == 0:
+    if modification_found == 0:
         logging.error(
             "Currently only supported unimod modifications for DIA pipeline. Skipped: "
             + mod
