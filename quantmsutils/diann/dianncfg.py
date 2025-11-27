@@ -115,37 +115,31 @@ def get_mod(mod, mod_type):
             + mod
         )
         exit(1)
-    elif diann_mod_accession is not None:
-        sites = re.findall(pattern, " ".join(mod.split(" ")[1:]))
-        if not sites:
-            logging.error(
-                f"No site specification found in modification string: {mod}"
-            )
-            exit(1)
-        site = sites[0]
-        if site == "Protein N-term":
-            site = "*n"
-        elif site == "N-term":
-            site = "n"
-        elif len(site.split(" ")) >= 2:
-            pp = " ".join(site.split(" ")[:-1])
-            if pp == "Protein N-term":
-                pp = "*n"
-            elif pp == "N-term":
-                pp = "n"
-            aa = site.split(" ")[-1]
-            site = pp + aa
-            if site == "*nM" and diann_mod_name == "Met-loss" and mod_type == "var_mod":
-                return diann_mod_accession, site
-            else:
-                logging.warning("Restricting to certain terminal AAs isn't directly supported. Please see https://github.com/vdemichev/DiaNN/issues/1791")
-        return diann_mod_accession, site
-    else:
+
+    sites = re.findall(pattern, " ".join(mod.split(" ")[1:]))
+    if not sites:
         logging.error(
-            "Currently only supported unimod modifications for DIA pipeline. Skipped: "
-            + mod
+            f"No site specification found in modification string: {mod}"
         )
         exit(1)
+    site = sites[0]
+    if site == "Protein N-term":
+        site = "*n"
+    elif site == "N-term":
+        site = "n"
+    elif len(site.split(" ")) >= 2:
+        pp = " ".join(site.split(" ")[:-1])
+        if pp == "Protein N-term":
+            pp = "*n"
+        elif pp == "N-term":
+            pp = "n"
+        aa = site.split(" ")[-1]
+        site = pp + aa
+        if site == "*nM" and diann_mod_name == "Met-loss" and mod_type == "var_mod":
+            return diann_mod_accession, site
+        else:
+            logging.warning("Restricting to certain terminal AAs isn't directly supported. Please see https://github.com/vdemichev/DiaNN/issues/1791")
+    return diann_mod_accession, site
 
 
 def convert_mod(fix_mod: str, var_mod: str) -> Tuple[List, List]:
