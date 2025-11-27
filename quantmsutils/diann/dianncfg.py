@@ -25,8 +25,8 @@ def get_unimod_database():
     Get the UnimodDatabase instance, creating it lazily on first access.
 
     This pattern improves testability by avoiding database initialization at module
-    import time and allows the database to be refreshed if needed by setting
-    _unimod_database to None.
+    import time. For testing purposes, the internal _unimod_database variable can be
+    set to None to force re-initialization on the next call.
 
     :return: The UnimodDatabase instance.
     """
