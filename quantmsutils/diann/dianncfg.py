@@ -98,8 +98,7 @@ def get_mod(mod, mod_type):
 
     if modification_found == 0:
         logging.error(
-            "Currently only supported unimod modifications for DIA pipeline. Skipped: "
-            + mod
+            f"Only Unimod modifications are currently supported for the DIA pipeline. Unsupported modification: {mod}"
         )
         exit(1)
 
