@@ -13,7 +13,30 @@ from sdrf_pipelines.openms.unimod import UnimodDatabase
 
 logging.basicConfig(format="%(asctime)s [%(funcName)s] - %(message)s", level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-unimod_database = UnimodDatabase()
+
+# Lazy initialization of UnimodDatabase for improved testability.
+# The database is created on first access rather than at module import time,
+# which allows tests to mock or replace it more easily.
+_unimod_database = None
+
+
+def get_unimod_database():
+    """
+    Get the UnimodDatabase instance, creating it lazily on first access.
+
+    This pattern improves testability by avoiding database initialization at module
+    import time. For testing purposes, the internal _unimod_database variable can be
+    set to None to force re-initialization on the next call.
+
+    :return: The UnimodDatabase instance.
+    """
+    global _unimod_database
+    if _unimod_database is None:
+        _unimod_database = UnimodDatabase()
+    return _unimod_database
+
+# Met-loss modification constant (UniMod:765) with mass shift and site specification
+MET_LOSS_MODIFICATION = "UniMod:765,-131.040485,*nM"
 
 
 @click.command("dianncfg", short_help="Create DIA-NN config file with enzyme and PTMs")
@@ -42,7 +65,7 @@ def dianncfg(ctx, enzyme, fix_mod, var_mod):
     for mod in fix_ptm:
         diann_fix_ptm += fix_ptm_str + mod
     for mod in var_ptm:
-        if mod == "UniMod:765,-131.040485,*nM":
+        if mod == MET_LOSS_MODIFICATION:
             diann_var_ptm += " --met-excision "
         else:
             diann_var_ptm += var_ptm_str + mod
@@ -65,7 +88,7 @@ def get_mod(mod, mod_type):
     modification_found = 0
     diann_mod_accession = None
     diann_mod_name = None
-    for modification in unimod_database.modifications:
+    for modification in get_unimod_database().modifications:
         if modification.get_name() == mod.split(" ")[0]:
             diann_mod_accession = modification.get_accession().replace("UNIMOD:", "UniMod:") + "," + str(modification._delta_mono_mass)
             diann_mod_name = modification.get_name()
