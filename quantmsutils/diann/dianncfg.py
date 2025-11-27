@@ -15,6 +15,9 @@ logging.basicConfig(format="%(asctime)s [%(funcName)s] - %(message)s", level=log
 logger = logging.getLogger(__name__)
 unimod_database = UnimodDatabase()
 
+# Met-loss modification constant (UniMod:765) with mass shift and site specification
+MET_LOSS_MODIFICATION = "UniMod:765,-131.040485,*nM"
+
 
 @click.command("dianncfg", short_help="Create DIA-NN config file with enzyme and PTMs")
 @click.option("--enzyme", "-e", help="")
@@ -42,7 +45,7 @@ def dianncfg(ctx, enzyme, fix_mod, var_mod):
     for mod in fix_ptm:
         diann_fix_ptm += fix_ptm_str + mod
     for mod in var_ptm:
-        if mod == "UniMod:765,-131.040485,*nM":
+        if mod == MET_LOSS_MODIFICATION:
             diann_var_ptm += " --met-excision "
         else:
             diann_var_ptm += var_ptm_str + mod
