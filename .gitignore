@@ -169,3 +169,4 @@ cython_debug/
 
 .qodo
 /tests/test_data/RD139_Narrow_UPS1_0_1fmol_inj1.mzML
+diann_config.cfg
