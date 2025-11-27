@@ -138,7 +138,8 @@ def get_mod(mod, mod_type):
         if site == "*nM" and diann_mod_name == "Met-loss" and mod_type == "var_mod":
             return diann_mod_accession, site
         else:
-            logging.warning("Restricting to certain terminal AAs isn't directly supported. Please see https://github.com/vdemichev/DiaNN/issues/1791")
+            logging.error("Restricting to certain terminal AAs isn't directly supported. Please see https://github.com/vdemichev/DiaNN/issues/1791")
+            exit(1)
     return diann_mod_accession, site
 
 
