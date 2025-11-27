@@ -100,6 +100,8 @@ def get_mod(mod):
                 pp = "n"
             aa = site.split(" ")[-1]
             site = pp + aa
+            if site != "*nM" and diann_mod_accession != "UniMod:765":
+                logging.warning("Restricting to certain terminal AAs isn't directly supported. Please see https://github.com/vdemichev/DiaNN/issues/1791")
         return diann_mod_accession, site
     else:
         logging.error(
