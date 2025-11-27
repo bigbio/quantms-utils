@@ -79,7 +79,7 @@ def get_mod(mod, mod_type):
             or "Dimethyl:" in diann_mod_name
     ):
         logging.error(
-            "quantms DIA-NN workflow only support LFQ now! Unsupported modifications: "
+            "quantms DIA-NN workflow only supports LFQ now! Unsupported modifications: "
             + mod
         )
         exit(1)
