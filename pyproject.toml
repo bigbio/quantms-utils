@@ -32,7 +32,7 @@ packages = [
 python = "*"
 click = "*"
 sdrf-pipelines = "==0.0.33"
-pyopenms = ">=3.2.0"
+pyopenms = ">=3.3.0"
 pandas = "*"
 pyarrow = ">=16.1.0"
 scipy = "*"
