@@ -52,18 +52,27 @@ def dianncfg(ctx, enzyme, fix_mod, var_mod):
 
 
 def get_mod(mod, mod_type):
+    """
+    Retrieve and format a modification from the Unimod database for DIA-NN compatibility.
+
+    :param mod: The modification string, typically containing the modification name and site.
+    :param mod_type: The type of modification ('fixed_mod' or 'var_mod').
+    :return: A tuple (diann_mod_accession, site), where diann_mod_accession is a formatted string
+             for DIA-NN and site is the modification site.
+    :raises SystemExit: If the modification is not found in the Unimod database, logs an error and exits.
+    """
     pattern = re.compile(r"\((.*?)\)")
-    tag = 0
+    modification_found = 0
     diann_mod_accession = None
     diann_mod_name = None
     for modification in unimod_database.modifications:
         if modification.get_name() == mod.split(" ")[0]:
             diann_mod_accession = modification.get_accession().replace("UNIMOD:", "UniMod:") + "," + str(modification._delta_mono_mass)
             diann_mod_name = modification.get_name()
-            tag = 1
+            modification_found = 1
             break
 
-    if tag == 0:
+    if modification_found == 0:
         logging.error(
             "Currently only supported unimod modifications for DIA pipeline. Skipped: "
             + mod
@@ -79,12 +88,18 @@ def get_mod(mod, mod_type):
             or "Dimethyl:" in diann_mod_name
     ):
         logging.error(
-            "quantms DIA-NN workflow only support LFQ now! Unsupported modifications: "
+            "quantms DIA-NN workflow only supports LFQ now! Unsupported modifications: "
             + mod
         )
         exit(1)
     elif diann_mod_accession is not None:
-        site = re.findall(pattern, " ".join(mod.split(" ")[1:]))[0]
+        sites = re.findall(pattern, " ".join(mod.split(" ")[1:]))
+        if not sites:
+            logging.error(
+                f"No site specification found in modification string: {mod}"
+            )
+            exit(1)
+        site = sites[0]
         if site == "Protein N-term":
             site = "*n"
         elif site == "N-term":
