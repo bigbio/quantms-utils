@@ -92,8 +92,6 @@ class TestDiannCommands:
             "Trypsin",
             "--fix_mod",
             "Carbamidomethyl (C)",
-            # "--diann_version",
-            # str(DIANN_TEST_DIR / "versions.yml"),
             "--var_mod",
             "Oxidation (M),Phospho (S),Phospho (T),Phospho (Y),Acetyl (Protein N-term),Acetyl (K),Acetyl (R),Met-loss (Protein N-term M)",
         ]
