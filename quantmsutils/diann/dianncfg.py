@@ -40,10 +40,7 @@ def dianncfg(ctx, enzyme, fix_mod, var_mod):
     diann_fix_ptm = ""
     diann_var_ptm = ""
     for mod in fix_ptm:
-        if mod == "UniMod:765,-131.040485,*nM":
-            diann_fix_ptm += " --met-excision "
-        else:
-            diann_fix_ptm += fix_ptm_str + mod
+        diann_fix_ptm += fix_ptm_str + mod
     for mod in var_ptm:
         if mod == "UniMod:765,-131.040485,*nM":
             diann_var_ptm += " --met-excision "
@@ -54,7 +51,7 @@ def dianncfg(ctx, enzyme, fix_mod, var_mod):
         file.write("--cut " + cut + diann_fix_ptm + diann_var_ptm)
 
 
-def get_mod(mod):
+def get_mod(mod, mod_type):
     pattern = re.compile(r"\((.*?)\)")
     tag = 0
     diann_mod_accession = None
@@ -100,7 +97,9 @@ def get_mod(mod):
                 pp = "n"
             aa = site.split(" ")[-1]
             site = pp + aa
-            if site != "*nM" and diann_mod_accession != "UniMod:765":
+            if site == "*nM" and diann_mod_name == "Met-loss" and mod_type == "var_mod":
+                return diann_mod_accession, site
+            else:
                 logging.warning("Restricting to certain terminal AAs isn't directly supported. Please see https://github.com/vdemichev/DiaNN/issues/1791")
         return diann_mod_accession, site
     else:
@@ -117,7 +116,7 @@ def convert_mod(fix_mod: str, var_mod: str) -> Tuple[List, List]:
     if fix_mod != "":
         merged = defaultdict(list)
         for mod in fix_mod.split(","):
-            diann_mod, site = get_mod(mod)
+            diann_mod, site = get_mod(mod, "fixed_mod")
             merged[diann_mod].append(site)
 
         # merge same modification for different sites
@@ -128,7 +127,7 @@ def convert_mod(fix_mod: str, var_mod: str) -> Tuple[List, List]:
     if var_mod != "":
         merged = defaultdict(list)
         for mod in var_mod.split(","):
-            diann_mod, site = get_mod(mod)
+            diann_mod, site = get_mod(mod, "var_mod")
             merged[diann_mod].append(site)
         # merge same modification for different sites
         for name, site_list in merged.items():
