@@ -84,7 +84,13 @@ def get_mod(mod, mod_type):
         )
         exit(1)
     elif diann_mod_accession is not None:
-        site = re.findall(pattern, " ".join(mod.split(" ")[1:]))[0]
+        sites = re.findall(pattern, " ".join(mod.split(" ")[1:]))
+        if not sites:
+            logging.error(
+                f"No site specification found in modification string: {mod}"
+            )
+            exit(1)
+        site = sites[0]
         if site == "Protein N-term":
             site = "*n"
         elif site == "N-term":
