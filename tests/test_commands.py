@@ -149,11 +149,11 @@ class TestPSMConversion:
         output_file = Path(TMT_IDXML_FILE).with_name(
             f"{Path(TMT_IDXML_FILE).stem}_psm.parquet"
         )
-        if output_file.exists():
-            df = pd.read_parquet(output_file)
-            assert len(df) > 0, "PSM output parquet is empty"
-            assert "sequence" in df.columns
-            assert "scan_number" in df.columns
+        assert output_file.exists(), f"PSM output file was not created: {output_file}"
+        df = pd.read_parquet(output_file)
+        assert len(df) > 0, "PSM output parquet is empty"
+        assert "sequence" in df.columns
+        assert "scan_number" in df.columns
 
     def test_convert_psm_without_ms2(self):
         """Test converting PSM data without ms2_file (regression test for None dereference)"""

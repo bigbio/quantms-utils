@@ -141,7 +141,9 @@ def load_report(report_path, qvalue_threshold: float) -> pd.DataFrame:
         "Q.Value",
     ]
     if path.suffix == ".parquet":
-        report = pd.read_parquet(path, columns=remain_cols + ["Decoy"])
+        pq_columns = pd.read_parquet(path, columns=[]).columns.tolist()
+        use_cols = remain_cols + (["Decoy"] if "Decoy" in pq_columns else [])
+        report = pd.read_parquet(path, columns=use_cols)
     else:
         report = pd.read_csv(path, sep="\t", header=0, usecols=remain_cols)
 

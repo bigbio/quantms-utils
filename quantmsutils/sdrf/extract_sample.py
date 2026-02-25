@@ -45,5 +45,5 @@ def extract_sample_from_expdesign(cxt, expdesign: str) -> None:
             rows.append(
                 {"Spectra_Filepath": row["Spectra_Filepath"], "Sample": mixture_id}
             )
-        sample_dt = pd.DataFrame(rows)
+        sample_dt = pd.DataFrame(rows, columns=["Spectra_Filepath", "Sample"])
         sample_dt.to_csv(f"{Path(expdesign).stem}_sample.csv", sep="\t", index=False)
