@@ -74,18 +74,10 @@ class TestDiannCommands:
     def test_diann2msstats_example(self):
         """Test the DIA-NN to MSstats conversion with example data"""
         args = [
-            "--folder",
-            str(DIANN_TEST_DIR),
+            "--report",
+            str(DIANN_TEST_DIR / "diann_report.tsv"),
             "--exp_design",
             str(DIANN_TEST_DIR / "PXD026600.sdrf_openms_design.tsv"),
-            "--diann_version",
-            str(DIANN_TEST_DIR / "versions.yml"),
-            "--dia_params",
-            "20.0;ppm;10.0;ppm;Trypsin;Carbamidomethyl (C);Oxidation (M)",
-            "--charge",
-            "3",
-            "--missed_cleavages",
-            "1",
             "--qvalue_threshold",
             "0.01",
         ]
