@@ -20,7 +20,7 @@ The following functionalities are available in the package:
 
 - `dianncfg` - Create a configuration file for Diann including enzymes, modifications, and other parameters.
 - `diann2msstats` - Convert DIA-NN output to MSstats format.
-    The output formats are used for quality control and downstream analysis in quantms.
+    The output is used for quality control and downstream analysis in quantms.
 
 ### SDRF scripts
 
