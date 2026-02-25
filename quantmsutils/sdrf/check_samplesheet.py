@@ -93,11 +93,6 @@ def check_expdesign(expdesign):
                 "the one-table format parser is broken in OpenMS2.5, please use one-table or sdrf"
             )
             sys.exit(1)
-        if lines.index("\n") >= len(lines):
-            print(
-                "the one-table format parser is broken in OpenMS2.5, please use one-table or sdrf"
-            )
-            sys.exit(1)
 
         s_table = [i.replace("\n", "").split("\t") for i in lines[empty_row + 1 :]][1:]
         s_header = lines[empty_row + 1].replace("\n", "").split("\t")
@@ -123,7 +118,8 @@ def check_expdesign(expdesign):
 
 
 def check_expdesign_logic(f_table, s_table):
-    if int(max(f_table.Fraction_Group)) > len(set(f_table.Fraction_Group)):
+    fg_ints = f_table["Fraction_Group"].astype(int)
+    if fg_ints.max() > fg_ints.nunique():
         print("Fraction_Group discontinuous!")
         sys.exit(1)
     f_table_d = f_table.drop_duplicates(["Fraction_Group", "Fraction", "Label", "Sample"])

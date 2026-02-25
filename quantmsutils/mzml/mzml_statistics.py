@@ -118,13 +118,13 @@ def batch_write_bruker_d(file_name: str, output_path: str, batch_size: int = 100
                 "MonoisotopicMz": ("MonoisotopicMz", EXPERIMENTAL_MASS_TO_CHARGE),
             }
 
-            # Construct safe column list
+            # Construct safe column list with SQL aliases
             safe_columns = []
-            for schema_col_name, sql_expr in allowed_columns.items():
+            for schema_col_name, (sql_expr, target_col) in allowed_columns.items():
                 if schema_col_name in columns or schema_col_name == "Id":
-                    safe_columns.append(sql_expr[0])
+                    safe_columns.append(f"{sql_expr} AS {target_col}")
 
-            # Construct the query using safe columns
+            # Construct the query using safe columns with aliases
             query = f"""SELECT {', '.join(safe_columns)} FROM frames"""
 
             # Set up parquet writer with appropriate schema
@@ -134,10 +134,6 @@ def batch_write_bruker_d(file_name: str, output_path: str, batch_size: int = 100
                 # Stream data in batches
                 for chunk in pd.read_sql_query(query, conn, chunksize=batch_size):
                     chunk[ACQUISITION_DATETIME] = acquisition_date_time
-                    # Change column names to match the schema using allowed columns mapping
-                    chunk.rename(
-                        columns={v[0]: v[1] for v in allowed_columns.values()}, inplace=True
-                    )
                     chunk[SCAN] = chunk[SCAN].astype(str)
                     for col in schema.names:
                         if col not in chunk.columns:
@@ -496,7 +492,7 @@ def batch_write_mzml_streaming(
         )
 
         # Get acquisition datetime if available
-        if mzml_exp.getMetaValue("acquisition_date_time"):
+        if mzml_exp.metaValueExists("acquisition_date_time") and mzml_exp.getMetaValue("acquisition_date_time"):
             batch_writer.acquisition_datetime = mzml_exp.getMetaValue("acquisition_date_time")
         else:
             acquisition = mzml_exp.getDateTime().get()
@@ -514,7 +510,7 @@ def batch_write_mzml_streaming(
 
     except Exception as e:
         logger.error(f"Error during mzML streaming: {e}, file path: {file_name}")
-        return None
+        raise
 
 
 def resolve_ms_path(ms_path: str) -> str:

@@ -72,7 +72,8 @@ def dianncfg(ctx, enzyme, fix_mod, var_mod):
             diann_var_ptm += var_ptm_str + mod
 
     with open("diann_config.cfg", "w") as file:
-        file.write("--cut " + cut + diann_fix_ptm + diann_var_ptm)
+        cut_arg = f"--cut {cut}" if cut else ""
+        file.write(cut_arg + diann_fix_ptm + diann_var_ptm)
 
 
 def get_mod(mod, mod_type):
@@ -181,4 +182,13 @@ _ENZYME_SPECIFICITY = {
 
 
 def enzyme_cut(enzyme: str) -> str:
-    return _ENZYME_SPECIFICITY.get(enzyme) or "--cut"
+    if enzyme is None:
+        logger.warning("No enzyme specified; DIA-NN will use its default cut rule.")
+        return ""
+    cut = _ENZYME_SPECIFICITY.get(enzyme)
+    if cut is None:
+        logger.error(
+            f"Unknown enzyme '{enzyme}'. Supported enzymes: {list(_ENZYME_SPECIFICITY.keys())}"
+        )
+        exit(1)
+    return cut

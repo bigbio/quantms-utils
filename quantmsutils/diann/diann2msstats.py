@@ -51,9 +51,9 @@ def diann2msstats(
 
     logger.debug("Converting to MSstats format...")
     if "Decoy" in report.columns:
-        out_msstats = report[report["Decoy"] != 1][msstats_columns_keep]
+        out_msstats = report[report["Decoy"] != 1][msstats_columns_keep].copy()
     else:
-        out_msstats = report[msstats_columns_keep]
+        out_msstats = report[msstats_columns_keep].copy()
 
     out_msstats.columns = [
         "ProteinName",
@@ -115,8 +115,14 @@ def _true_stem(x):
 def get_exp_design_dfs(exp_design_file):
     logger.info(f"Reading experimental design file: {exp_design_file}")
     with open(exp_design_file, "r") as f:
-        data = f.readlines()
-        empty_row = data.index("\n")
+        data = [line.replace("\r\n", "\n").replace("\r", "\n") for line in f.readlines()]
+        try:
+            empty_row = data.index("\n")
+        except ValueError:
+            raise ValueError(
+                f"Could not find blank separator row in {exp_design_file}. "
+                "Ensure the file contains a blank line between the file and sample tables."
+            )
         f_table = [i.replace("\n", "").split("\t") for i in data[1:empty_row]]
         f_header = data[0].replace("\n", "").split("\t")
         f_table = pd.DataFrame(f_table, columns=f_header)
@@ -145,7 +151,9 @@ def load_report(report_path, qvalue_threshold: float) -> pd.DataFrame:
         use_cols = remain_cols + (["Decoy"] if "Decoy" in pq_columns else [])
         report = pd.read_parquet(path, columns=use_cols)
     else:
-        report = pd.read_csv(path, sep="\t", header=0, usecols=remain_cols)
+        tsv_header = pd.read_csv(path, sep="\t", header=0, nrows=0).columns.tolist()
+        tsv_cols = remain_cols + (["Decoy"] if "Decoy" in tsv_header else [])
+        report = pd.read_csv(path, sep="\t", header=0, usecols=tsv_cols)
 
     report = report[report["Q.Value"] < qvalue_threshold]
     return report

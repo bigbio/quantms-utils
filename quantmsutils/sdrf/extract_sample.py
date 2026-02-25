@@ -26,8 +26,14 @@ def extract_sample_from_expdesign(cxt, expdesign: str) -> None:
 
     # two table formats
     with open(expdesign, "r") as f:
-        lines = f.readlines()
-        empty_row = lines.index("\n")
+        lines = [line.replace("\r\n", "\n").replace("\r", "\n") for line in f.readlines()]
+        try:
+            empty_row = lines.index("\n")
+        except ValueError:
+            raise ValueError(
+                f"Could not find blank separator row in {expdesign}. "
+                "Ensure the file contains a blank line between the file and sample tables."
+            )
         s_table = [i.replace("\n", "").split("\t") for i in lines[empty_row + 1 :]][1:]
         s_header = lines[empty_row + 1].replace("\n", "").split("\t")
         s_data_frame = pd.DataFrame(s_table, columns=s_header)
@@ -39,9 +45,13 @@ def extract_sample_from_expdesign(cxt, expdesign: str) -> None:
         f_table.drop_duplicates(subset=["Spectra_Filepath"], inplace=True)
         rows = []
         for _, row in f_table.iterrows():
-            mixture_id = s_data_frame[s_data_frame["Sample"] == row["Sample"]][
-                "MSstats_Mixture"
-            ].values[0]
+            match = s_data_frame[s_data_frame["Sample"] == row["Sample"]]["MSstats_Mixture"]
+            if match.empty:
+                raise ValueError(
+                    f"Sample '{row['Sample']}' in the fraction table has no matching entry "
+                    "in the sample table."
+                )
+            mixture_id = match.values[0]
             rows.append(
                 {"Spectra_Filepath": row["Spectra_Filepath"], "Sample": mixture_id}
             )
