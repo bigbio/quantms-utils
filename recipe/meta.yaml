@@ -20,6 +20,7 @@ requirements:
     - python
     - pip
     - poetry-core >=1.2.0
+    - setuptools
   run:
     - python
     - click
@@ -30,6 +31,8 @@ requirements:
     - pyarrow>=16.1.0
     - scipy
 test:
+  requires:
+    - setuptools
   imports:
     - quantmsutils
   commands:
