@@ -84,7 +84,7 @@ def convert_psm(
     """
 
     prot_ids = []
-    pep_ids = oms.PeptideIdentificationList()
+    pep_ids = oms.PeptideIdentificationList() if hasattr(oms, 'PeptideIdentificationList') else []
     parquet_data = []
     consensus_support = np.nan
     mz_array = []
