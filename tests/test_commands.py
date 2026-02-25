@@ -31,10 +31,6 @@ TMT_STATIC_MS2_INFO_FILE = (
 TMT_MS2_FILE = (
     TEST_DATA_DIR / "TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01_ms2_info.parquet"
 )
-BRUKER_D_FILE = TEST_DATA_DIR / "hMICAL1_coiPAnP-N2-200_3Murea-1Mthiourea-200mMtcep_14733.d"
-BRUKER_MS_INFO_FILE = (
-    TEST_DATA_DIR / "hMICAL1_coiPAnP-N2-200_3Murea-1Mthiourea-200mMtcep_14733_ms_info.parquet"
-)
 
 
 # Helper function to create a CLI runner and run a command
@@ -221,32 +217,6 @@ class TestMzMLStatistics:
             TEST_DATA_DIR / "RD139_Narrow_UPS1_0_1fmol_inj1_ms_info.parquet"
         )
         assert len(output_table) > 0, "Output table is empty"
-
-    @pytest.mark.skipif(
-        not BRUKER_D_FILE.exists(),
-        reason="Bruker .d test data not available (not tracked in git)",
-    )
-    def test_mzml_statistics_bruker(self):
-        """Test mzML statistics on Bruker .d file (regression test for if/elif bug)"""
-        if BRUKER_MS_INFO_FILE.exists():
-            BRUKER_MS_INFO_FILE.unlink()
-
-        args = [
-            "--ms_path",
-            str(BRUKER_D_FILE),
-        ]
-        result = run_cli_command("mzmlstats", args)
-
-        assert result.exit_code == 0, f"Bruker .d processing failed: {result.output}"
-        assert BRUKER_MS_INFO_FILE.exists(), "Bruker output parquet was not created"
-
-        output_table = pd.read_parquet(BRUKER_MS_INFO_FILE)
-        assert len(output_table) > 0, "Output table is empty"
-
-        expected_columns = ["scan", "ms_level"]
-        for col in expected_columns:
-            assert col in output_table.columns, f"Expected column {col} missing from Bruker output"
-
 
 class TestFeatureFinder:
 

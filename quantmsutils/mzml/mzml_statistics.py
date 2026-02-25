@@ -1,8 +1,7 @@
 import logging
 import re
-import sqlite3
 from pathlib import Path
-from typing import Dict, Optional, Set
+from typing import Dict, Optional
 
 import click
 import numpy as np
@@ -64,109 +63,6 @@ def create_id_schema() -> pa.Schema:
             (INTENSITY_ARRAY, pa.list_(pa.float64())),
         ]
     )
-
-
-def batch_write_bruker_d(file_name: str, output_path: str, batch_size: int = 10000) -> str:
-    """
-    Batch processing and writing of Bruker .d files.
-
-    Parameters
-    ----------
-    file_name : str
-        Path to the Bruker .d directory
-    output_path : str
-        Path where the output parquet file will be saved
-    batch_size : int
-        Number of rows to process in each batch
-
-    Returns
-    -------
-    str
-        Path to the output parquet file
-    """
-    sql_filepath = f"{file_name}/analysis.tdf"
-    schema = create_ms_schema()
-
-    logger.info(f"Processing Bruker .d file: {file_name}")
-
-    if not Path(sql_filepath).exists():
-        raise FileNotFoundError(f"analysis.tdf not found in {file_name}")
-
-    try:
-        with sqlite3.connect(sql_filepath) as conn:
-            # Retrieve acquisition datetime
-            row = conn.execute(
-                "SELECT Value FROM GlobalMetadata WHERE key='AcquisitionDateTime'"
-            ).fetchone()
-            acquisition_date_time = row[0] if row else None
-
-            # Check which optional columns exist
-            columns = column_exists(conn, "frames")
-
-            # Get allowed columns from the schema
-            allowed_columns = {
-                "Id": ("Id", SCAN),
-                "MsMsType": (
-                    "CASE WHEN MsMsType IN (8, 9) THEN 2 WHEN MsMsType = 0 THEN 1 ELSE NULL END",
-                    MS_LEVEL,
-                ),
-                "NumPeaks": ("NumPeaks", NUM_PEAKS),
-                "MaxIntensity": ("MaxIntensity", BASE_PEAK_INTENSITY),
-                "SummedIntensities": ("SummedIntensities", SUMMED_PEAK_INTENSITY),
-                "Time": ("Time", RETENTION_TIME),
-                "Charge": ("Charge", CHARGE),
-                "MonoisotopicMz": ("MonoisotopicMz", EXPERIMENTAL_MASS_TO_CHARGE),
-            }
-
-            # Construct safe column list with SQL aliases
-            safe_columns = []
-            for schema_col_name, (sql_expr, target_col) in allowed_columns.items():
-                if schema_col_name in columns or schema_col_name == "Id":
-                    safe_columns.append(f"{sql_expr} AS {target_col}")
-
-            # Construct the query using safe columns with aliases
-            query = f"""SELECT {', '.join(safe_columns)} FROM frames"""
-
-            # Set up parquet writer with appropriate schema
-            with pq.ParquetWriter(
-                output_path, schema=schema, compression="gzip"
-            ) as parquet_writer:
-                # Stream data in batches
-                for chunk in pd.read_sql_query(query, conn, chunksize=batch_size):
-                    chunk[ACQUISITION_DATETIME] = acquisition_date_time
-                    chunk[SCAN] = chunk[SCAN].astype(str)
-                    for col in schema.names:
-                        if col not in chunk.columns:
-                            chunk[col] = None
-                    batch_table = pa.Table.from_pandas(chunk, schema=schema)
-                    parquet_writer.write_table(batch_table)
-
-        logger.info(f"Successfully wrote Bruker data to {output_path}")
-        return output_path
-
-    except Exception as e:
-        logger.error(f"Error processing Bruker .d file: {e}")
-        raise
-
-
-def column_exists(conn: sqlite3.Connection, table_name: str) -> Set[str]:
-    """
-    Fetch the existing columns in the specified SQLite table.
-
-    Parameters
-    ----------
-    conn : sqlite3.Connection
-        SQLite connection object
-    table_name : str
-        Name of the table to check
-
-    Returns
-    -------
-    Set[str]
-        Set of column names that exist in the table
-    """
-    table_info = pd.read_sql_query(f"PRAGMA table_info({table_name});", conn)
-    return set(table_info["name"].tolist())
 
 
 class BatchWritingConsumer:
@@ -538,7 +434,7 @@ def resolve_ms_path(ms_path: str) -> str:
 
     # Look for files with matching stem and valid extensions
     candidates = list(path_obj.parent.glob(f"{path_obj.stem}*"))
-    valid_extensions = {".d", ".mzml", ".mzML"}
+    valid_extensions = {".mzml", ".mzML"}
     valid_candidates = [
         str(c.resolve()) for c in candidates if c.suffix.lower() in valid_extensions
     ]
@@ -557,7 +453,7 @@ def resolve_ms_path(ms_path: str) -> str:
     "--ms_path",
     type=click.Path(exists=True),
     required=True,
-    help="Path to mass spectrometry file (.mzML or .d)",
+    help="Path to mass spectrometry file (.mzML)",
 )
 @click.option(
     "--ms2_file", is_flag=True, help="Generate a parquet with the spectrum id and the peaks"
@@ -579,8 +475,7 @@ def mzml_statistics(
     batch_size: int = 10000,
 ) -> None:
     """
-    Parse mass spectrometry data files (.mzML or Bruker .d formats) to extract
-    and compile statistics about the spectra.
+    Parse mzML mass spectrometry data files to extract and compile statistics about the spectra.
 
     Example usage:
     quantmsutilsc mzmlstats --ms_path "path/to/file.mzML" --ms2_file --batch_size 5000
@@ -590,27 +485,24 @@ def mzml_statistics(
         ms_path = resolve_ms_path(ms_path)
         path_obj = Path(ms_path)
 
+        if path_obj.suffix.lower() not in [".mzml"]:
+            raise ValueError(f"Unsupported file type: {path_obj.suffix}. Only .mzML files are supported.")
+
         # Prepare output paths
         output_path = str(path_obj.with_name(f"{path_obj.stem}_ms_info.parquet"))
         id_output_path = str(path_obj.with_name(f"{path_obj.stem}_ms2_info.parquet"))
         feature_output_path = str(path_obj.with_name(f"{path_obj.stem}_ms1_feature_info.parquet"))
 
-        # Process based on file type
-        if path_obj.suffix.lower() == ".d":
-            batch_write_bruker_d(file_name=ms_path, output_path=output_path, batch_size=batch_size)
-        elif path_obj.suffix.lower() in [".mzml"]:
-            batch_write_mzml_streaming(
-                file_name=ms_path,
-                output_path=output_path,
-                ms2_file=ms2_file,
-                id_output_path=id_output_path,
-                batch_size=batch_size,
-            )
-            if feature_detection:
-                feature_detector = MS1FeatureDetector()
-                feature_detector.process_file(input_file=ms_path, output_file=feature_output_path)
-        else:
-            raise ValueError(f"Unsupported file type: {path_obj.suffix}")
+        batch_write_mzml_streaming(
+            file_name=ms_path,
+            output_path=output_path,
+            ms2_file=ms2_file,
+            id_output_path=id_output_path,
+            batch_size=batch_size,
+        )
+        if feature_detection:
+            feature_detector = MS1FeatureDetector()
+            feature_detector.process_file(input_file=ms_path, output_file=feature_output_path)
 
         logger.info(f"Successfully processed mass spectrometry file: {ms_path}")
 

@@ -16,12 +16,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10"]
+        python-version: ["3.10", "3.11"]
 
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
@@ -54,11 +54,4 @@ jobs:
     - name: Test package online DIA
       run: |
         quantmsutilsc mzmlstats --ms_path RD139_Narrow_UPS1_0_1fmol_inj1.mzML --ms2_file --feature_detection
-    - name: Download Bruker .d test file
-      run: |
-        wget -q https://ftp.pride.ebi.ac.uk/pub/databases/pride/resources/proteomes/quantms-ci-github/quantms-utils/hMICAL1_coiPAnP-N2-200_3Murea-1Mthiourea-200mMtcep_14733.d.tar.gz
-        tar -xzf hMICAL1_coiPAnP-N2-200_3Murea-1Mthiourea-200mMtcep_14733.d.tar.gz
-    - name: Test package Bruker .d
-      run: |
-        quantmsutilsc mzmlstats --ms_path hMICAL1_coiPAnP-N2-200_3Murea-1Mthiourea-200mMtcep_14733.d
 
