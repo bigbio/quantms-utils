@@ -73,16 +73,25 @@ class TestDiannCommands:
 
     def test_diann2msstats_example(self):
         """Test the DIA-NN to MSstats conversion with example data"""
+        report_path = (DIANN_TEST_DIR / "diann_report.tsv").resolve()
+        exp_design_path = (DIANN_TEST_DIR / "PXD026600.sdrf_openms_design.tsv").resolve()
+        assert report_path.exists(), f"Test report missing: {report_path}"
+        assert exp_design_path.exists(), f"Test design missing: {exp_design_path}"
+
         args = [
             "--report",
-            str(DIANN_TEST_DIR / "diann_report.tsv"),
+            str(report_path),
             "--exp_design",
-            str(DIANN_TEST_DIR / "PXD026600.sdrf_openms_design.tsv"),
+            str(exp_design_path),
             "--qvalue_threshold",
             "0.01",
         ]
         result = run_cli_command("diann2msstats", args)
-        assert result.exit_code == 0
+        if result.exit_code != 0:
+            raise AssertionError(
+                f"diann2msstats failed (exit {result.exit_code}). "
+                f"stdout: {result.output!r}, stderr: {result.stderr!r}"
+            )
 
     def test_dianncfg_example(self):
         """Test generating the DIA-NN config with example data"""
