@@ -186,7 +186,7 @@ def convert_psm(
             )
 
     if output_file is None:
-        output_file = f"{Path(idxml).stem}_psm.parquet"
+        output_file = str(Path(idxml).with_name(f"{Path(idxml).stem}_psm.parquet"))
 
     pd.DataFrame(parquet_data, columns=_parquet_field).to_parquet(
         output_file, index=False, engine="pyarrow", compression="gzip"
