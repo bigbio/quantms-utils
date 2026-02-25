@@ -7,7 +7,6 @@ Revisions:
 """
 
 import logging
-import os
 from pathlib import Path
 
 import click
@@ -80,22 +79,29 @@ def diann2msstats(
     logger.debug(f"out_msstats ({out_msstats.shape}) >>>")
     logger.debug("Adding Fraction, BioReplicate, Condition columns")
 
-    out_msstats = out_msstats.merge(
-        (
-            s_data_frame[["Sample", "MSstats_Condition", "MSstats_BioReplicate"]]
-            .merge(f_table[["Fraction", "Sample", "run"]], on="Sample")
-            .rename(
-                columns={
-                    "run": "Run",
-                    "MSstats_BioReplicate": "BioReplicate",
-                    "MSstats_Condition": "Condition",
-                }
-            )
-            .drop(columns=["Sample"])
-        ),
-        on="Run",
-        validate="many_to_one",
+    design_lookup = (
+        s_data_frame[["Sample", "MSstats_Condition", "MSstats_BioReplicate"]]
+        .merge(f_table[["Fraction", "Sample", "run"]], on="Sample")
+        .rename(
+            columns={
+                "run": "Run",
+                "MSstats_BioReplicate": "BioReplicate",
+                "MSstats_Condition": "Condition",
+            }
+        )
+        .drop(columns=["Sample"])
     )
+    out_msstats = out_msstats.merge(design_lookup, on="Run", how="left", validate="many_to_one")
+
+    unmatched = out_msstats["BioReplicate"].isna()
+    if unmatched.any():
+        bad_runs = out_msstats.loc[unmatched, "Run"].unique().tolist()
+        logger.warning(
+            "Run(s) in DIA-NN report have no match in experimental design: %s. "
+            "These rows will be dropped. Check that Run names (spectra file stems) match Spectra_Filepath in the design.",
+            bad_runs,
+        )
+        out_msstats = out_msstats.dropna(subset=["BioReplicate"])
     exp_out_prefix = Path(exp_design).stem
     out_msstats.to_csv(exp_out_prefix + "_msstats_in.csv", sep=",", index=False)
     logger.info(f"MSstats input file is saved as {exp_out_prefix}_msstats_in.csv")
@@ -103,7 +109,7 @@ def diann2msstats(
 
 def _true_stem(x):
     """Return the file name stem (without extension)."""
-    return os.path.basename(x).split(".")[0]
+    return Path(x).stem
 
 
 def get_exp_design_dfs(exp_design_file):
