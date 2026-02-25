@@ -3,7 +3,7 @@ name = "quantms-utils"
 description = "Python scripts and helpers for the quantMS workflow"
 readme = "README.md"
 license = "MIT"
-version = "0.0.22"
+version = "0.0.24"
 authors = [
     "Yasset Perez-Riverol <ypriverol@gmail.com>",
     "Dai Chengxin <chengxin2024@126.com>",
@@ -31,8 +31,8 @@ packages = [
 [tool.poetry.dependencies]
 python = "*"
 click = "*"
-sdrf-pipelines = ">=0.0.31"
-pyopenms = ">=3.2.0"
+sdrf-pipelines = "==0.0.33"
+pyopenms = ">=3.3.0"
 pandas = "*"
 pyarrow = ">=16.1.0"
 scipy = "*"
