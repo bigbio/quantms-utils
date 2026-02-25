@@ -22,7 +22,7 @@ requirements:
     - poetry-core >=1.2.0
     - setuptools
   run:
-    - python >=3.10,<3.13
+    - python >=3.10,<3.12
     - click
     - setuptools
     - sdrf-pipelines >=0.0.33,<0.1.0
