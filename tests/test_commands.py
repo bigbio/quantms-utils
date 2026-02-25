@@ -13,7 +13,7 @@ from quantmsutils.quantmsutilsc import cli
 # Define constants at the top for better maintainability
 TESTS_DIR = Path(__file__).parent
 TEST_DATA_DIR = TESTS_DIR / "test_data"
-DIANN_TEST_DIR = TEST_DATA_DIR / "diann2mztab"
+DIANN_TEST_DIR = TEST_DATA_DIR / "diann2msstats"
 
 TMT_MZML_FILE = TEST_DATA_DIR / "TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01.mzML"
 TMT_MS1_FEAURES = (
