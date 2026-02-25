@@ -23,6 +23,7 @@ requirements:
   run:
     - python
     - click
+    - setuptools
     - sdrf-pipelines >=0.0.33,<0.1.0
     - pyopenms>=3.3.0
     - pandas

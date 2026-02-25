@@ -1,6 +1,6 @@
 import click
 
-from quantmsutils.diann.diann2mztab import diann2mztab
+from quantmsutils.diann.diann2msstats import diann2msstats
 from quantmsutils.diann.dianncfg import dianncfg
 from quantmsutils.mzml.mzml_statistics import mzml_statistics
 from quantmsutils.psm.psm_conversion import convert_psm
@@ -20,7 +20,7 @@ def cli():
 
 
 cli.add_command(dianncfg)
-cli.add_command(diann2mztab)
+cli.add_command(diann2msstats)
 cli.add_command(mzml_statistics)
 cli.add_command(extract_sample_from_expdesign)
 cli.add_command(checksamplesheet)

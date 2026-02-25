@@ -55,7 +55,7 @@ class TestCLIHelpMessages:
         [
             "dianncfg",
             "mzmlstats",
-            "diann2mztab",
+            "diann2msstats",
             "openms2sample",
             "psmconvert",
             "checksamplesheet",
@@ -71,8 +71,8 @@ class TestCLIHelpMessages:
 class TestDiannCommands:
     """Test class for DIA-NN related commands"""
 
-    def test_diann2mztab_example(self):
-        """Test the DIA-NN to mzTab conversion with example data"""
+    def test_diann2msstats_example(self):
+        """Test the DIA-NN to MSstats conversion with example data"""
         args = [
             "--folder",
             str(DIANN_TEST_DIR),
@@ -89,7 +89,7 @@ class TestDiannCommands:
             "--qvalue_threshold",
             "0.01",
         ]
-        result = run_cli_command("diann2mztab", args)
+        result = run_cli_command("diann2msstats", args)
         assert result.exit_code == 0
 
     def test_dianncfg_example(self):
