@@ -1,10 +1,13 @@
 from pathlib import Path
 import os
+import tempfile
+import numpy as np
 import pandas as pd
 import pytest
 from click.testing import CliRunner
 
 from quantmsutils.mzml.ms1_feature_finder import MS1FeatureDetector
+from quantmsutils.psm.psm_conversion import mods_position
 from quantmsutils.quantmsutilsc import cli
 
 # Define constants at the top for better maintainability
@@ -27,6 +30,10 @@ TMT_STATIC_MS2_INFO_FILE = (
 )
 TMT_MS2_FILE = (
     TEST_DATA_DIR / "TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01_ms2_info.parquet"
+)
+BRUKER_D_FILE = TEST_DATA_DIR / "hMICAL1_coiPAnP-N2-200_3Murea-1Mthiourea-200mMtcep_14733.d"
+BRUKER_MS_INFO_FILE = (
+    TEST_DATA_DIR / "hMICAL1_coiPAnP-N2-200_3Murea-1Mthiourea-200mMtcep_14733_ms_info.parquet"
 )
 
 
@@ -115,7 +122,7 @@ class TestPSMConversion:
     """
 
     def test_convert_psm(self):
-        """Test converting PSM data"""
+        """Test converting PSM data with ms2_file"""
         args = [
             "--idxml",
             str(TMT_IDXML_FILE),
@@ -124,7 +131,32 @@ class TestPSMConversion:
         ]
         result = run_cli_command("psmconvert", args)
         assert result.exit_code == 0
-        # Could add assertions to check for expected output files
+
+        output_file = Path(TMT_IDXML_FILE).with_name(
+            f"{Path(TMT_IDXML_FILE).stem}_psm.parquet"
+        )
+        if output_file.exists():
+            df = pd.read_parquet(output_file)
+            assert len(df) > 0, "PSM output parquet is empty"
+            assert "sequence" in df.columns
+            assert "scan_number" in df.columns
+
+    def test_convert_psm_without_ms2(self):
+        """Test converting PSM data without ms2_file (regression test for None dereference)"""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_file = os.path.join(tmpdir, "test_psm.parquet")
+            args = [
+                "--idxml",
+                str(TMT_IDXML_FILE),
+                "--output_file",
+                output_file,
+            ]
+            result = run_cli_command("psmconvert", args)
+            assert result.exit_code == 0
+
+            df = pd.read_parquet(output_file)
+            assert len(df) > 0, "PSM output parquet is empty"
+            assert "sequence" in df.columns
 
 
 class TestMzMLStatistics:
@@ -176,27 +208,30 @@ class TestMzMLStatistics:
         )
         assert len(output_table) > 0, "Output table is empty"
 
-    @pytest.mark.skip("Test to be run locally, with bruker file")
+    @pytest.mark.skipif(
+        not BRUKER_D_FILE.exists(),
+        reason="Bruker .d test data not available (not tracked in git)",
+    )
     def test_mzml_statistics_bruker(self):
-        """Test mzML statistics on Bruker sample"""
+        """Test mzML statistics on Bruker .d file (regression test for if/elif bug)"""
+        if BRUKER_MS_INFO_FILE.exists():
+            BRUKER_MS_INFO_FILE.unlink()
+
         args = [
-            "--ms2_file",
             "--ms_path",
-            str(TEST_DATA_DIR / "hMICAL1_coiPAnP-N2-200_3Murea-1Mthiourea-200mMtcep_14733.d"),
+            str(BRUKER_D_FILE),
         ]
         result = run_cli_command("mzmlstats", args)
 
-        assert result.exit_code == 0
-        assert os.path.exists(
-            TEST_DATA_DIR
-            / "hMICAL1_coiPAnP-N2-200_3Murea-1Mthiourea-200mMtcep_14733_ms_info.parquet"
-        )
+        assert result.exit_code == 0, f"Bruker .d processing failed: {result.output}"
+        assert BRUKER_MS_INFO_FILE.exists(), "Bruker output parquet was not created"
 
-        output_table = pd.read_parquet(
-            TEST_DATA_DIR
-            / "hMICAL1_coiPAnP-N2-200_3Murea-1Mthiourea-200mMtcep_14733_ms_info.parquet"
-        )
+        output_table = pd.read_parquet(BRUKER_MS_INFO_FILE)
         assert len(output_table) > 0, "Output table is empty"
+
+        expected_columns = ["scan", "ms_level"]
+        for col in expected_columns:
+            assert col in output_table.columns, f"Expected column {col} missing from Bruker output"
 
 
 class TestFeatureFinder:
@@ -217,3 +252,70 @@ class TestFeatureFinder:
         #
         # parquet_df_dia = pd.read_parquet(result_dia)
         # assert not parquet_df_dia.empty, "Output table is empty"
+
+
+class TestModsPosition:
+    """Unit tests for the mods_position function in psm_conversion"""
+
+    def test_single_modification(self):
+        """Test peptide with a single modification"""
+        result = mods_position("PEPTM(Oxidation)IDE")
+        assert result == ["5-Oxidation"]
+
+    def test_multiple_modifications(self):
+        """Test peptide with multiple modifications"""
+        result = mods_position("PEC(Carbamidomethyl)PTMC(Carbamidomethyl)IDE")
+        assert result == ["3-Carbamidomethyl", "7-Carbamidomethyl"]
+
+    def test_no_modifications(self):
+        """Test unmodified peptide returns NaN"""
+        result = mods_position("PEPTIDE")
+        assert result is np.nan or (isinstance(result, float) and np.isnan(result))
+
+    def test_leading_dot(self):
+        """Test peptide with leading dot (sometimes from OpenMS output)"""
+        result = mods_position(".PEPTM(Oxidation)IDE")
+        assert result == ["5-Oxidation"]
+
+    def test_nterm_modification(self):
+        """Test N-terminal modification"""
+        result = mods_position("(Acetyl)PEPTIDE")
+        assert result == ["0-Acetyl"]
+
+
+class TestExtractSampleMixture:
+    """Test extract_sample with MSstats_Mixture column (covers DataFrame.append fix)"""
+
+    def test_extract_sample_with_mixture(self):
+        """Test that extract_sample works with MSstats_Mixture in the experiment design"""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Create a test experiment design file with MSstats_Mixture
+            design_file = os.path.join(tmpdir, "test_design.tsv")
+            with open(design_file, "w") as f:
+                f.write("Fraction_Group\tFraction\tSpectra_Filepath\tLabel\tSample\n")
+                f.write("1\t1\tfile1.mzML\t1\t1\n")
+                f.write("2\t1\tfile2.mzML\t1\t2\n")
+                f.write("\n")
+                f.write("Sample\tMSstats_Condition\tMSstats_BioReplicate\tMSstats_Mixture\n")
+                f.write("1\tCondition_A\t1\tMixture_1\n")
+                f.write("2\tCondition_B\t2\tMixture_1\n")
+
+            # Run extract_sample from within the temp dir so output goes there
+            original_dir = os.getcwd()
+            try:
+                os.chdir(tmpdir)
+                args = ["--expdesign", design_file]
+                result = run_cli_command("openms2sample", args)
+                assert result.exit_code == 0
+
+                output_file = os.path.join(tmpdir, "test_design_sample.csv")
+                assert os.path.exists(output_file), "Sample output file was not created"
+
+                df = pd.read_csv(output_file, sep="\t")
+                assert len(df) == 2, f"Expected 2 rows, got {len(df)}"
+                assert "Spectra_Filepath" in df.columns
+                assert "Sample" in df.columns
+                # The Sample column should contain mixture IDs
+                assert df["Sample"].iloc[0] == "Mixture_1"
+            finally:
+                os.chdir(original_dir)

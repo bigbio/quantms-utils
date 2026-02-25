@@ -32,18 +32,18 @@ def extract_sample_from_expdesign(cxt, expdesign: str) -> None:
         s_header = lines[empty_row + 1].replace("\n", "").split("\t")
         s_data_frame = pd.DataFrame(s_table, columns=s_header)
 
-    sample_dt = pd.DataFrame()
     if "MSstats_Mixture" not in s_data_frame.columns:
         f_table = f_table[["Spectra_Filepath", "Sample"]]
         f_table.to_csv(f"{Path(expdesign).stem}_sample.csv", sep="\t", index=False)
     else:
         f_table.drop_duplicates(subset=["Spectra_Filepath"], inplace=True)
+        rows = []
         for _, row in f_table.iterrows():
             mixture_id = s_data_frame[s_data_frame["Sample"] == row["Sample"]][
                 "MSstats_Mixture"
             ].values[0]
-            sample_dt = sample_dt.append(
-                {"Spectra_Filepath": row["Spectra_Filepath"], "Sample": mixture_id},
-                ignore_index=True,
+            rows.append(
+                {"Spectra_Filepath": row["Spectra_Filepath"], "Sample": mixture_id}
             )
+        sample_dt = pd.DataFrame(rows)
         sample_dt.to_csv(f"{Path(expdesign).stem}_sample.csv", sep="\t", index=False)

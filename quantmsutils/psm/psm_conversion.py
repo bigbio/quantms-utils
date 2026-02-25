@@ -109,7 +109,8 @@ def convert_psm(
     )[0]
     spectra_df = pd.read_parquet(ms2_file) if ms2_file else None
 
-    spectra_df[SCAN] = spectra_df[SCAN].astype(str)  # convert to string for comparison
+    if spectra_df is not None:
+        spectra_df[SCAN] = spectra_df[SCAN].astype(str)  # convert to string for comparison
 
     for peptide_id in pep_ids:
         retention_time = peptide_id.getRT()
@@ -136,11 +137,11 @@ def convert_psm(
                 if "q-value" in peptide_id.getScoreType():
                     global_qvalue = hit.getScore()
                 consensus_support = hit.getMetaValue("consensus_support")
-            elif search_engines == "Comet":
+            elif "Comet" in search_engines:
                 id_scores = ["Comet:Expectation value: " + str(hit.getScore())]
-            elif search_engines == "MS-GF+":
+            elif "MS-GF+" in search_engines:
                 id_scores = ["MS-GF:SpecEValue: " + str(hit.getScore())]
-            elif search_engines == "Sage":
+            elif "Sage" in search_engines:
                 id_scores = ["Sage:hyperscore: " + str(hit.getScore())]
 
             if hit.metaValueExists("MS:1001491"):

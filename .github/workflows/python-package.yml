@@ -51,8 +51,14 @@ jobs:
     - name: Test package online TMT
       run: |
         quantmsutilsc mzmlstats --ms_path TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01.mzML --ms2_file --feature_detection
-    - name: Text package online DIA
+    - name: Test package online DIA
       run: |
         quantmsutilsc mzmlstats --ms_path RD139_Narrow_UPS1_0_1fmol_inj1.mzML --ms2_file --feature_detection
-        
-        
+    - name: Download Bruker .d test file
+      run: |
+        wget -q https://ftp.pride.ebi.ac.uk/pub/databases/pride/resources/proteomes/quantms-ci-github/quantms-utils/hMICAL1_coiPAnP-N2-200_3Murea-1Mthiourea-200mMtcep_14733.d.tar.gz
+        tar -xzf hMICAL1_coiPAnP-N2-200_3Murea-1Mthiourea-200mMtcep_14733.d.tar.gz
+    - name: Test package Bruker .d
+      run: |
+        quantmsutilsc mzmlstats --ms_path hMICAL1_coiPAnP-N2-200_3Murea-1Mthiourea-200mMtcep_14733.d
+

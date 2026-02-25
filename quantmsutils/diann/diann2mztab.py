@@ -311,8 +311,8 @@ def compute_mass_modified_peptide(peptide_seq: str) -> float:
 class DiannDirectory:
     def __init__(self, base_path, diann_version_file):
         self.base_path = Path(base_path)
-        if not self.base_path.exists() and not self.base_path.is_dir():
-            raise NotADirectoryError(f"Path {self.base_path} does not exist")
+        if not self.base_path.exists() or not self.base_path.is_dir():
+            raise NotADirectoryError(f"Path {self.base_path} does not exist or is not a directory")
         self.diann_version_file = Path(diann_version_file)
         if not self.diann_version_file.is_file():
             raise FileNotFoundError(f"Path {self.diann_version_file} does not exist")

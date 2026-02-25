@@ -89,12 +89,16 @@ def batch_write_bruker_d(file_name: str, output_path: str, batch_size: int = 100
 
     logger.info(f"Processing Bruker .d file: {file_name}")
 
+    if not Path(sql_filepath).exists():
+        raise FileNotFoundError(f"analysis.tdf not found in {file_name}")
+
     try:
         with sqlite3.connect(sql_filepath) as conn:
             # Retrieve acquisition datetime
-            acquisition_date_time = conn.execute(
+            row = conn.execute(
                 "SELECT Value FROM GlobalMetadata WHERE key='AcquisitionDateTime'"
-            ).fetchone()[0]
+            ).fetchone()
+            acquisition_date_time = row[0] if row else None
 
             # Check which optional columns exist
             columns = column_exists(conn, "frames")
@@ -276,7 +280,7 @@ class BatchWritingConsumer:
             exp_mz = first_precursor.getMZ()
             intensity = first_precursor.getIntensity()
 
-            if intensity is None or intensity == 0.0 and first_precursor_calculated:
+            if (intensity is None or intensity == 0.0) and first_precursor_calculated:
                 # Use calculated precursor intensity if available
                 intensity = first_precursor_calculated["intensity"]
 
@@ -598,7 +602,7 @@ def mzml_statistics(
         # Process based on file type
         if path_obj.suffix.lower() == ".d":
             batch_write_bruker_d(file_name=ms_path, output_path=output_path, batch_size=batch_size)
-        if path_obj.suffix.lower() in [".mzml"]:
+        elif path_obj.suffix.lower() in [".mzml"]:
             batch_write_mzml_streaming(
                 file_name=ms_path,
                 output_path=output_path,
@@ -609,7 +613,6 @@ def mzml_statistics(
             if feature_detection:
                 feature_detector = MS1FeatureDetector()
                 feature_detector.process_file(input_file=ms_path, output_file=feature_output_path)
-            logger.info("The file {} has been processed".format(ms_path))
         else:
             raise ValueError(f"Unsupported file type: {path_obj.suffix}")
 
