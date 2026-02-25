@@ -19,7 +19,7 @@ The following functionalities are available in the package:
 ### Diann scripts
 
 - `dianncfg` - Create a configuration file for Diann including enzymes, modifications, and other parameters.
-- `diann2mztab` - Convert Diann output to mzTab format. In addition, convert DIA-NN output to MSstats, Triqler or mzTab.
+- `diann2mztab` - Convert Diann output to mzTab format. In addition, convert DIA-NN output to MSstats or mzTab.
     The output formats are used for quality control and downstream analysis in quantms.
 
 ### SDRF scripts

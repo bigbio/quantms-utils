@@ -1,5 +1,5 @@
 """
-This script converts the output from DIA-NN into three standard formats: MSstats, Triqler and mzTab.
+This script converts the output from DIA-NN into standard formats: MSstats and mzTab.
 License: Apache 2.0
 Authors: Hong Wong, Yasset Perez-Riverol
 Revisions:
@@ -37,7 +37,7 @@ logging.basicConfig(format="%(asctime)s [%(funcName)s] - %(message)s", level=log
 logger = logging.getLogger(__name__)
 
 
-@click.command("diann2mztab", short_help="Convert DIA-NN output to MSstats, Triqler or mzTab")
+@click.command("diann2mztab", short_help="Convert DIA-NN output to MSstats or mzTab")
 @click.option("--folder", "-f")
 @click.option("--exp_design", "-d")
 @click.option("--diann_version", "-v")
@@ -59,7 +59,7 @@ def diann2mztab(
     enable_diann2mztab,
 ):
     """
-    Convert DIA-NN output to MSstats, Triqler or mzTab.
+    Convert DIA-NN output to MSstats or mzTab.
     The output formats are used for quality control and downstream analysis.
 
     :param ctx: Click context
@@ -154,33 +154,7 @@ def diann2mztab(
     exp_out_prefix = Path(exp_design).stem
     out_msstats.to_csv(exp_out_prefix + "_msstats_in.csv", sep=",", index=False)
     logger.info(f"MSstats input file is saved as {exp_out_prefix}_msstats_in.csv")
-
-    # Convert to Triqler
-    triqler_cols = [
-        "ProteinName",
-        "PeptideSequence",
-        "PrecursorCharge",
-        "Intensity",
-        "Run",
-        "Condition",
-    ]
-    out_triqler = out_msstats[triqler_cols]
     del out_msstats
-    out_triqler.columns = [
-        "proteins",
-        "peptide",
-        "charge",
-        "intensity",
-        "run",
-        "condition",
-    ]
-    out_triqler = out_triqler[out_triqler["intensity"] != 0]
-
-    out_triqler.loc[:, "searchScore"] = report["Q.Value"]
-    out_triqler.loc[:, "searchScore"] = 1 - out_triqler["searchScore"]
-    out_triqler.to_csv(exp_out_prefix + "_triqler_in.tsv", sep="\t", index=False)
-    logger.info(f"Triqler input file is saved as {exp_out_prefix}_triqler_in.tsv")
-    del out_triqler
 
     if enable_diann2mztab:
         mztab_out = f"{Path(exp_design).stem}_out.mzTab"
