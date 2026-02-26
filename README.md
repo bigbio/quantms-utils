@@ -19,8 +19,8 @@ The following functionalities are available in the package:
 ### Diann scripts
 
 - `dianncfg` - Create a configuration file for Diann including enzymes, modifications, and other parameters.
-- `diann2mztab` - Convert Diann output to mzTab format. In addition, convert DIA-NN output to MSstats, Triqler or mzTab.
-    The output formats are used for quality control and downstream analysis in quantms.
+- `diann2msstats` - Convert DIA-NN output to MSstats format.
+    The output is used for quality control and downstream analysis in quantms.
 
 ### SDRF scripts
 
@@ -29,8 +29,8 @@ The following functionalities are available in the package:
 
 ### Other scripts
 
-- `psmconvert` - The convert_psm function converts peptide spectrum matches (PSMs) from an idXML file to a CSV file, optionally filtering out decoy matches. It extracts and processes data from both the idXML and an associated spectra file, handling multiple search engines and scoring systems.
-- `mzmlstats` - The `mzmlstats` processes mass spectrometry data files in either `.mzML` or `Bruker .d` formats to extract and compile statistics about the spectra. It supports generating detailed or ID-only CSV files based on the spectra data.
+- `psmconvert` - The convert_psm function converts peptide spectrum matches (PSMs) from an idXML file to a parquet file, optionally filtering out decoy matches. It extracts and processes data from both the idXML and an associated spectra file, handling multiple search engines and scoring systems.
+- `mzmlstats` - The `mzmlstats` processes `.mzML` mass spectrometry data files to extract and compile statistics about the spectra. It supports generating detailed parquet files with spectrum metadata and MS2 peak data.
 
 #### mzml statistics 
 
@@ -100,6 +100,8 @@ to extract the features from the MS1 spectra. We use an algorithm based on the o
 - `feature_scans`: The scans where the feature is present in the feature map.
 
 The tool will generate a gzip compressed parquet file with the extension `{file_name}_ms1_feature_info.parquet`.
+
+</details>
 
 ## Contributions and issues
 

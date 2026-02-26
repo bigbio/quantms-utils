@@ -1,7 +1,7 @@
 # recipe/meta.yaml
 package:
   name: quantms-utils
-  version: "0.0.23"
+  version: "0.0.25"
 
 source:
   path: ../
@@ -20,15 +20,19 @@ requirements:
     - python
     - pip
     - poetry-core >=1.2.0
+    - setuptools <78
   run:
-    - python
+    - python >=3.9,<3.13
     - click
-    - sdrf-pipelines>=0.0.32
+    - setuptools <78
+    - sdrf-pipelines >=0.0.33,<0.1.0
     - pyopenms>=3.3.0
     - pandas
     - pyarrow>=16.1.0
     - scipy
 test:
+  requires:
+    - setuptools <78
   imports:
     - quantmsutils
   commands:

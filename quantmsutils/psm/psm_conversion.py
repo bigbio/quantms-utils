@@ -84,16 +84,15 @@ def convert_psm(
     """
 
     prot_ids = []
-    pep_ids = []
+    pep_ids = oms.PeptideIdentificationList() if hasattr(oms, 'PeptideIdentificationList') else []
     parquet_data = []
     consensus_support = np.nan
-    mz_array = []
-    intensity_array = []
-    num_peaks = np.nan
     id_scores = []
     search_engines = []
 
     oms.IdXMLFile().load(idxml, prot_ids, pep_ids)
+    if not prot_ids:
+        raise ValueError(f"No protein identification entries found in {idxml}")
     if "ConsensusID" in prot_ids[0].getSearchEngine():
         if prot_ids[0].getSearchParameters().metaValueExists("SE:MS-GF+"):
             search_engines = ["MS-GF+"]
@@ -109,38 +108,48 @@ def convert_psm(
     )[0]
     spectra_df = pd.read_parquet(ms2_file) if ms2_file else None
 
-    spectra_df[SCAN] = spectra_df[SCAN].astype(str)  # convert to string for comparison
+    if spectra_df is not None:
+        spectra_df[SCAN] = spectra_df[SCAN].astype(str)  # convert to string for comparison
 
     for peptide_id in pep_ids:
         retention_time = peptide_id.getRT()
         exp_mass_to_charge = peptide_id.getMZ()
-        scan_number = int(
-            re.findall(r"(spectrum|scan)=(\d+)", peptide_id.getMetaValue("spectrum_reference"))[0][
-                1
-            ]
-        )
+
+        # Reset per-scan spectral data to avoid leaking previous scan's data
+        mz_array = []
+        intensity_array = []
+        num_peaks = np.nan
+
+        matches = re.findall(r"(spectrum|scan)=(\d+)", peptide_id.getMetaValue("spectrum_reference"))
+        if not matches:
+            logger.warning(
+                f"Could not extract scan number from: {peptide_id.getMetaValue('spectrum_reference')}, skipping"
+            )
+            continue
+        scan_number = int(matches[0][1])
 
         if isinstance(spectra_df, pd.DataFrame):
             spectra = spectra_df[spectra_df[SCAN] == str(scan_number)]
-            mz_array = spectra[MZ_ARRAY].values
-            intensity_array = spectra[INTENSITY_ARRAY].values
-            num_peaks = len(mz_array)
+            if not spectra.empty:
+                mz_array = spectra[MZ_ARRAY].values
+                intensity_array = spectra[INTENSITY_ARRAY].values
+                num_peaks = len(mz_array)
 
         for hit in peptide_id.getHits():
             # if remove decoy when mapped to target+decoy?
             is_decoy = 0 if hit.getMetaValue("target_decoy") == "target" else 1
-            if export_decoy_psm and is_decoy:
+            if not export_decoy_psm and is_decoy:
                 continue
             global_qvalue = np.nan
             if len(search_engines) > 1:
                 if "q-value" in peptide_id.getScoreType():
                     global_qvalue = hit.getScore()
                 consensus_support = hit.getMetaValue("consensus_support")
-            elif search_engines == "Comet":
+            elif "Comet" in search_engines:
                 id_scores = ["Comet:Expectation value: " + str(hit.getScore())]
-            elif search_engines == "MS-GF+":
+            elif "MS-GF+" in search_engines:
                 id_scores = ["MS-GF:SpecEValue: " + str(hit.getScore())]
-            elif search_engines == "Sage":
+            elif "Sage" in search_engines:
                 id_scores = ["Sage:hyperscore: " + str(hit.getScore())]
 
             if hit.metaValueExists("MS:1001491"):
@@ -185,7 +194,7 @@ def convert_psm(
             )
 
     if output_file is None:
-        output_file = f"{Path(idxml).stem}_psm.parquet"
+        output_file = str(Path(idxml).with_name(f"{Path(idxml).stem}_psm.parquet"))
 
     pd.DataFrame(parquet_data, columns=_parquet_field).to_parquet(
         output_file, index=False, engine="pyarrow", compression="gzip"

@@ -210,7 +210,7 @@ class MS1FeatureDetector:
         self,
         input_file: Union[str, Path],
         output_file: Union[str, Path],
-        sort_by: str = "intensity",
+        sort_by: str = "feature_intensity",
         ascending: bool = False,
     ) -> Optional[str]:
         """
