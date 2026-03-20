@@ -116,21 +116,58 @@ def get_exp_design_dfs(exp_design_file):
     logger.info(f"Reading experimental design file: {exp_design_file}")
     with open(exp_design_file, "r") as f:
         data = [line.replace("\r\n", "\n").replace("\r", "\n") for line in f.readlines()]
-        try:
-            empty_row = data.index("\n")
-        except ValueError:
-            raise ValueError(
-                f"Could not find blank separator row in {exp_design_file}. "
-                "Ensure the file contains a blank line between the file and sample tables."
-            )
-        f_table = [i.replace("\n", "").split("\t") for i in data[1:empty_row]]
-        f_header = data[0].replace("\n", "").split("\t")
-        f_table = pd.DataFrame(f_table, columns=f_header)
-        f_table.loc[:, "run"] = f_table.apply(lambda x: _true_stem(x["Spectra_Filepath"]), axis=1)
 
-        s_table = [i.replace("\n", "").split("\t") for i in data[empty_row + 1 :]][1:]
-        s_header = data[empty_row + 1].replace("\n", "").split("\t")
-        s_data_frame = pd.DataFrame(s_table, columns=s_header)
+    # Auto-detect format: new unified flat table (from convert-diann) vs legacy two-table
+    has_blank_line = "\n" in data
+    header_line = data[0].replace("\n", "") if data else ""
+    is_unified_format = "Condition" in header_line and "BioReplicate" in header_line and "Filename" in header_line
+
+    if is_unified_format and not has_blank_line:
+        return _parse_unified_design(exp_design_file)
+    else:
+        return _parse_legacy_design(data, exp_design_file)
+
+
+def _parse_unified_design(exp_design_file):
+    """Parse the unified flat diann_design.tsv format from convert-diann.
+
+    Returns (s_data_frame, f_table) matching the legacy interface:
+    - s_data_frame: DataFrame with Sample, MSstats_Condition, MSstats_BioReplicate
+    - f_table: DataFrame with Fraction, Sample, run (+ other columns)
+    """
+    df = pd.read_csv(exp_design_file, sep="\t")
+    df["run"] = df["Filename"].apply(lambda x: _true_stem(x))
+
+    # Build f_table (file table): one row per file/channel
+    f_table = df[["Filename", "Fraction", "Sample", "run"]].copy()
+
+    # Build s_data_frame (sample table): unique samples with condition/bioreplicate
+    s_data_frame = (
+        df[["Sample", "Condition", "BioReplicate"]]
+        .drop_duplicates(subset=["Sample"])
+        .rename(columns={"Condition": "MSstats_Condition", "BioReplicate": "MSstats_BioReplicate"})
+    )
+
+    return s_data_frame, f_table
+
+
+def _parse_legacy_design(data, exp_design_file):
+    """Parse the legacy two-table experimental design format (blank line separator)."""
+    try:
+        empty_row = data.index("\n")
+    except ValueError:
+        raise ValueError(
+            f"Could not find blank separator row in {exp_design_file}. "
+            "Ensure the file contains a blank line between the file and sample tables."
+        )
+    f_table = [i.replace("\n", "").split("\t") for i in data[1:empty_row]]
+    f_header = data[0].replace("\n", "").split("\t")
+    f_table = pd.DataFrame(f_table, columns=f_header)
+    f_table.loc[:, "run"] = f_table.apply(lambda x: _true_stem(x["Spectra_Filepath"]), axis=1)
+
+    s_table = [i.replace("\n", "").split("\t") for i in data[empty_row + 1 :]][1:]
+    s_header = data[empty_row + 1].replace("\n", "").split("\t")
+    s_data_frame = pd.DataFrame(s_table, columns=s_header)
 
     return s_data_frame, f_table
 
