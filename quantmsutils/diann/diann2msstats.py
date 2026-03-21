@@ -118,11 +118,12 @@ def get_exp_design_dfs(exp_design_file):
         data = [line.replace("\r\n", "\n").replace("\r", "\n") for line in f.readlines()]
 
     # Auto-detect format: new unified flat table (from convert-diann) vs legacy two-table
-    has_blank_line = "\n" in data
+    # Prefer unified parsing whenever the header matches unified columns,
+    # regardless of extra blank/whitespace-only lines elsewhere in the file.
     header_line = data[0].replace("\n", "") if data else ""
     is_unified_format = "Condition" in header_line and "BioReplicate" in header_line and "Filename" in header_line
 
-    if is_unified_format and not has_blank_line:
+    if is_unified_format:
         return _parse_unified_design(exp_design_file)
     else:
         return _parse_legacy_design(data, exp_design_file)
@@ -136,16 +137,33 @@ def _parse_unified_design(exp_design_file):
     - f_table: DataFrame with Fraction, Sample, run (+ other columns)
     """
     df = pd.read_csv(exp_design_file, sep="\t")
-    df["run"] = df["Filename"].apply(lambda x: _true_stem(x))
+
+    # Validate required columns
+    required_cols = {"Filename", "Fraction", "Sample", "Condition", "BioReplicate"}
+    missing = required_cols - set(df.columns)
+    if missing:
+        raise ValueError(
+            f"Unified design file is missing required columns: {', '.join(sorted(missing))}. "
+            f"Expected: {', '.join(sorted(required_cols))}"
+        )
+
+    df["run"] = df["Filename"].apply(_true_stem)
 
     # Build f_table (file table): one row per file/channel
     f_table = df[["Filename", "Fraction", "Sample", "run"]].copy()
 
-    # Build s_data_frame (sample table): unique samples with condition/bioreplicate
-    s_data_frame = (
-        df[["Sample", "Condition", "BioReplicate"]]
-        .drop_duplicates(subset=["Sample"])
-        .rename(columns={"Condition": "MSstats_Condition", "BioReplicate": "MSstats_BioReplicate"})
+    # Validate each Sample maps to exactly one (Condition, BioReplicate) pair
+    unique_mapping = df[["Sample", "Condition", "BioReplicate"]].drop_duplicates()
+    duplicated_samples = unique_mapping["Sample"][unique_mapping["Sample"].duplicated(keep=False)].unique()
+    if len(duplicated_samples) > 0:
+        raise ValueError(
+            "Inconsistent experimental design: Sample(s) "
+            f"{', '.join(map(str, duplicated_samples))} map to multiple "
+            "(Condition, BioReplicate) combinations."
+        )
+
+    s_data_frame = unique_mapping.rename(
+        columns={"Condition": "MSstats_Condition", "BioReplicate": "MSstats_BioReplicate"}
     )
 
     return s_data_frame, f_table
@@ -159,7 +177,7 @@ def _parse_legacy_design(data, exp_design_file):
         raise ValueError(
             f"Could not find blank separator row in {exp_design_file}. "
             "Ensure the file contains a blank line between the file and sample tables."
-        )
+        ) from None
     f_table = [i.replace("\n", "").split("\t") for i in data[1:empty_row]]
     f_header = data[0].replace("\n", "").split("\t")
     f_table = pd.DataFrame(f_table, columns=f_header)
