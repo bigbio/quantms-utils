@@ -2,33 +2,16 @@ import logging
 import sys
 
 import click
+
 from sdrf_pipelines.sdrf.sdrf import read_sdrf
 
 logging.basicConfig(format="%(asctime)s [%(funcName)s] - %(message)s", level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-def make_dir(path):
-    if len(path) > 0:
-        try:
-            os.makedirs(path)
-        except OSError as exception:
-            if exception.errno != errno.EEXIST:
-                raise exception
-
-
-def print_error(error, context="Line", context_str=""):
-    error_str = "ERROR: Please check samplesheet -> {}".format(error)
-    if context != "" and context_str != "":
-        error_str = "ERROR: Please check samplesheet -> {}\n{}: '{}'".format(
-            error, context.strip(), context_str.strip()
-        )
-    print(error_str)
-    sys.exit(1)
-
-
 def check_sdrf(
     input_sdrf: str,
+    template: str = "ms-proteomics",
     skip_sdrf_validation: bool = False,
     use_ols_cache_only: bool = False,
 ):
@@ -36,6 +19,7 @@ def check_sdrf(
     Check the SDRF file for errors. If any errors are found, print them and exit with a non-zero status code.
 
     :param input_sdrf: Path to the SDRF file to check
+    :param template: Schema template to validate against (e.g. 'ms-proteomics', 'dia-acquisition')
     :param skip_sdrf_validation: Skip all SDRF validation
     :param use_ols_cache_only: Use OLS cache instead of live OLS service
     """
@@ -45,7 +29,7 @@ def check_sdrf(
 
     df = read_sdrf(input_sdrf)
     errors = df.validate_sdrf(
-        template="ms-proteomics",
+        template=template,
         use_ols_cache_only=use_ols_cache_only,
     )
 
@@ -55,12 +39,16 @@ def check_sdrf(
     sys.exit(bool(errors))
 
 
-
 @click.command(
     "checksamplesheet",
     short_help="Validate an SDRF file for quantms pipelines.",
 )
 @click.option("--exp_design", help="SDRF file to be validated", required=True)
+@click.option(
+    "--template", "-t",
+    help="Schema template to validate against (e.g. ms-proteomics, dia-acquisition)",
+    default="ms-proteomics",
+)
 @click.option("--skip_sdrf_validation", help="Skip all SDRF validation", is_flag=True)
 @click.option(
     "--use_ols_cache_only",
@@ -69,12 +57,14 @@ def check_sdrf(
 )
 def checksamplesheet(
     exp_design: str,
+    template: str = "ms-proteomics",
     skip_sdrf_validation: bool = False,
     use_ols_cache_only: bool = False,
 ):
     """Validate an SDRF file for quantms pipelines."""
     check_sdrf(
         input_sdrf=exp_design,
+        template=template,
         skip_sdrf_validation=skip_sdrf_validation,
         use_ols_cache_only=use_ols_cache_only,
     )
