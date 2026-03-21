@@ -144,8 +144,8 @@ class TestSamplesheetCommands:
                     "comment[instrument]\tcomment[proteomics data acquisition method]\t"
                     "technology type\tcomment[modification parameters]\n")
             f.write("S1\trun1\tfile1.raw\tlabel free sample\tOrbitrap\tDIA\tMS\tOxidation\n")
-            f.name
-        args = ["--minimal", "--exp_design", f.name]
+            tmp_path = f.name
+        args = ["--minimal", "--exp_design", tmp_path]
         result = run_cli_command("checksamplesheet", args)
         assert result.exit_code != 0
         assert "cleavage agent" in result.output.lower()
