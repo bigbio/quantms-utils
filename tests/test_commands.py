@@ -107,15 +107,48 @@ class TestDiannCommands:
 class TestSamplesheetCommands:
     """Test class for samplesheet related commands"""
 
-    def test_check_samplesheet_sdrf(self):
-        """Test the validation of an SDRF file"""
+    def test_check_samplesheet_minimal_pxd000001(self):
+        """Test minimal validation on PXD000001 (legacy SDRF without acquisition method)."""
+        # PXD000001 is a TMT dataset without comment[proteomics data acquisition method]
+        # Minimal validation should flag it as missing a required column
         args = [
-            "--is_sdrf",
+            "--minimal",
             "--exp_design",
             str(TEST_DATA_DIR / "PXD000001.sdrf.tsv"),
         ]
         result = run_cli_command("checksamplesheet", args)
+        assert result.exit_code != 0
+        assert "proteomics data acquisition method" in result.output.lower()
+
+    def test_check_samplesheet_minimal_valid(self):
+        """Test minimal validation passes for a valid SDRF with all required columns."""
+        import tempfile
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".sdrf.tsv", delete=False) as f:
+            f.write("source name\tassay name\tcomment[data file]\tcomment[label]\t"
+                    "comment[instrument]\tcomment[proteomics data acquisition method]\t"
+                    "technology type\tcomment[cleavage agent details]\t"
+                    "comment[modification parameters]\n")
+            f.write("S1\trun1\tfile1.raw\tlabel free sample\tOrbitrap\t"
+                    "Data-Independent Acquisition\tMS\tTrypsin\tOxidation\n")
+            tmp_path = f.name
+        args = ["--minimal", "--exp_design", tmp_path]
+        result = run_cli_command("checksamplesheet", args)
         assert result.exit_code == 0
+
+    def test_check_samplesheet_minimal_missing_column(self):
+        """Test minimal validation fails when a required column is missing."""
+        import tempfile
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".sdrf.tsv", delete=False) as f:
+            # Missing comment[cleavage agent details]
+            f.write("source name\tassay name\tcomment[data file]\tcomment[label]\t"
+                    "comment[instrument]\tcomment[proteomics data acquisition method]\t"
+                    "technology type\tcomment[modification parameters]\n")
+            f.write("S1\trun1\tfile1.raw\tlabel free sample\tOrbitrap\tDIA\tMS\tOxidation\n")
+            tmp_path = f.name
+        args = ["--minimal", "--exp_design", tmp_path]
+        result = run_cli_command("checksamplesheet", args)
+        assert result.exit_code != 0
+        assert "cleavage agent" in result.output.lower()
 
     def test_extract_sample_from_expdesign(self):
         """Test extracting sample information from experiment design"""
@@ -265,6 +298,91 @@ class TestModsPosition:
         """Test N-terminal modification"""
         result = mods_position("(Acetyl)PEPTIDE")
         assert result == ["0-Acetyl"]
+
+
+class TestDiannUnifiedDesign:
+    """Tests for unified design file format parsing (from convert-diann)"""
+
+    def test_diann2msstats_unified_format(self):
+        """Test DIA-NN to MSstats conversion with the unified design file format."""
+        report_path = (DIANN_TEST_DIR / "diann_report.tsv").resolve()
+        design_path = (DIANN_TEST_DIR / "PXD026600_diann_design.tsv").resolve()
+        assert report_path.exists(), f"Test report missing: {report_path}"
+        assert design_path.exists(), f"Test design missing: {design_path}"
+
+        args = [
+            "--report", str(report_path),
+            "--exp_design", str(design_path),
+            "--qvalue_threshold", "0.01",
+        ]
+        result = run_cli_command("diann2msstats", args)
+        if result.exit_code != 0:
+            raise AssertionError(
+                f"diann2msstats with unified format failed (exit {result.exit_code}). "
+                f"stdout: {result.output!r}, stderr: {result.stderr!r}"
+            )
+
+    def test_unified_format_parsed_correctly(self):
+        """Test that the unified format produces the correct sample/file tables."""
+        from quantmsutils.diann.diann2msstats import get_exp_design_dfs
+
+        design_path = str((DIANN_TEST_DIR / "PXD026600_diann_design.tsv").resolve())
+        s_df, f_table = get_exp_design_dfs(design_path)
+
+        # Sample table has correct columns and 2 unique samples
+        assert "MSstats_Condition" in s_df.columns
+        assert "MSstats_BioReplicate" in s_df.columns
+        assert len(s_df) == 2
+
+        # File table has 4 rows with run names
+        assert "run" in f_table.columns
+        assert "Fraction" in f_table.columns
+        assert "Sample" in f_table.columns
+        assert len(f_table) == 4
+
+        # Run names are file stems without extension
+        runs = f_table["run"].tolist()
+        assert "RD139_Narrow_UPS1_0_1fmol_inj1" in runs
+        assert "RD139_Narrow_UPS1_0_25fmol_inj2" in runs
+
+    def test_legacy_format_still_works(self):
+        """Test that the legacy two-table format is still parsed correctly."""
+        from quantmsutils.diann.diann2msstats import get_exp_design_dfs
+
+        design_path = str((DIANN_TEST_DIR / "PXD026600.sdrf_openms_design.tsv").resolve())
+        s_df, f_table = get_exp_design_dfs(design_path)
+
+        assert "MSstats_Condition" in s_df.columns
+        assert "MSstats_BioReplicate" in s_df.columns
+        assert len(s_df) == 2
+        assert "run" in f_table.columns
+        assert len(f_table) == 4
+
+    def test_unified_format_validates_required_columns(self):
+        """Test that missing required columns in unified format raise ValueError."""
+        from quantmsutils.diann.diann2msstats import get_exp_design_dfs
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            bad_file = os.path.join(tmpdir, "bad_design.tsv")
+            with open(bad_file, "w") as f:
+                # Has Filename+Condition+BioReplicate (triggers unified) but missing Fraction and Sample
+                f.write("Filename\tCondition\tBioReplicate\n")
+                f.write("file1.raw\tA\t1\n")
+            with pytest.raises(ValueError, match="missing required columns"):
+                get_exp_design_dfs(bad_file)
+
+    def test_unified_format_validates_sample_consistency(self):
+        """Test that inconsistent Sample->Condition mapping raises ValueError."""
+        from quantmsutils.diann.diann2msstats import get_exp_design_dfs
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            bad_file = os.path.join(tmpdir, "inconsistent_design.tsv")
+            with open(bad_file, "w") as f:
+                f.write("Filename\tSample\tFraction\tCondition\tBioReplicate\n")
+                f.write("file1.raw\t1\t1\tCondA\t1\n")
+                f.write("file2.raw\t1\t1\tCondB\t2\n")  # Same Sample, different Condition
+            with pytest.raises(ValueError, match="Inconsistent"):
+                get_exp_design_dfs(bad_file)
 
 
 class TestExtractSampleMixture:
