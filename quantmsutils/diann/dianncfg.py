@@ -9,7 +9,7 @@ import re
 from typing import List, Tuple
 from collections import defaultdict
 import click
-from sdrf_pipelines.openms.unimod import UnimodDatabase
+from sdrf_pipelines.converters.openms.unimod import UnimodDatabase
 
 logging.basicConfig(format="%(asctime)s [%(funcName)s] - %(message)s", level=logging.DEBUG)
 logger = logging.getLogger(__name__)
