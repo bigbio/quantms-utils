@@ -107,15 +107,48 @@ class TestDiannCommands:
 class TestSamplesheetCommands:
     """Test class for samplesheet related commands"""
 
-    def test_check_samplesheet_sdrf_skip_validation(self):
-        """Test the SDRF check command with skip_sdrf_validation (smoke test)."""
+    def test_check_samplesheet_minimal_pxd000001(self):
+        """Test minimal validation on PXD000001 (legacy SDRF without acquisition method)."""
+        # PXD000001 is a TMT dataset without comment[proteomics data acquisition method]
+        # Minimal validation should flag it as missing a required column
         args = [
-            "--skip_sdrf_validation",
+            "--minimal",
             "--exp_design",
             str(TEST_DATA_DIR / "PXD000001.sdrf.tsv"),
         ]
         result = run_cli_command("checksamplesheet", args)
+        assert result.exit_code != 0
+        assert "proteomics data acquisition method" in result.output.lower()
+
+    def test_check_samplesheet_minimal_valid(self):
+        """Test minimal validation passes for a valid SDRF with all required columns."""
+        import tempfile
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".sdrf.tsv", delete=False) as f:
+            f.write("source name\tassay name\tcomment[data file]\tcomment[label]\t"
+                    "comment[instrument]\tcomment[proteomics data acquisition method]\t"
+                    "technology type\tcomment[cleavage agent details]\t"
+                    "comment[modification parameters]\n")
+            f.write("S1\trun1\tfile1.raw\tlabel free sample\tOrbitrap\t"
+                    "Data-Independent Acquisition\tMS\tTrypsin\tOxidation\n")
+            tmp_path = f.name
+        args = ["--minimal", "--exp_design", tmp_path]
+        result = run_cli_command("checksamplesheet", args)
         assert result.exit_code == 0
+
+    def test_check_samplesheet_minimal_missing_column(self):
+        """Test minimal validation fails when a required column is missing."""
+        import tempfile
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".sdrf.tsv", delete=False) as f:
+            # Missing comment[cleavage agent details]
+            f.write("source name\tassay name\tcomment[data file]\tcomment[label]\t"
+                    "comment[instrument]\tcomment[proteomics data acquisition method]\t"
+                    "technology type\tcomment[modification parameters]\n")
+            f.write("S1\trun1\tfile1.raw\tlabel free sample\tOrbitrap\tDIA\tMS\tOxidation\n")
+            f.name
+        args = ["--minimal", "--exp_design", f.name]
+        result = run_cli_command("checksamplesheet", args)
+        assert result.exit_code != 0
+        assert "cleavage agent" in result.output.lower()
 
     def test_extract_sample_from_expdesign(self):
         """Test extracting sample information from experiment design"""
