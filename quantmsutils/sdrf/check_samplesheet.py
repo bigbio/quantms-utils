@@ -22,11 +22,6 @@ MINIMAL_REQUIRED_COLUMNS = [
     "technology type",
 ]
 
-# Columns with at least one modification parameters column (pattern match)
-MINIMAL_PATTERN_COLUMNS = [
-    "comment[modification parameters",  # prefix match — multiple columns allowed
-]
-
 # Recommended columns: warn if missing but don't fail
 MINIMAL_RECOMMENDED_COLUMNS = [
     "comment[precursor mass tolerance]",
@@ -72,9 +67,15 @@ def _validate_minimal(input_sdrf: str) -> list[str]:
     Returns a list of error strings. Only missing required columns
     produce errors; missing recommended columns produce warnings (non-blocking).
     """
-    df = pd.read_csv(input_sdrf, sep="\t", nrows=0)
-    columns_lower = [c.lower() for c in df.columns]
+    df_header = pd.read_csv(input_sdrf, sep="\t", nrows=0)
+    columns_lower = [c.lower() for c in df_header.columns]
     errors = []
+
+    # Reject header-only files
+    df_rows = pd.read_csv(input_sdrf, sep="\t", nrows=1)
+    if len(df_rows) == 0:
+        errors.append("ERROR: SDRF file contains a header but no data rows.")
+        return errors
 
     # Check required columns (case-insensitive)
     for col in MINIMAL_REQUIRED_COLUMNS:
