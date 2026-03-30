@@ -19,12 +19,11 @@ requirements:
   host:
     - python
     - pip
-    - poetry-core >=1.2.0
-
+    - hatchling
   run:
     - python >=3.9,<3.13
     - click
-    - sdrf-pipelines >=0.1.1
+    - sdrf-pipelines >=0.1.2
     - pyopenms>=3.3.0
     - pandas
     - pyarrow>=16.1.0
