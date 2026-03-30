@@ -1,7 +1,7 @@
 # recipe/meta.yaml
 package:
   name: quantms-utils
-  version: "0.0.26"
+  version: "0.0.27"
 
 source:
   path: ../
@@ -20,6 +20,7 @@ requirements:
     - python
     - pip
     - hatchling
+    - hatch-vcs
   run:
     - python >=3.9,<3.13
     - click
