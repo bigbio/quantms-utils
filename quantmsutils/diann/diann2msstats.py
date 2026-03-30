@@ -109,7 +109,10 @@ def diann2msstats(
 
 def _true_stem(x):
     """Return the file name stem (without extension)."""
-    return Path(x).stem
+    if x.endswith(".d.zip"):
+        return Path(Path(x).stem).stem
+    else:
+        return Path(x).stem
 
 
 def get_exp_design_dfs(exp_design_file):
