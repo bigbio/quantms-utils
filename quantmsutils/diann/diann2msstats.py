@@ -188,7 +188,7 @@ def _parse_unified_design(exp_design_file):
                 "SILAC heavy": "H",
             }
             df["Label"] = df["Label"].replace(silac_dict)
-        
+
         f_table = df[["Filename", "Fraction", "Sample", "run", "Label"]].copy()
     else:
         f_table = df[["Filename", "Fraction", "Sample", "run"]].copy()
