@@ -11,6 +11,7 @@ from pathlib import Path
 
 import click
 import pandas as pd
+import pyarrow.parquet as pq
 from pyopenms import AASequence
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
@@ -49,21 +50,29 @@ def diann2msstats(
         "Run",
     ]
 
-    logger.debug("Converting to MSstats format...")
-    if "Decoy" in report.columns:
-        out_msstats = report[report["Decoy"] != 1][msstats_columns_keep].copy()
-    else:
-        out_msstats = report[msstats_columns_keep].copy()
-
-    out_msstats.columns = [
+    out_msstats_columns = [
         "ProteinName",
         "PeptideSequence",
         "PrecursorCharge",
         "Intensity",
         "Run",
     ]
+
+    if "Channel" in report.columns and report["Channel"].nunique() > 1:
+        logger.info("Multiplexing detected. Applying label mapping...")
+        msstats_columns_keep.append("Channel")
+        out_msstats_columns.append("IsotopeLabelType")
+
+    logger.debug("Converting to MSstats format...")
+    if "Decoy" in report.columns:
+        out_msstats = report[report["Decoy"] != 1][msstats_columns_keep].copy()
+    else:
+        out_msstats = report[msstats_columns_keep].copy()
+
+    out_msstats.columns = out_msstats_columns
     out_msstats = out_msstats[out_msstats["Intensity"] != 0]
 
+    out_msstats["PeptideSequence"] = out_msstats["PeptideSequence"].apply(_sanitize_sequence)
     out_msstats.loc[:, "PeptideSequence"] = out_msstats.apply(
         lambda x: (
             AASequence.fromString(x["PeptideSequence"]).toString()
@@ -74,24 +83,38 @@ def diann2msstats(
     )
     out_msstats["FragmentIon"] = "NA"
     out_msstats["ProductCharge"] = "0"
-    out_msstats["IsotopeLabelType"] = "L"
+
+    if "IsotopeLabelType" in out_msstats.columns:
+        out_msstats = out_msstats[out_msstats["IsotopeLabelType"].notna()]
+        out_msstats = out_msstats[out_msstats["IsotopeLabelType"].str.strip() != ""]
+
+        # is multiplexing
+        f_table_cols = ["Fraction", "Sample", "run", "Label"]
+        merge_keys = ["Run", "IsotopeLabelType"]
+    else:
+        out_msstats["IsotopeLabelType"] = "L"
+
+        f_table_cols = ["Fraction", "Sample", "run"]
+        merge_keys = ["Run"]
 
     logger.debug(f"out_msstats ({out_msstats.shape}) >>>")
     logger.debug("Adding Fraction, BioReplicate, Condition columns")
 
     design_lookup = (
         s_data_frame[["Sample", "MSstats_Condition", "MSstats_BioReplicate"]]
-        .merge(f_table[["Fraction", "Sample", "run"]], on="Sample")
+        .merge(f_table[f_table_cols], on="Sample")
         .rename(
             columns={
                 "run": "Run",
                 "MSstats_BioReplicate": "BioReplicate",
                 "MSstats_Condition": "Condition",
-            }
+                "Label": "IsotopeLabelType",
+            },
+            errors="ignore"
         )
         .drop(columns=["Sample"])
     )
-    out_msstats = out_msstats.merge(design_lookup, on="Run", how="left", validate="many_to_one")
+    out_msstats = out_msstats.merge(design_lookup, on=merge_keys, how="left", validate="many_to_one")
 
     unmatched = out_msstats["BioReplicate"].isna()
     if unmatched.any():
@@ -142,7 +165,10 @@ def _parse_unified_design(exp_design_file):
     df = pd.read_csv(exp_design_file, sep="\t")
 
     # Validate required columns
-    required_cols = {"Filename", "Fraction", "Sample", "Condition", "BioReplicate"}
+    required_cols = {
+        "Filename", "Fraction", "Sample", "Condition", "BioReplicate", "Label", "LabelType"
+    }
+
     missing = required_cols - set(df.columns)
     if missing:
         raise ValueError(
@@ -152,8 +178,20 @@ def _parse_unified_design(exp_design_file):
 
     df["run"] = df["Filename"].apply(_true_stem)
 
-    # Build f_table (file table): one row per file/channel
-    f_table = df[["Filename", "Fraction", "Sample", "run"]].copy()
+    # Multiplexing
+    if df["Label"].nunique() > 1:
+
+        if "silac" in df["LabelType"].values:
+            silac_dict = {
+                "SILAC light": "L",
+                "SILAC medium": "M",
+                "SILAC heavy": "H",
+            }
+            df["Label"] = df["Label"].replace(silac_dict)
+
+        f_table = df[["Filename", "Fraction", "Sample", "run", "Label"]].copy()
+    else:
+        f_table = df[["Filename", "Fraction", "Sample", "run"]].copy()
 
     # Validate each Sample maps to exactly one (Condition, BioReplicate) pair
     unique_mapping = df[["Sample", "Condition", "BioReplicate"]].drop_duplicates()
@@ -205,8 +243,8 @@ def load_report(report_path, qvalue_threshold: float) -> pd.DataFrame:
         "Q.Value",
     ]
     if path.suffix == ".parquet":
-        pq_columns = pd.read_parquet(path, columns=[]).columns.tolist()
-        use_cols = remain_cols + (["Decoy"] if "Decoy" in pq_columns else [])
+        pq_schema = pq.read_schema(path)
+        use_cols = remain_cols + [col for col in ["Decoy", "Channel"] if col in pq_schema.names]
         report = pd.read_parquet(path, columns=use_cols)
     else:
         tsv_header = pd.read_csv(path, sep="\t", header=0, nrows=0).columns.tolist()
@@ -215,3 +253,8 @@ def load_report(report_path, qvalue_threshold: float) -> pd.DataFrame:
 
     report = report[report["Q.Value"] < qvalue_threshold]
     return report
+
+
+def _sanitize_sequence(seq):
+    seq = seq.replace("(SILAC)", "")
+    return seq
