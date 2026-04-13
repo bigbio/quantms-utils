@@ -14,7 +14,10 @@ keywords = [
     "proteomics",
     "mass-spectrometry",
     "data-analysis",
-    "big data"
+    "big data",
+    "sdrf",
+    "sample-metadata",
+    "proteomics-pipeline"
 ]
 classifiers = [
     "Intended Audience :: Science/Research",
@@ -34,10 +37,11 @@ dependencies = [
 ]
 
 [project.urls]
+Homepage = "https://quantms.org"
+Documentation = "https://docs.quantms.org"
 GitHub = "https://github.com/bigbio/quantms-utils"
-PyPi = "https://pypi.org/project/quantms-utils/"
-Quantms = "https://quantms.org"
-LICENSE = "https://github.com/bigbio/quantms-utils/blob/main/LICENSE"
+"Bug Tracker" = "https://github.com/bigbio/quantms-utils/issues"
+PyPI = "https://pypi.org/project/quantms-utils/"
 
 [project.scripts]
 quantmsutilsc = "quantmsutils.quantmsutilsc:main"
