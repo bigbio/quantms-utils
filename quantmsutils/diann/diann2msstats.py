@@ -189,7 +189,7 @@ def _parse_unified_design(exp_design_file):
                 "SILAC heavy": "H",
             }
             df["Label"] = df["Label"].replace(silac_dict)
-        
+
         if labels_lower.str.contains("mtraq").any():
             mtraq_dict = {
                 "MTRAQ0": "0",
