@@ -378,9 +378,9 @@ class TestDiannUnifiedDesign:
         with tempfile.TemporaryDirectory() as tmpdir:
             bad_file = os.path.join(tmpdir, "inconsistent_design.tsv")
             with open(bad_file, "w") as f:
-                f.write("Filename\tSample\tFraction\tCondition\tBioReplicate\n")
-                f.write("file1.raw\t1\t1\tCondA\t1\n")
-                f.write("file2.raw\t1\t1\tCondB\t2\n")  # Same Sample, different Condition
+                f.write("Filename\tSample\tFraction\tCondition\tBioReplicate\tLabel\tLabelType\n")
+                f.write("file1.raw\t1\t1\tCondA\t1\tlabel free sample\tlabel free\n")
+                f.write("file2.raw\t1\t1\tCondB\t2\tlabel free sample\tlabel free\n")  # Same Sample, different Condition
             with pytest.raises(ValueError, match="Inconsistent"):
                 get_exp_design_dfs(bad_file)
 
