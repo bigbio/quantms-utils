@@ -166,7 +166,7 @@ def _parse_unified_design(exp_design_file):
 
     # Validate required columns
     required_cols = {
-        "Filename", "Fraction", "Sample", "Condition", "BioReplicate", "Label", "LabelType"
+        "Filename", "Fraction", "Sample", "Condition", "BioReplicate"
     }
 
     missing = required_cols - set(df.columns)
@@ -179,15 +179,24 @@ def _parse_unified_design(exp_design_file):
     df["run"] = df["Filename"].apply(_true_stem)
 
     # Multiplexing
-    if df["Label"].nunique() > 1:
+    if "Label" in df.columns and df["Label"].nunique() > 1:
+        labels_lower = df["Label"].astype(str).str.lower()
 
-        if "silac" in df["LabelType"].values:
+        if labels_lower.str.contains("silac").any():
             silac_dict = {
                 "SILAC light": "L",
                 "SILAC medium": "M",
                 "SILAC heavy": "H",
             }
             df["Label"] = df["Label"].replace(silac_dict)
+
+        if labels_lower.str.contains("mtraq").any():
+            mtraq_dict = {
+                "MTRAQ0": "0",
+                "MTRAQ4": "4",
+                "MTRAQ8": "8",
+            }
+            df["Label"] = df["Label"].replace(mtraq_dict)
 
         f_table = df[["Filename", "Fraction", "Sample", "run", "Label"]].copy()
     else:
