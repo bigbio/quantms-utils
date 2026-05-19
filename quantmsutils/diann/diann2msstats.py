@@ -73,14 +73,8 @@ def diann2msstats(
     out_msstats = out_msstats[out_msstats["Intensity"] != 0]
 
     out_msstats["PeptideSequence"] = out_msstats["PeptideSequence"].apply(_sanitize_sequence)
-    out_msstats.loc[:, "PeptideSequence"] = out_msstats.apply(
-        lambda x: (
-            AASequence.fromString(x["PeptideSequence"]).toString()
-            if "^" not in x["PeptideSequence"]
-            else "^" + AASequence.fromString(x["PeptideSequence"].replace("^", "")).toString()
-        ),
-        axis=1,
-    )
+    seq_map = {s: _to_openms_sequence(s) for s in out_msstats["PeptideSequence"].unique()}
+    out_msstats["PeptideSequence"] = out_msstats["PeptideSequence"].map(seq_map)
     out_msstats["FragmentIon"] = "NA"
     out_msstats["ProductCharge"] = "0"
 
@@ -267,3 +261,31 @@ def load_report(report_path, qvalue_threshold: float) -> pd.DataFrame:
 def _sanitize_sequence(seq):
     seq = seq.replace("(SILAC)", "")
     return seq
+
+
+def _to_openms_sequence(seq: str) -> str:
+    """Canonicalize a DIA-NN peptide+mod string via pyopenms.
+
+    Preserves the leading ``^`` anchor used by DIA-NN to mark N-terminal
+    cleavage peptides. When pyopenms raises a ``RuntimeError`` — typically
+    because the runtime container ships pyopenms without the OpenMS share
+    directory (UniMod XML), leaving only a small set of common modifications
+    resolvable from the compiled-in fallback — the input is returned
+    unchanged so downstream conversion can proceed. A warning is logged
+    once per unique input string.
+    """
+    has_anchor = "^" in seq
+    body = seq.replace("^", "") if has_anchor else seq
+    try:
+        canonical = AASequence.fromString(body).toString()
+    except RuntimeError as err:
+        logger.warning(
+            "pyopenms could not parse peptide %r (%s); keeping the raw "
+            "DIA-NN sequence. If this affects many peptides, the runtime "
+            "container is likely missing the OpenMS share directory "
+            "(OPENMS_DATA_PATH).",
+            body,
+            err,
+        )
+        canonical = body
+    return ("^" + canonical) if has_anchor else canonical
