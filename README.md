@@ -26,6 +26,7 @@ The following functionalities are available in the package:
 
 - `openms2sample` - Extra sample information from OpenMS experimental design file. An example of OpenMS experimental design file is available [here](https://github.com/bigbio/quantms-utils/blob/dev/tests/test_data/BSA_design_urls.tsv).
 - `checksamplesheet` - Check the sample sheet for errors and inconsistencies. The experimental design coult be an OpenMS experimental design file or and SDRF file. 
+- `splitlfqgroups` - Split an LFQ run set into independent quantification groups by SDRF columns (`--column`, repeatable). It writes one SDRF and one OpenMS experimental design per group and the manifest `lfq_groups.tsv`. Every run is kept; a run assigned to two groups, a fractionated sample that crosses groups, or a run set that differs between the SDRF and the design is an error.
 
 ### Other scripts
 
