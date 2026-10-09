@@ -264,7 +264,8 @@ def _sanitize_sequence(seq):
 
 
 def _to_openms_sequence(seq: str) -> str:
-    """Canonicalize a DIA-NN peptide+mod string via pyopenms.
+    """
+    Canonicalize a DIA-NN peptide+mod string via pyopenms.
 
     Preserves the leading ``^`` anchor used by DIA-NN to mark N-terminal
     cleavage peptides. When pyopenms raises a ``RuntimeError`` — typically
