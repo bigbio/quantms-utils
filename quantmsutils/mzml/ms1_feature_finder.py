@@ -25,6 +25,8 @@ from quantmsutils.openms import extract_scan_id
 logging.basicConfig(format="%(asctime)s [%(funcName)s] - %(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+_PYOPENMS_VERSION = tuple(int(p) for p in oms.__version__.split(".")[:2])
+
 
 class MS1FeatureDetector:
     """
@@ -50,6 +52,21 @@ class MS1FeatureDetector:
         # Initialize options for file loading
         self.options = oms.PeakFileOptions()
         self.options.setMSLevels([self.ms_level])
+
+    @staticmethod
+    def _pick_experiment(
+        picker: oms.PeakPickerHiRes, experiment: oms.MSExperiment
+    ) -> oms.MSExperiment:
+        """Centroid an experiment, supporting both pyopenms peak-picker APIs.
+
+        pyopenms >= 3.6 returns the picked experiment; older versions fill an
+        output experiment passed by reference.
+        """
+        if _PYOPENMS_VERSION >= (3, 6):
+            return picker.pickExperiment(experiment, False)
+        picked = oms.MSExperiment()
+        picker.pickExperiment(experiment, picked, False)
+        return picked
 
     def _calc_tic(self, experiment: oms.MSExperiment) -> float:
         """
@@ -249,12 +266,9 @@ class MS1FeatureDetector:
             experiment = oms.MSExperiment()
             picker = oms.PeakPickerHiRes()
 
-            filtered_experiment = oms.MSExperiment()
-
             file_handler.setOptions(self.options)
             file_handler.load(str(input_path), experiment)
-            picker.pickExperiment(experiment, filtered_experiment, False)
-            experiment = filtered_experiment
+            experiment = self._pick_experiment(picker, experiment)
 
             filtered_experiment = oms.MSExperiment()
             for spec in experiment:

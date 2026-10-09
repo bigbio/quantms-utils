@@ -103,9 +103,11 @@ def convert_psm(
     else:
         search_engines = [prot_ids[0].getSearchEngine()]
 
-    reference_file_name = os.path.splitext(
-        prot_ids[0].getMetaValue("spectra_data")[0].decode("UTF-8")
-    )[0]
+    spectra_data = prot_ids[0].getMetaValue("spectra_data")[0]
+    # pyopenms < 3.6 returns bytes here, >= 3.6 returns str
+    if isinstance(spectra_data, bytes):
+        spectra_data = spectra_data.decode("UTF-8")
+    reference_file_name = os.path.splitext(spectra_data)[0]
     spectra_df = pd.read_parquet(ms2_file) if ms2_file else None
 
     if spectra_df is not None:
