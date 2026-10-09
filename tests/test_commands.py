@@ -103,6 +103,35 @@ class TestDiannCommands:
 
         assert result.exit_code == 0
 
+    def test_to_openms_sequence_falls_back_on_unknown_mod(self):
+        """Unknown modifications should not crash the conversion.
+
+        The runtime container may ship pyopenms without the OpenMS share
+        directory, leaving only common mods resolvable. In that case we
+        keep the raw DIA-NN sequence so downstream MSstats conversion can
+        proceed instead of crashing with a RuntimeError.
+        """
+        from quantmsutils.diann.diann2msstats import _to_openms_sequence
+
+        bogus = "M(NoSuchModXYZ)PEPTIDE"
+        assert _to_openms_sequence(bogus) == bogus
+
+    def test_to_openms_sequence_preserves_n_term_anchor(self):
+        """The leading ``^`` anchor used by DIA-NN for N-terminal cleavage
+        peptides must survive both the pyopenms round-trip and the
+        fallback path.
+        """
+        from quantmsutils.diann.diann2msstats import _to_openms_sequence
+
+        # known mod -> canonical form retains anchor
+        anchored = "^M(Oxidation)PEPTIDE"
+        out = _to_openms_sequence(anchored)
+        assert out.startswith("^")
+
+        # unknown mod -> raw passthrough retains anchor
+        bogus_anchored = "^M(NoSuchModXYZ)PEPTIDE"
+        assert _to_openms_sequence(bogus_anchored) == bogus_anchored
+
 
 class TestSamplesheetCommands:
     """Test class for samplesheet related commands"""
